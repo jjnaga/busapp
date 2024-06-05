@@ -1,0 +1,24 @@
+services:
+  # api_poll_service:
+  #   build:
+  #     context: ./services
+  #   volumes:
+  #     - .:/app
+  #   environment:
+  #     - NODE_ENV=development
+  #   command: npx nodemon index.js
+  #   depends_on:
+  #     - redis
+  #     - postgres
+  redis:
+    image: 'redis:7.2.5'
+    ports:
+      - 6379:6379
+  postgres:
+    image: 'postgres:16.3'
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=thebus
