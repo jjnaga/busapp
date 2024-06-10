@@ -1,5 +1,5 @@
 import { Vehicle } from '@typeorm/entities/Vehicle';
-import { BULL_JOB_RESULT, VehicleApi } from 'utils/types';
+import { BULL_JOB_RESULT, VehicleApi } from '@utils/types';
 import { parseStringPromise } from 'xml2js';
 import { DateTime } from 'luxon';
 import { AppDataSource } from '@typeorm/typeorm';

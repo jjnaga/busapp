@@ -1,15 +1,9 @@
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
-import { Vehicle } from 'typeorm/entities/Vehicle';
+import { Vehicle } from '@typeorm/entities/Vehicle';
 
 function validateEnv() {
-  const requiredEnvVars = [
-    'DB_HOST',
-    'DB_PORT',
-    'DB_USERNAME',
-    'DB_PASSWORD',
-    'DB_DATABASE',
-  ];
+  const requiredEnvVars = ['DB_HOST', 'DB_PORT', 'DB_DATABASE'];
 
   requiredEnvVars.forEach((varName) => {
     if (!process.env[varName]) {

@@ -1,5 +1,5 @@
 import { Job, Worker } from 'bullmq';
-import { fetchAndEtlData } from 'jobs/busApiFetch';
+import { fetchAndEtlData } from '@jobs/busApiFetch';
 import { BULL_JOB_RESULT } from './types';
 
 let worker;

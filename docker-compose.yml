@@ -2,12 +2,8 @@ services:
   service:
     build:
       context: ./services
-      dockerfile: Dockerfile.dev
     environment:
       - NODE_ENV=production
-    volumes:
-      - ./services:/app
-      - /app/node_modules
     depends_on:
       postgres:
         condition: service_healthy
@@ -19,9 +15,9 @@ services:
     image: 'postgres:16.3'
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready']
-      interval: 3s
-      timeout: 1s
-      retries: 10
+      interval: 10s
+      timeout: 5s
+      retries: 5
     environment:
       - POSTGRES_DB=thebus
       - POSTGRES_USER=admin

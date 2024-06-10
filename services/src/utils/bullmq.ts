@@ -1,4 +1,4 @@
-import { Queue } from 'bullmq';
+import { JobsOptions, Queue } from 'bullmq';
 
 let dataQueue: Queue;
 
@@ -28,8 +28,8 @@ try {
   console.log(`Creating queue (${queueName}) at ${host}:${port}`);
   dataQueue = new Queue(queueName, {
     connection: {
-      host: '127.0.0.1',
-      port: 6379,
+      host: process.env.BULL_HOST,
+      port: Number(process.env.BULL_PORT),
     },
   });
 
@@ -39,11 +39,15 @@ try {
   process.exit(1);
 }
 
-export const addJob = async (jobName: string, jobData: object = {}) => {
-  console.log(`Adding job '${jobName}'.`);
+export const addJob = async (
+  jobName: string,
+  jobData: object = {},
+  options: JobsOptions = {}
+) => {
+  console.log(`Adding job '${jobName}'. Options: `, options);
 
   try {
-    await dataQueue.add(jobName, jobData);
+    await dataQueue.add(jobName, jobData, options);
   } catch (err) {
     console.error('Unable to add job to the queue: ', err);
   }
