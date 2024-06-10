@@ -48,6 +48,7 @@ export const addJob = async (
 
   try {
     await dataQueue.add(jobName, jobData, options);
+    console.log(`Adding job '${jobName}': Added `);
   } catch (err) {
     console.error('Unable to add job to the queue: ', err);
   }

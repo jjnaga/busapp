@@ -25,9 +25,11 @@ import { AppDataSource } from '@typeorm/typeorm';
     {},
     {
       repeat: {
-        // every: 5 * 60 * 1000, // 3 minutes in milliseconds
         every: 10 * 60 * 1000, // 10 minutes in milliseconds
       },
     }
   );
+
+  // Run it once at the start.
+  await addJob('fetch-vehicles');
 })();
