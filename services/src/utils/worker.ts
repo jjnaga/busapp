@@ -78,4 +78,6 @@ worker.on('failed', (job, err) => {
   console.error(`[$${job?.id}] Failed. Error: ${err.message}`);
 });
 
-console.log('Worker started.');
+worker.on('ready', () => {
+  console.log('Worker is ready.');
+});

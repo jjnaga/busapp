@@ -133,36 +133,36 @@ const cleanDuplicateBusNumbers = (vehicles: VehicleApi[]): VehicleApi[] => {
 
   // Loop over all bus numbers with duplicates. Figure out which bus number object is the most recent. Add the
   // indexes of the older objects to indexesToRemove for filtering. Note there may be objects that are the same,
-  // but with different trip IDs. If this is the case, then keep the first found object, but append all the trip IDs.
+  // but with different trip IDs. If this is the case, then keep the first found object and append all the trip IDs.
   duplicateIndexes.forEach(({ indexes }) => {
-    let i = 0;
+    let mostRecentVehicleIndex = 0;
     let mostRecentIndexes = [indexes[0]];
     let badIndexes = [];
 
     // Loop over all the indexes for the duplicate vehicles and determine which data is the most recent.
-    indexes.forEach((index, iteration) => {
-      if (iteration === 0) {
+    indexes.forEach((vehicleIndex, i) => {
+      if (i === 0) {
         return;
       }
 
       const mostRecentTime = DateTime.fromFormat(
-        vehicles[indexes[i]].last_message,
+        vehicles[indexes[mostRecentVehicleIndex]].last_message,
         'M/d/yyyy h:mm:ss a'
       );
 
       const time = DateTime.fromFormat(
-        vehicles[index].last_message,
+        vehicles[vehicleIndex].last_message,
         'M/d/yyyy h:mm:ss a'
       );
 
       if (mostRecentTime.equals(time)) {
-        mostRecentIndexes.push(index);
+        mostRecentIndexes.push(vehicleIndex);
       } else if (time > mostRecentTime) {
-        i = index;
+        mostRecentVehicleIndex = i;
         badIndexes = mostRecentIndexes;
-        mostRecentIndexes = [index];
+        mostRecentIndexes = [vehicleIndex];
       } else {
-        badIndexes.push(index);
+        badIndexes.push(vehicleIndex);
         return;
       }
     });
@@ -170,18 +170,21 @@ const cleanDuplicateBusNumbers = (vehicles: VehicleApi[]): VehicleApi[] => {
     // Mark older timestamps for deletion. If multiple objects with the same timestamp, then append all the trip IDs
     // into one, store that in the first found object, and mark the other objects for deletion.
     if (mostRecentIndexes.length > 1) {
+      // Remove buses that have the same time, but store their trip IDs.
       const trips = mostRecentIndexes
         .map((index) => vehicles[index].trip)
         .join(', ');
 
       cleanVehicles[mostRecentIndexes[0]].trip = trips;
 
+      // Mark the other objects for deletion.
       for (let i = 1; i < mostRecentIndexes.length; i++) {
         indexesToRemove.push(mostRecentIndexes[i]);
       }
-    } else {
-      indexesToRemove.push(...badIndexes);
     }
+
+    // Mark older timestamps for deletion.
+    badIndexes && indexesToRemove.push(...badIndexes);
   });
 
   // Remove all the indexes that are bad and return
@@ -196,8 +199,10 @@ export const fetchAndEtlData = async (): Promise<BULL_JOB_RESULT> => {
   };
 
   try {
-    const xml = cleanBusXml(await fetchVehicleDataAsXml());
-    const json = cleanDuplicateBusNumbers(await parseXmlToJson(xml));
+    const dirtyXml = await fetchVehicleDataAsXml();
+    const xml = cleanBusXml(dirtyXml);
+    const dirtyJson = await parseXmlToJson(xml);
+    const json = cleanDuplicateBusNumbers(dirtyJson);
 
     const vehicleEntities = transformToVehicleEntities(json);
     const insertResult = await saveVehicleEntities(vehicleEntities);
