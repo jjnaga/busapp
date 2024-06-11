@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "paths": {
+      "@controllers/*": ["./src/controllers/*"],
+      "@logic/*": ["./src/logic/*"],
+      "@routes/*": ["./src/routes/*"],
+      "@typeorm/*": ["./src/utils/typeorm/*"]
+    },
+    "strict": true,
+    "strictPropertyInitialization": false, // typeorm does not need initilization for
+    "experimentalDecorators": true, // typeorm enable decorators
+    "target": "ES2020",
+    "module": "CommonJS",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "outDir": "./build"
+    // "skipLibCheck": false
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"]
+}
