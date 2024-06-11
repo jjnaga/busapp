@@ -21,6 +21,6 @@ import vehiclesRoutes from '@routes/vehiclesRoutes';
 
   // Listen
   app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
+    console.log(`Express is running on http://${process.env.DB_HOST}:${process.env.DB_PORT}`);
   });
 })();
