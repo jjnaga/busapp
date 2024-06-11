@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "paths": {
+      "@controllers/*": ["./src/controllers/*"],
+      "@logic/*": ["./src/logic/*"],
+      "@routes/*": ["./src/routes/*"]
+    },
+    "strict": true,
+    "target": "ES2020",
+    "module": "CommonJS",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true
+    // "skipLibCheck": false
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"]
+}
