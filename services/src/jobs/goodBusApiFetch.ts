@@ -111,12 +111,12 @@ const cleanDuplicateBusNumbers = (vehicles: VehicleApi[]): VehicleApi[] => {
     const busNumber = vehicle.number;
 
     if (typeof busNumber !== 'undefined' && busNumber != '') {
-      if (vehicleCount[busNumber]) {
-        vehicleCount[busNumber] += 1;
-        vehicleIndexes[busNumber].push(index);
+      if (vehicleCount.busNumber) {
+        vehicleCount.busNumber += 1;
+        vehicleIndexes.busNumber.push(index);
       } else {
-        vehicleCount[busNumber] = 1;
-        vehicleIndexes[busNumber] = [index];
+        vehicleCount.busNumber = 1;
+        vehicleIndexes.busNumber = [index];
       }
     } else {
       console.log(vehicle);
@@ -126,7 +126,7 @@ const cleanDuplicateBusNumbers = (vehicles: VehicleApi[]): VehicleApi[] => {
 
   // Get the busNumbers that have multiple records.
   const duplicates = Object.keys(vehicleCount).filter(
-    (busNumber) => vehicleCount[busNumber] > 1
+    () => vehicleCount.busNumber > 1
   );
 
   // Knowing the duplicates, get the indexes of these buses.
@@ -138,7 +138,7 @@ const cleanDuplicateBusNumbers = (vehicles: VehicleApi[]): VehicleApi[] => {
   // Loop over all bus numbers with duplicates. Figure out which bus number object is the most recent. Add the
   // indexes of the older objects to indexesToRemove for filtering. Note there may be objects that are the same,
   // but with different trip IDs. If this is the case, then keep the first found object and append all the trip IDs.
-  duplicateIndexes.forEach(({ indexes }) => {
+  duplicateIndexes.forEach(({ busNumber, indexes }) => {
     let mostRecentVehicleIndex = 0;
     let mostRecentIndexes = [indexes[0]];
     let badIndexes: number[] = [];
@@ -181,16 +181,19 @@ const cleanDuplicateBusNumbers = (vehicles: VehicleApi[]): VehicleApi[] => {
 
       cleanVehicles[mostRecentIndexes[0]].trip = trips;
 
+      console.log(busNumber, ' mostRecentIndexes: ', mostRecentIndexes);
       // Mark the other objects for deletion.
       for (let i = 1; i < mostRecentIndexes.length; i++) {
         indexesToRemove.push(mostRecentIndexes[i]);
       }
     }
 
+    console.log(busNumber, ' idnextoremove: ', indexesToRemove);
     // Mark older timestamps for deletion.
     badIndexes && indexesToRemove.push(...badIndexes);
   });
 
+  console.log('wtf is indexes to remove here ', indexesToRemove.length);
   // Remove all the indexes that are bad and return
   return cleanVehicles.filter((_, index) => !indexesToRemove.includes(index));
 };

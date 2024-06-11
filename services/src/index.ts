@@ -29,4 +29,6 @@ import { AppDataSource } from '@typeorm/typeorm';
       },
     }
   );
+
+  await addJob('fetch-vehicles');
 })();

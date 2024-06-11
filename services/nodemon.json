@@ -8,5 +8,5 @@
     "*.xml",
     "*.json"
   ],
-  "exec": "ts-node -r tsconfig-paths/register -r dotenv/config src/index.ts"
+  "exec": "ts-node -r tsconfig-paths/register -r dotenv/config src/index.ts --inspect=0.0.0.0:9229"
 }

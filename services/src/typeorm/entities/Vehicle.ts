@@ -1,3 +1,7 @@
+// @ts-nocheck
+// jjn 6/10/24 typeorm is doing something special with these decoraters that TS either can't support yet
+// or its experimental or something. The fix I see online of setting strictPropertyInitialization to false
+// will cause more issues then just ignoring this file for now.
 import { Entity, Column, PrimaryColumn } from 'typeorm';
 
 @Entity('vehicles')

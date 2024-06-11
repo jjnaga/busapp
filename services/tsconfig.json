@@ -9,7 +9,7 @@
     "target": "es5",
     "module": "commonjs",
     "moduleResolution": "node",
-    // "strict": true,
+    "strict": true,
     "outDir": "./build",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,

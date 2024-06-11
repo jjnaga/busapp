@@ -17,8 +17,9 @@ There are three main components: frontend, backend, and services.
 ## Steps to Get Started
 
 1. Clone the repository.
-2. Enter your API key in the `services/.env` file for the services component (TheBus API key). You can obtain the API key from [TheBus API Info](https://hea.thebus.org/api_info.asp).
-3. Run the following command to start the development environment:
+2. Rename the `services/.env.example` file to `services/.env`.
+3. Enter your API key in the `services/.env` file for the services component (TheBus API key). You can obtain the API key from [TheBus API Info](https://hea.thebus.org/api_info.asp).
+4. Run the following command to start the development environment:
     ```bash
     docker-compose up -f docker-compose.dev.yml
     ```
