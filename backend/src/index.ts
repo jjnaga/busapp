@@ -9,17 +9,18 @@ import vehiclesRoutes from '@routes/vehiclesRoutes';
   await AppDataSource.initialize();
 
   // Initialize Express
-const app = express();
-const port = process.env.EXPRESS_PORT || 3000;
+  const app = express();
+  const port = process.env.EXPRESS_PORT || 3000;
 
   // Express Logging
-app.use(morgan('combined'));
+  app.use(morgan('combined'));
 
   // Setup routes
-app.use('/hello', helloRoutes);
+  app.use('/hello', helloRoutes);
+  app.use('/vehicles', vehiclesRoutes);
 
   // Listen
-app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
-});
+  app.listen(port, () => {
+    console.log(`Server is running on http://localhost:${port}`);
+  });
 })();
