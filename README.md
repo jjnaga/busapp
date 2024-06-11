@@ -6,7 +6,7 @@ There are three main components: frontend, backend, and services.
 
 ### Frontend
 - Angular
-- REST
+- Query backend with WebSockets
 
 ### Backend
 - Express with Websockets
