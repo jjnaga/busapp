@@ -1,12 +1,26 @@
 services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - ./backend:/app
+      - /app/node_modules/
+    ports:
+      - 3000:3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
   service:
     build:
       context: ./services
       dockerfile: Dockerfile.dev
     environment:
       - NODE_ENV=development
-    ports:
-      - '9229:9229' # Debug Port
     volumes:
       - /app/node_modules
       - ./services:/app
