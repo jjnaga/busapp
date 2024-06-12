@@ -1,3 +1,14 @@
 <header>
-  <span>Nagahama</span>
+  <div class="flex bg-slate-200">
+    <div id="logo" class="m-3">
+      <div id="logo_inner"><span class="text-3xl font-bold underline">Bus App</span></div>
+    </div>
+    <div id="links" class="flex items-center">
+      <ul class="flex">
+        <li *ngFor="let link of links" class="p-3">
+          <a [routerLink]="link.path"><span class="text-2xl underline hover:text-blue-400">{{link.label}}</span></a>
+        </li>
+      </ul>
+    </div>
+  </div>
 </header>
