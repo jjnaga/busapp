@@ -4,7 +4,8 @@
       "@controllers/*": ["./src/controllers/*"],
       "@logic/*": ["./src/logic/*"],
       "@routes/*": ["./src/routes/*"],
-      "@typeorm/*": ["./src/utils/typeorm/*"]
+      "@typeorm/*": ["./src/utils/typeorm/*"],
+      "@utils/*": ["./src/utils/*"]
     },
     "strict": true,
     "strictPropertyInitialization": false, // typeorm does not need initilization for

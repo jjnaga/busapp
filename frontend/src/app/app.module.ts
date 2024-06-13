@@ -4,6 +4,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { AppRoutingModule } from './app-routing.module';
 import { HeaderComponent } from './shared/header/header.component';
 import { provideHttpClient } from '@angular/common/http';
+import { MainModule } from './routes/home/main/main.module';
 
 @NgModule({
   declarations: [AppComponent, HeaderComponent],
