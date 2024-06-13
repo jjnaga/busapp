@@ -5,12 +5,11 @@ import {
   provideHttpClient,
   withInterceptorsFromDi,
 } from '@angular/common/http';
+import { MainRoutingModule } from './main-routing.module';
 // import { MainRoutingModule } from './main-routing.module';
 
 @NgModule({
   declarations: [MainComponent],
-  imports: [CommonModule],
-  providers: [provideHttpClient(withInterceptorsFromDi())],
-  bootstrap: [MainComponent],
+  imports: [CommonModule, MainRoutingModule],
 })
 export class HomeModule {}
