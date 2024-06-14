@@ -6,16 +6,23 @@ import { AppDataSource } from '@typeorm/typeorm';
 import vehiclesRoutes from '@routes/vehiclesRoutes';
 import http from 'http';
 import { WebSocketServer } from 'ws';
+import Redis from 'ioredis';
 
 (async () => {
   const port = process.env.EXPRESS_PORT || 3000;
   const corsOptions = { origin: ['http://localhost:4200', 'https://nagahama-group.com'] };
+  const redisHost = process.env.REDIS_HOST || 'redis';
+  const redisPort = process.env.REDIS_PORT || '6379';
+  const redisVehiclesSubscribe = process.env.REDIS_VEHICLE_PUBLISH_CHANNEL || 'vehicleUpsert';
 
   // Initialize TypeORM
   await AppDataSource.initialize();
 
   // Initialize Express
   const app = express();
+
+  // Initialize Redis for subscriptions
+  const redis = new Redis(`${redisHost}:${redisPort}`);
 
   // Enable CORS
   app.use(cors(corsOptions));
@@ -61,14 +68,21 @@ import { WebSocketServer } from 'ws';
     });
   };
 
-  setInterval(() => {
-    const message = `Server message at ${new Date().toISOString()}`;
-    console.log('Broadcasting message: ', message);
-    broadcast(message);
-  }, 10000);
-
   // Listen
   server.listen(port, () => {
     console.log(`HTTP Server -> Express running on http://localhost:${port}`);
+  });
+
+  // Subscribe to vehiclesUpsert
+  redis.subscribe(redisVehiclesSubscribe, (err, count) => {
+    if (err) {
+      console.error(`Redis: Unable to subscribe to '${redisVehiclesSubscribe}': `);
+    } else {
+      console.info(`Redis: Subscribed to ${redisVehiclesSubscribe}. Total Subscriptions = ${count}`);
+    }
+  });
+
+  redis.on('message', (channel, message) => {
+    broadcast(message);
   });
 })();
