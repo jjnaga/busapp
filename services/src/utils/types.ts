@@ -4,8 +4,10 @@ export interface BULL_JOB_RESULT {
   status: BULL_JOB_STATUS;
   message: string;
   data?: object;
-  startTime?: Date;
-  endTime?: Date;
+  duration?: string;
+  durationEachComponent?: {
+    [component: string]: string;
+  };
 }
 
 export interface VehicleApi {

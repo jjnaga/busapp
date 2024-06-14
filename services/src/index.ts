@@ -1,6 +1,7 @@
-import { addJob } from '@utils/bullmq';
+import { addJob, clearJob } from '@utils/bullmq';
 import '@utils/worker';
 import { AppDataSource } from '@typeorm/typeorm';
+import { JobsOptions } from 'bullmq';
 // import { Queue } from 'bullmq';
 // hehea
 
@@ -20,14 +21,17 @@ import { AppDataSource } from '@typeorm/typeorm';
     console.error('Error initializing TypeORM: ', err);
   }
 
+  const jobName = 'fetch-vehicles';
+  const jobOptions: JobsOptions = {
+    repeat: {
+      every: 60 * 1000, // 30 seconds in milliseconds.
+    },
+  };
+  await clearJob(jobName, jobOptions);
   await addJob(
-    'fetch-vehicles',
+    jobName,
     {},
-    {
-      repeat: {
-        every: 30 * 1000, // 30 seconds in milliseconds.
-      },
-    }
+    { ...jobOptions, jobId: 'fetch-vehicles-repeating' }
   );
 
   await addJob('fetch-vehicles');
