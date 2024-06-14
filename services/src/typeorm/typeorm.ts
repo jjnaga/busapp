@@ -26,7 +26,7 @@ export const AppDataSource = new DataSource({
   // logger: 'advanced-console',
   entities: [Vehicle],
   migrations: [],
-  subscribers: [],
+  subscribers: [VehicleSubscriber],
   poolSize: 1000,
   // it doenst make it automatically?
   // schema: 'bus',
