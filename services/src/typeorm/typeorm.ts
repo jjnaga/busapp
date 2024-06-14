@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
 import { Vehicle } from '@typeorm/entities/Vehicle';
+import { VehicleSubscriber } from './subscribers/VehicleSubscriber';
 
 function validateEnv() {
   const requiredEnvVars = ['DB_HOST', 'DB_PORT', 'DB_DATABASE'];

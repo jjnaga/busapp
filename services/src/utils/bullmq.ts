@@ -39,6 +39,10 @@ try {
   process.exit(1);
 }
 
+export const clearJob = async (jobName: string, options: JobsOptions = {}) => {
+  await dataQueue.removeRepeatable(jobName, options);
+};
+
 export const addJob = async (
   jobName: string,
   jobData: object = {},

@@ -73,7 +73,7 @@ const saveVehicleEntities = async (
     const vehicleRepository = AppDataSource.getRepository(Vehicle);
 
     return vehicleRepository
-      .createQueryBuilder()
+      .createQueryBuilder('vehicle')
       .insert()
       .values(entities)
       .orUpdate(
@@ -87,8 +87,10 @@ const saveVehicleEntities = async (
           'route_name',
           'headsign',
         ],
-        ['bus_number']
+        ['bus_number'],
+        { skipUpdateIfNoValuesChanged: true }
       )
+      .returning(['busNumber'])
       .execute();
   } catch (err) {
     throw new Error(
@@ -196,10 +198,10 @@ const cleanDuplicateBusNumbers = (vehicles: VehicleApi[]): VehicleApi[] => {
 };
 
 export const fetchAndEtlData = async (): Promise<BULL_JOB_RESULT> => {
+  const startTime = performance.now();
   let response: BULL_JOB_RESULT = {
     status: 'failed',
     message: 'Initialization',
-    startTime: new Date(),
   };
 
   try {
@@ -225,7 +227,7 @@ export const fetchAndEtlData = async (): Promise<BULL_JOB_RESULT> => {
     response = {
       ...response,
       status: 'success',
-      message: `${insertResult.identifiers.length} successful upserts`,
+      message: `${insertResult.raw.length} successful upserts`,
     };
   } catch (err) {
     let errorMessage = '';
@@ -245,6 +247,6 @@ export const fetchAndEtlData = async (): Promise<BULL_JOB_RESULT> => {
 
   return {
     ...response,
-    endTime: new Date(),
+    duration: `${((performance.now() - startTime) / 1000).toFixed(3)} seconds`,
   };
 };

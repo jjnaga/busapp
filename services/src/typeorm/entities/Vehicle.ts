@@ -4,7 +4,7 @@
 // will cause more issues then just ignoring this file for now.
 import { Entity, Column, PrimaryColumn } from 'typeorm';
 
-@Entity('vehicles')
+@Entity()
 export class Vehicle {
   @PrimaryColumn({ name: 'bus_number' })
   busNumber: string;

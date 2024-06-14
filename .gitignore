@@ -2,3 +2,4 @@ node_modules
 .vscode
 services/.env
 build/
+.DS_Store
