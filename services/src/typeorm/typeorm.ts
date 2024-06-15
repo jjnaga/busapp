@@ -1,7 +1,6 @@
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
 import { Vehicle } from '@typeorm/entities/Vehicle';
-import { VehicleSubscriber } from './subscribers/VehicleSubscriber';
 
 function validateEnv() {
   const requiredEnvVars = ['DB_HOST', 'DB_PORT', 'DB_DATABASE'];
@@ -27,7 +26,7 @@ export const AppDataSource = new DataSource({
   // logger: 'advanced-console',
   entities: [Vehicle],
   migrations: [],
-  subscribers: [VehicleSubscriber],
+  subscribers: [],
   poolSize: 1000,
   // it doenst make it automatically?
   // schema: 'bus',

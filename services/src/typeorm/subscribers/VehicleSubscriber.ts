@@ -1,40 +1,52 @@
-import { Vehicle } from '@typeorm/entities/Vehicle';
-import {
-  EntitySubscriberInterface,
-  EventSubscriber,
-  InsertEvent,
-  UpdateEvent,
-} from 'typeorm';
-import Redis from 'ioredis';
+// import { Vehicle } from '@typeorm/entities/Vehicle';
+// import {
+//   EntitySubscriberInterface,
+//   EventSubscriber,
+//   InsertEvent,
+// } from 'typeorm';
+// import Redis from 'ioredis';
 
-const redis = new Redis(`${process.env.BULL_HOST}:${process.env.BULL_PORT}`);
+// @EventSubscriber()
+// export class VehicleSubscriber implements EntitySubscriberInterface<Vehicle> {
+//   private entities: Vehicle[] = [];
+//   private debounceTimeout: NodeJS.Timeout | null = null;
+//   private debounceDelay = 50;
 
-@EventSubscriber()
-export class VehicleSubscriber implements EntitySubscriberInterface<Vehicle> {
-  private publishChannel =
-    process.env.REDIS_VEHICLE_PUBLISH_CHANNEL || 'vehicleUpsert';
+//   constructor() {
+//     this.publishVehicles = this.publishVehicles.bind(this);
 
-  constructor() {
-    console.log(
-      `VehicleSubscriber: Listening and publishing to ${this.publishChannel}`
-    );
-  }
+//     console.log(
+//       `VehicleSubscriber: Listening and publishing to ${this.publishChannel}`
+//     );
+//   }
 
-  listenTo(): typeof Vehicle {
-    return Vehicle;
-  }
+//   listenTo(): typeof Vehicle {
+//     return Vehicle;
+//   }
 
-  afterInsert(event: InsertEvent<Vehicle>): void {
-    this.afterUpsert(event);
-  }
+//   afterInsert(event: InsertEvent<Vehicle>): void {
+//     this.entities.push(event.entity);
 
-  afterUpdate(event: UpdateEvent<Vehicle>): void {
-    this.afterUpsert(event);
-  }
+//     if (this.debounceTimeout) {
+//       console.log('hehe nope!', this.entities.length);
+//       clearTimeout(this.debounceTimeout);
+//     }
+//     this.debounceTimeout = setTimeout(this.publishVehicles, this.debounceDelay);
+//   }
 
-  private afterUpsert(
-    event: InsertEvent<Vehicle> | UpdateEvent<Vehicle>
-  ): void {
-    redis.publish(this.publishChannel, JSON.stringify(event.entity));
-  }
-}
+//   // TypeORM Upserts also comes as an insert since the update part is internal to Postgres
+//   // afterUpdate(event: UpdateEvent<Vehicle>): void {
+//   //   this.afterUpsert(event, 'update');
+//   // }
+
+//   private publishVehicles(): void {
+//     console.log('we made it', this.entities.length);
+//     if (this.entities.length > 0) {
+//       console.log(
+//         `Publshing to ${this.publishChannel}. VehicleCount = ${this.entities.length}`
+//       );
+//     }
+
+//     this.entities = [];
+//   }
+// }
