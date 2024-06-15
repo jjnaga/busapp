@@ -4,6 +4,7 @@ import { parseStringPromise } from 'xml2js';
 import { DateTime } from 'luxon';
 import { AppDataSource } from '@typeorm/typeorm';
 import { InsertResult } from 'typeorm';
+import Redis from 'ioredis';
 
 // Bus data comes in as XML
 const fetchVehicleDataAsXml = async (): Promise<string> => {
@@ -50,7 +51,7 @@ const transformToVehicleEntities = (vehicles: VehicleApi[]): Array<Vehicle> => {
     (data) =>
       new Vehicle({
         busNumber: data.number,
-        tripID: data.trip,
+        tripId: data.trip,
         driver: data.driver,
         latitude: Number(data.latitude),
         longitude: Number(data.longitude),
@@ -72,25 +73,36 @@ const saveVehicleEntities = async (
   try {
     const vehicleRepository = AppDataSource.getRepository(Vehicle);
 
+    console.log(entities[0]);
     return vehicleRepository
       .createQueryBuilder('vehicle')
       .insert()
       .values(entities)
       .orUpdate(
         [
-          'trip_id',
+          'tripId',
           'driver',
           'latitude',
           'longitude',
           'adherence',
           'heartbeat',
-          'route_name',
+          'routeName',
           'headsign',
         ],
-        ['bus_number'],
+        ['busNumber'],
         { skipUpdateIfNoValuesChanged: true }
       )
-      .returning(['busNumber'])
+      .returning([
+        'busNumber',
+        'tripId',
+        'driver',
+        'latitude',
+        'longitude',
+        'adherence',
+        'heartbeat',
+        'routeName',
+        'headsign',
+      ])
       .execute();
   } catch (err) {
     throw new Error(
@@ -199,6 +211,9 @@ const cleanDuplicateBusNumbers = (vehicles: VehicleApi[]): VehicleApi[] => {
 
 export const fetchAndEtlData = async (): Promise<BULL_JOB_RESULT> => {
   const startTime = performance.now();
+  const redis = new Redis(`${process.env.BULL_HOST}:${process.env.BULL_PORT}`);
+  const publishChannel =
+    process.env.REDIS_VEHICLE_PUBLISH_CHANNEL || 'vehicleUpsert';
   let response: BULL_JOB_RESULT = {
     status: 'failed',
     message: 'Initialization',
@@ -223,6 +238,8 @@ export const fetchAndEtlData = async (): Promise<BULL_JOB_RESULT> => {
 
     const vehicleEntities = transformToVehicleEntities(json);
     const insertResult = await saveVehicleEntities(vehicleEntities);
+
+    redis.publish(publishChannel, JSON.stringify({ data: insertResult.raw }));
 
     response = {
       ...response,

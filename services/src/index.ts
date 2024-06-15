@@ -24,7 +24,7 @@ import { JobsOptions } from 'bullmq';
   const jobName = 'fetch-vehicles';
   const jobOptions: JobsOptions = {
     repeat: {
-      every: 60 * 1000, // 30 seconds in milliseconds.
+      every: 10 * 1000, // 30 seconds in milliseconds.
     },
   };
   await clearJob(jobName, jobOptions);

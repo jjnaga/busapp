@@ -6,11 +6,12 @@ import { Entity, Column, PrimaryColumn } from 'typeorm';
 
 @Entity()
 export class Vehicle {
-  @PrimaryColumn({ name: 'bus_number' })
+  @PrimaryColumn()
   busNumber: string;
 
-  @Column({ name: 'trip_id', nullable: true })
-  tripID: string;
+  // @Column({ name: 'trip_id', nullable: true })
+  @Column({ nullable: true })
+  tripId: string;
 
   @Column({ nullable: true })
   driver: string;
@@ -27,7 +28,7 @@ export class Vehicle {
   @Column({ nullable: true })
   heartbeat: Date;
 
-  @Column({ name: 'route_name', nullable: true })
+  @Column({ nullable: true })
   routeName: string;
 
   @Column({ nullable: true })

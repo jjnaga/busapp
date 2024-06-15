@@ -1,6 +1,6 @@
 export interface Vehicle {
   busNumber: string;
-  tripID: string;
+  tripId: string;
   driver: string;
   latitude: number;
   longitude: number;

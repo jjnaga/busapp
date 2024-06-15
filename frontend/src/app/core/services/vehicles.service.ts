@@ -48,17 +48,25 @@ export class VehiclesService {
   }
 
   private subscribeToWebSocket(): void {
-    this.webSocketService
-      .getMessages()
-      .subscribe(({ message }: { message: string }) => {
-        const json = JSON.parse(message);
-        const { busNumber } = json;
-        this.state = {
-          ...this.state,
-          [busNumber]: json,
-        };
+    this.webSocketService.getMessages().subscribe(({ message }) => {
+      const { data } = JSON.parse(message);
+
+      console.log(`data received from websocket. ${data.length} updates.`);
+      if (data.length > 0) {
+        console.log(data);
+        const { busNumber } = data;
+        data.forEach((vehicle: Vehicle) => {
+          this.state = {
+            ...this.state,
+            [busNumber]: data,
+          };
+        });
+
+        console.log('All changes applied. Updating state.');
         this.stateSubject.next(this.state);
-      });
+      }
+      // console.log('data received', json);
+    });
   }
 
   getState(): Observable<Vehicles> {
