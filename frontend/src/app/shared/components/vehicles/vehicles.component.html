@@ -1,6 +1,20 @@
-<div class="vehicles">
-  <h1>Vehicles Hehe hello</h1>
-  <div *ngFor="let vehicle of vehicles">
-    <pre>{{ vehicle | json }}</pre>
-  </div>
+<div class="vehicles pt-5">
+  <h1 class="text-3xl">Vehicles</h1>
+  <ul class="flex flex-col">
+    <li *ngFor="let vehicle of vehicles">
+      <ul>
+        <div id="row" class="bg-slate-50 border my-2 p-3 shadow-md">
+          <h1 class="text-xl underline">
+            Bus {{ vehicle.busNumber }} - {{ vehicle.headsign }}
+          </h1>
+          <ul class="pt-2">
+            <li>Coordinates (DD): {{ vehicle.latitude}}, {{ vehicle.longitude }}</li>
+            <li>Driver: {{ vehicle.driver}}</li>
+            <li>Route: {{ vehicle.routeName}}</li>
+            <li>Last Message: {{ vehicle.heartbeatFormatted }}</li>
+          </ul>
+        </div>
+      </ul>
+    </li>
+  </ul>
 </div>
