@@ -25,7 +25,7 @@ export class Vehicle {
   @Column({ nullable: true })
   adherence: number;
 
-  @Column({ nullable: true })
+  @Column({ type: 'timestamptz', nullable: true })
   heartbeat: Date;
 
   @Column({ nullable: true })
