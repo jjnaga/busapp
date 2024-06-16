@@ -6,6 +6,7 @@ export interface Vehicle {
   longitude: number;
   adherence: number;
   heartbeat: Date;
+  heartbeatFormatted?: string;
   routeName: string;
   headsign: string;
 }
