@@ -22,9 +22,21 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
-  service:
+  queue-manager:
     build:
-      context: ./services
+      context: ./services/manager
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+  worker-bus-api:
+    build:
+      context: ./services/workers/worker-bus-api
+      dockerfile: Dockerfile
     environment:
       - NODE_ENV=production
     depends_on:
@@ -41,6 +53,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    ports:
+      - 5432:5432
     environment:
       - POSTGRES_DB=thebus
       - POSTGRES_USER=admin

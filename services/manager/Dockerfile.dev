@@ -10,9 +10,10 @@ COPY package*.json ./
 RUN npm i
 
 # Install nodemon and ts-node globally
-RUN npm install -g nodemon ts-node
+RUN npm install -g tsx
 
 # Copy the rest of your application's code
 COPY . .
 
-CMD ["nodemon"]
+CMD ["npm", "run", "dev"]
+# CMD ["tail", "-f" ,"/dev/null"]
