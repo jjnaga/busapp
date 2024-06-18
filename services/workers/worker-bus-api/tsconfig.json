@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "paths": {
+      // "@typeorm/*": ["../../typeorm/*"],
+      "@typeorm/*": ["./src/typeorm/*"]
+    },
+    "target": "ESNext",
+    "module": "CommonJS",
+    "strict": true,
+    "outDir": "./build",
+    "emitDecoratorMetadata": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "strictPropertyInitialization": false, // typeorm does not need initilization for
+    "experimentalDecorators": true, // typeorm enable decorators
+    "sourceMap": true
+  },
+  "include": ["src/**/*", ".env"], // Includes all TypeScript files under the "src" directory.
+  "exclude": ["node_modules"] // Excludes the "node_modules" directory from compilation.
+}

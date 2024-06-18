@@ -1,8 +1,8 @@
 import { Vehicle } from '@typeorm/entities/Vehicle';
-import { BULL_JOB_RESULT, VehicleApi } from '@utils/types';
+import { AppDataSource } from '@typeorm/typeorm';
+import { BULL_JOB_RESULT, VehicleApi } from '../../../manager/src/utils/types';
 import { parseStringPromise } from 'xml2js';
 import { DateTime } from 'luxon';
-import { AppDataSource } from '@typeorm/typeorm';
 import { InsertResult } from 'typeorm';
 import Redis from 'ioredis';
 
@@ -106,7 +106,9 @@ const saveVehicleEntities = async (
       .execute();
   } catch (err) {
     throw new Error(
-      `Unable to save Vehicle Entities. Error: ${err instanceof Error ? err.message : String(err)}`
+      `Unable to save Vehicle Entities. Error: ${
+        err instanceof Error ? err.message : String(err)
+      }`
     );
   }
 };

@@ -6,8 +6,8 @@ services:
     environment:
       - NODE_ENV=development
     volumes:
-      - ./backend:/app
       - /app/node_modules/
+      - ./backend:/app
     ports:
       - 3000:3000
     depends_on:
@@ -15,15 +15,27 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
-  service:
+  queue-manager:
     build:
-      context: ./services
+      context: ./services/manager
       dockerfile: Dockerfile.dev
     environment:
       - NODE_ENV=development
     volumes:
-      - /app/node_modules
-      - ./services:/app
+      - ./services/manager/src:/app/src
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+  worker-bus-api:
+    build:
+      context: ./services/workers/worker-bus-api
+      dockerfile: Dockerfile.dev
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - ./services/workers/worker-bus-api/src:/app/src
     depends_on:
       postgres:
         condition: service_healthy

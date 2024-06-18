@@ -1,18 +1,19 @@
 {
   "compilerOptions": {
     "paths": {
-      "@jobs/*": ["./src/jobs/*"],
+      // "@typeorm/*": ["../../typeorm/*"],
       "@typeorm/*": ["./src/typeorm/*"],
-      "@utils/*": ["./src/utils/*"]
+      "@utils/*": ["./src/manager/src/utils/*"]
     },
-    "lib": ["es2021"],
-    "target": "es5",
-    "module": "commonjs",
-    "moduleResolution": "node",
+    "target": "ES2020",
+    "module": "CommonJS",
     "strict": true,
     "outDir": "./build",
     "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "strictPropertyInitialization": false, // typeorm does not need initilization for
+    "experimentalDecorators": true, // typeorm enable decorators
     "sourceMap": true
   },
   "include": ["src/**/*", ".env"], // Includes all TypeScript files under the "src" directory.
