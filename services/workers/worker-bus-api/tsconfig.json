@@ -1,8 +1,7 @@
 {
   "compilerOptions": {
     "paths": {
-      // "@typeorm/*": ["../../typeorm/*"],
-      "@typeorm/*": ["./src/typeorm/*"]
+      "@utils/*": ["./src/utils/*"]
     },
     "target": "ESNext",
     "module": "CommonJS",
