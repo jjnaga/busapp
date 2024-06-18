@@ -1,4 +1,14 @@
 services:
+  frontend:
+    build:
+      context: ./frontend
+    environment:
+      - NODE_ENV=production
+    ports:
+      - 9080:80
+    depends_on:
+      backend:
+        condition: service_started
   backend:
     build:
       context: ./backend
