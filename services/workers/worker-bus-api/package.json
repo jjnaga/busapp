@@ -4,6 +4,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "tsx watch --env-file=.env src/index.ts",
+    "start": "node --env-file=.env build/index.js",
     "build": "tsc && tsc-alias -p tsconfig.json"
   },
   "keywords": [],

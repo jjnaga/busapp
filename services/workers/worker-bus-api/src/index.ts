@@ -1,6 +1,6 @@
 import { Job, Worker } from 'bullmq';
 import { fetchAndEtlData } from './busApiEtl';
-import { BULL_JOB_RESULT } from '../../../manager/src/utils/types';
+import { BULL_JOB_RESULT } from '@utils/types';
 
 let worker;
 const queueName = process.env.BULL_QUEUE_NAME;
