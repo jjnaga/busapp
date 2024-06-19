@@ -1,4 +1,15 @@
 services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - /app/node_modules/
+      - ./frontend/src:/app/src
+    ports:
+      - 4200:4200
   backend:
     build:
       context: ./backend
