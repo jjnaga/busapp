@@ -73,7 +73,6 @@ const saveVehicleEntities = async (
   try {
     const vehicleRepository = AppDataSource.getRepository(Vehicle);
 
-    console.log(entities[0]);
     return vehicleRepository
       .createQueryBuilder('vehicle')
       .insert()
