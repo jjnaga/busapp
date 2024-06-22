@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
-import { Vehicle } from './entities/Vehicle';
+import { Vehicle } from '@utils/typeorm/entities/Vehicle';
 
 function validateEnv() {
   const requiredEnvVars = ['DB_HOST', 'DB_PORT', 'DB_DATABASE'];
@@ -21,9 +21,12 @@ export const AppDataSource = new DataSource({
   username: process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_DATABASE,
-  synchronize: true,
-  logging: true,
-  logger: 'advanced-console',
+  synchronize: process.env.NODE_ENVIRONMENT === 'development' ? true : false,
+  logging: process.env.NODE_ENVIRONMENT === 'development' ? true : false,
+  logger:
+    process.env.NODE_ENVIRONMENT === 'development'
+      ? 'advanced-console'
+      : undefined,
   entities: [Vehicle],
   migrations: [],
   subscribers: [],
