@@ -69,6 +69,8 @@ services:
     image: 'redis:7.2.5'
   postgres:
     image: 'postgres:16.3'
+    volumes:
+      - ./init:/docker-entrypoint-initdb.d
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U admin -d thebus -h localhost']
       interval: 3s

@@ -1,4 +1,18 @@
 CREATE SCHEMA IF NOT EXISTS gtfs;
+CREATE SCHEMA IF NOT EXISTS thebus;
+
+CREATE TABLE thebus.vehicle (
+    bus_number TEXT PRIMARY KEY,
+    trip_id TEXT,
+    driver TEXT,
+    latitude FLOAT,
+    longitude FLOAT,
+    adherence INTEGER,
+    heartbeat TIMESTAMPTZ,
+    route_name TEXT,
+    headsign TEXT
+);
+
 
 CREATE TABLE IF NOT EXISTS gtfs.calendar (
     service_id         INTEGER NOT NULL PRIMARY KEY,
