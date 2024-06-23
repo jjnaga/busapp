@@ -26,10 +26,36 @@ const setupShutdownHandlers = () => {
   });
 };
 
+const validateEnv = () => {
+  const requiredEnvVars = [
+    'API_KEY',
+    'DB_DATABASE',
+    'DB_HOST',
+    'DB_PASSWORD',
+    'DB_PORT',
+    'DB_SCHEMA',
+    'DB_USERNAME',
+    'REDIS_CONSUMER_GROUP_NAME',
+    'REDIS_HOST',
+    'REDIS_PORT',
+    'REDIS_STREAM_NAME',
+    'REDIS_VEHICLE_PUBLISH_CHANNEL',
+  ];
+
+  requiredEnvVars.forEach((varName) => {
+    if (!process.env[varName]) {
+      throw new Error(`Environment variable ${varName} is not set`);
+    }
+  });
+};
+
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const worker = async () => {
   console.log('Starting worker.');
+
+  // Validate environment variables.
+  validateEnv();
 
   // Setup signal handlers
   setupShutdownHandlers();

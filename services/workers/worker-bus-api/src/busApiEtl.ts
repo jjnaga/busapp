@@ -74,21 +74,22 @@ const saveVehicleEntities = async (
     const vehicleRepository = AppDataSource.getRepository(Vehicle);
 
     return vehicleRepository
-      .createQueryBuilder('vehicle')
+      .createQueryBuilder()
       .insert()
+      .into('thebus.vehicle')
       .values(entities)
       .orUpdate(
         [
-          'tripId',
+          'trip_id',
           'driver',
           'latitude',
           'longitude',
           'adherence',
           'heartbeat',
-          'routeName',
+          'route_name',
           'headsign',
         ],
-        ['busNumber'],
+        ['bus_number'],
         { skipUpdateIfNoValuesChanged: true }
       )
       .returning([
