@@ -7,4 +7,5 @@ COPY . /app
 # pip caches all packages. Remove cache to make the image smaller.
 RUN pip install --no-cache-dir -r requirements.txt
 
-CMD watchfiles "python src/gtfsEtl.py" src
+# CMD watchfiles "python src/gtfsEtl.py" src
+CMD watchfiles "python src/main.py" src
