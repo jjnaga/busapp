@@ -4,3 +4,4 @@ build/
 .DS_Store
 venv
 services/workers/worker-bus-api/.env
+__pycache__/

@@ -66,6 +66,7 @@ const main = async () => {
     REDIS_JOB_API_NAME,
     10000
   );
+
   let interval2 = await loadRecurringJob(
     REDIS_STREAM_GTFS_NAME,
     REDIS_JOB_GTFS_NAME,

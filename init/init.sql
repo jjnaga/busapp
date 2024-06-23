@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS gtfs.calendar_dates (
   date                 TIMESTAMP WITH TIME ZONE NOT NULL,
   exception_type       INTEGER NOT NULL,
   PRIMARY KEY (service_id, date)
-)
+);
 
 CREATE TABLE IF NOT EXISTS gtfs.routes (
   route_id             VARCHAR(15) PRIMARY KEY,
@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS gtfs.routes (
   route_long_name      VARCHAR(75),
   route_type           SMALLINT,
   agency_id            VARCHAR(15)
-)
+);
 
 CREATE TABLE IF NOT EXISTS gtfs.stop_times (
   trip_id BIGINT,
