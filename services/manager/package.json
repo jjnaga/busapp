@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "tsx watch --env-file=.env src/index.ts",
+    "dev": "tsx watch --unhandled-rejections=strict --env-file=.env src/index.ts",
     "build": "tsc && tsc-alias -p tsconfig.json",
-    "start": "node --env-file=.env build/index.js",
+    "start": "node --unhandled-rejections=strict --env-file=.env build/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

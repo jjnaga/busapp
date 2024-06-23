@@ -52,12 +52,19 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+    deploy:
+      replicas: 2
   worker-gtfs:
     build:
       context: ./services/workers/worker-gtfs
       dockerfile: Dockerfile.dev
     volumes:
       - ./services/workers/worker-gtfs/src:/app/src
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
   redis:
     image: 'redis:7.2.5'
   postgres:
