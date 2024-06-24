@@ -109,4 +109,22 @@ import { VehicleSql } from '@utils/types';
   redis.on('message', (channel, message) => {
     broadcast(message);
   });
+
+  process.on('SIGTERM', () => {
+    console.log('Received SIGTERM. Starting graceful shutdown.');
+    shutdown();
+  });
+
+  process.on('SIGINT', () => {
+    console.log('Received SIGINT. Starting graceful shutdown.');
+    shutdown();
+  });
+
+  const shutdown = () => {
+    server.closeAllConnections();
+    server.close();
+    redis.shutdown();
+    wss.close();
+    AppDataSource.destroy();
+  };
 })();
