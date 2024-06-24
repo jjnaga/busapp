@@ -2,7 +2,6 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { VehiclesService } from '../../../core/services/vehicles.service';
 import { Vehicle, Vehicles } from '../../../core/models/global.model';
-import { formatDistanceToNow } from 'date-fns';
 
 @Component({
   selector: 'vehicles-component',
@@ -19,14 +18,12 @@ export class VehiclesComponent implements OnInit, OnDestroy {
     this.subscription = this.vehiclesService
       .getState()
       .subscribe((vehicles: Vehicles) => {
-        Object.keys(vehicles).forEach((vehicleNumber) => {
-          const vehicle = vehicles[vehicleNumber];
-          const heartbeatFormatted = formatDistanceToNow(vehicle.heartbeat, {
-            addSuffix: true,
-          });
-          vehicle.heartbeatFormatted = heartbeatFormatted;
-        });
-        this.vehicles = Object.values(vehicles);
+        const newVehicles: Vehicle[] = [];
+        for (const [vehicleNumber, vehicle] of vehicles) {
+          console.log();
+          newVehicles.push(vehicle);
+          this.vehicles = newVehicles;
+        }
       });
   }
 
