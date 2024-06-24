@@ -1,86 +1,135 @@
-import { Job, Worker } from 'bullmq';
+import redisClient from '@utils/redisClient';
+const os = require('os');
 import { fetchAndEtlData } from './busApiEtl';
-import { BULL_JOB_RESULT } from '@utils/types';
+import { AppDataSource } from '@utils/typeorm/typeorm';
 
-let worker;
-const queueName = process.env.BULL_QUEUE_NAME;
-const host = process.env.BULL_HOST;
-const port = Number(process.env.BULL_PORT);
-const jobName = process.env.WORKER_JOB_NAME;
+// Environment Variables
+const REDIS_STREAM_NAME = process.env.REDIS_STREAM_NAME;
+const REDIS_CONSUMER_GROUP_NAME = process.env.REDIS_CONSUMER_GROUP_NAME;
+const REDIS_JOB_NAME = process.env.REDIS_JOB_NAME;
+const workerId = os.hostname();
+let shutdown = false;
 
-const processJob = async (job: Job): Promise<BULL_JOB_RESULT | null> => {
-  try {
-    if (job.name !== jobName) {
-      return null;
-    }
-
-    console.log(`[#${job.id}] Processing job ${job.name}`);
-    return await fetchAndEtlData();
-  } catch (err) {
-    console.error(`Error processing job ${job.id}: `, err);
-    throw err;
-  }
-};
-
-try {
-  // Validate environment variables
-  if (!queueName) {
-    throw new Error(
-      `Worker Init Error. BULL_QUEUE_NAME is not defined in the environment variables`
-    );
-  }
-
-  if (!host) {
-    throw new Error(
-      `Worker Init Error. BULL_HOST is not defined in the environment variables`
-    );
-  }
-
-  if (!jobName) {
-    throw new Error(
-      `Worker Init Error. WORKER_JOB_NAME is not defined in the environment variables`
-    );
-  }
-
-  if (!port) {
-    throw new Error(
-      `Worker Init Error. BULL_PORT is not defined in the environment variables`
-    );
-  }
-
-  if (isNaN(port)) {
-    throw new Error(
-      'Worker Init Error. BULL_PORT envrionment variable is not a real number'
-    );
-  }
-
-  worker = new Worker(queueName, processJob, {
-    connection: {
-      host,
-      port: port,
-    },
-  });
-
-  console.log(
-    `Worker created for queue (${queueName}). Handles jobs: ${jobName}`
-  );
-} catch (err) {
-  console.error('Worker Init Error: ', err);
-  process.exit(1);
+if (!REDIS_STREAM_NAME || !REDIS_CONSUMER_GROUP_NAME || !REDIS_JOB_NAME) {
+  throw new Error(`Init Error. Missing environment variables.`);
 }
 
-worker.on('completed', (job, result) => {
-  if (result === null) {
-    console.log(`[#${job.id}] Skipped, not our job.`);
-  } else {
-    console.log(`[#${job.id}] Completed. Results:`, result);
+const setupShutdownHandlers = () => {
+  process.on('SIGTERM', () => {
+    console.log('Received SIGTERM. Starting graceful shutdown.');
+    shutdown = true;
+  });
+
+  process.on('SIGINT', () => {
+    console.log('Received SIGINT. Starting graceful shutdown.');
+    shutdown = true;
+  });
+};
+
+const validateEnv = () => {
+  const requiredEnvVars = [
+    'API_KEY',
+    'DB_DATABASE',
+    'DB_HOST',
+    'DB_PASSWORD',
+    'DB_PORT',
+    'DB_SCHEMA',
+    'DB_USERNAME',
+    'REDIS_CONSUMER_GROUP_NAME',
+    'REDIS_HOST',
+    'REDIS_PORT',
+    'REDIS_STREAM_NAME',
+    'REDIS_VEHICLE_PUBLISH_CHANNEL',
+  ];
+
+  requiredEnvVars.forEach((varName) => {
+    if (!process.env[varName]) {
+      throw new Error(`Environment variable ${varName} is not set`);
+    }
+  });
+};
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const worker = async () => {
+  console.log('Starting worker.');
+
+  // Validate environment variables.
+  validateEnv();
+
+  // Setup signal handlers
+  setupShutdownHandlers();
+
+  // Initialize TypeORM
+  await AppDataSource.initialize();
+
+  // Create consumer group
+  try {
+    await redisClient.xgroup(
+      'CREATE',
+      REDIS_STREAM_NAME,
+      REDIS_CONSUMER_GROUP_NAME,
+      '$',
+      'MKSTREAM'
+    );
+  } catch (err) {
+    // Ignore error if group already exists
   }
-});
 
-worker.on('failed', (job, err) => {
-  console.error(`[$${job?.id}] Failed. Error: ${err.message}`);
-});
+  while (!shutdown) {
+    try {
+      const results = await Promise.race([
+        redisClient.xreadgroup(
+          'GROUP',
+          REDIS_CONSUMER_GROUP_NAME,
+          workerId,
+          'COUNT',
+          1,
+          'BLOCK',
+          0,
+          'STREAMS',
+          REDIS_STREAM_NAME,
+          '>'
+        ),
+        new Promise((resolve) => {
+          const checkInterval = setInterval(() => {
+            if (shutdown) {
+              clearInterval(checkInterval);
+              resolve(null);
+            }
+          }, 100);
+        }),
+      ]);
+      if (results) {
+        // @ts-ignore yea its not obvious to me how to set the types on this.
+        const [[_, messages]] = results;
+        const [messageId] = messages[0];
 
-worker.on('ready', () => {
-  console.log('Worker is ready.');
-});
+        await redisClient.xack(
+          REDIS_STREAM_NAME,
+          REDIS_CONSUMER_GROUP_NAME,
+          messageId
+        );
+
+        console.log(`[${workerId}] ${messageId}: Starting job`);
+
+        const jobResult = await fetchAndEtlData();
+
+        console.log(
+          `[${workerId}] ${messageId}: Done. Results: ${JSON.stringify(
+            jobResult
+          )}`
+        );
+      }
+    } catch (err) {
+      console.error('Error processing message: ', err);
+      if (!shutdown) await sleep(1000);
+    }
+  }
+
+  console.log('Shutting Down: Quitting redis.');
+  redisClient.disconnect();
+  console.log('Shutting Down: bye');
+};
+
+worker().catch(console.error);

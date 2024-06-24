@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import { WebSocketSubject, webSocket } from 'rxjs/webSocket';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
@@ -13,8 +14,19 @@ export class WebsocketService {
   }
 
   private connect(): void {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    let host = window.location.host;
+
+    // find me a better way
+    if (!environment.production) {
+      host = 'localhost:3000';
+    }
+
+    const url = `${protocol}//${host}/ws`;
+    console.log('ws url = ', url);
+
     this.socket$ = webSocket({
-      url: 'ws://localhost:3000',
+      url: url,
       // deserializer: defaults to JSON.parse
     });
   }

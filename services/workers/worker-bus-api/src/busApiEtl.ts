@@ -1,10 +1,10 @@
 import { Vehicle } from '@utils/typeorm/entities/Vehicle';
 import { AppDataSource } from '@utils/typeorm/typeorm';
-import { BULL_JOB_RESULT, VehicleApi } from '@utils/types';
+import { JOB_RESULT, VehicleApi } from '@utils/types';
 import { parseStringPromise } from 'xml2js';
 import { DateTime } from 'luxon';
 import { InsertResult } from 'typeorm';
-import Redis from 'ioredis';
+import redisClient from '@utils/redisClient';
 
 // Bus data comes in as XML
 const fetchVehicleDataAsXml = async (): Promise<string> => {
@@ -73,23 +73,23 @@ const saveVehicleEntities = async (
   try {
     const vehicleRepository = AppDataSource.getRepository(Vehicle);
 
-    console.log(entities[0]);
     return vehicleRepository
-      .createQueryBuilder('vehicle')
+      .createQueryBuilder()
       .insert()
+      .into('thebus.vehicle')
       .values(entities)
       .orUpdate(
         [
-          'tripId',
+          'trip_id',
           'driver',
           'latitude',
           'longitude',
           'adherence',
           'heartbeat',
-          'routeName',
+          'route_name',
           'headsign',
         ],
-        ['busNumber'],
+        ['bus_number'],
         { skipUpdateIfNoValuesChanged: true }
       )
       .returning([
@@ -211,12 +211,11 @@ const cleanDuplicateBusNumbers = (vehicles: VehicleApi[]): VehicleApi[] => {
   return cleanVehicles.filter((_, index) => !indexesToRemove.includes(index));
 };
 
-export const fetchAndEtlData = async (): Promise<BULL_JOB_RESULT> => {
+export const fetchAndEtlData = async (): Promise<JOB_RESULT> => {
   const startTime = performance.now();
-  const redis = new Redis(`${process.env.BULL_HOST}:${process.env.BULL_PORT}`);
   const publishChannel =
     process.env.REDIS_VEHICLE_PUBLISH_CHANNEL || 'vehicleUpsert';
-  let response: BULL_JOB_RESULT = {
+  let response: JOB_RESULT = {
     status: 'failed',
     message: 'Initialization',
   };
@@ -241,7 +240,10 @@ export const fetchAndEtlData = async (): Promise<BULL_JOB_RESULT> => {
     const vehicleEntities = transformToVehicleEntities(json);
     const insertResult = await saveVehicleEntities(vehicleEntities);
 
-    redis.publish(publishChannel, JSON.stringify({ data: insertResult.raw }));
+    redisClient.publish(
+      publishChannel,
+      JSON.stringify({ data: insertResult.raw })
+    );
 
     response = {
       ...response,

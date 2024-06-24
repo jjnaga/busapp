@@ -3,7 +3,7 @@
     "paths": {
       // "@typeorm/*": ["../../typeorm/*"],
       "@typeorm/*": ["./src/typeorm/*"],
-      "@utils/*": ["./src/manager/src/utils/*"]
+      "@utils/*": ["./src/utils/*"]
     },
     "target": "ES2020",
     "module": "CommonJS",

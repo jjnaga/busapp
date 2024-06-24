@@ -5,11 +5,11 @@ import { Entity, Column, PrimaryColumn } from 'typeorm';
 
 @Entity()
 export class Vehicle {
-  @PrimaryColumn({ type: 'text' })
+  @PrimaryColumn({ name: 'bus_number', type: 'text' })
   busNumber: string;
 
   // @Column({ name: 'trip_id', nullable: true })
-  @Column({ type: 'text', nullable: true })
+  @Column({ name: 'trip_id', type: 'text', nullable: true })
   tripId: string;
 
   @Column({ type: 'text', nullable: true })
@@ -27,7 +27,7 @@ export class Vehicle {
   @Column({ type: 'timestamptz', nullable: true })
   heartbeat: Date;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ name: 'route_name', type: 'text', nullable: true })
   routeName: string;
 
   @Column({ type: 'text', nullable: true })

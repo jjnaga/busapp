@@ -1,18 +1,6 @@
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
-import { Vehicle } from './entities/Vehicle';
-
-function validateEnv() {
-  const requiredEnvVars = ['DB_HOST', 'DB_PORT', 'DB_DATABASE'];
-
-  requiredEnvVars.forEach((varName) => {
-    if (!process.env[varName]) {
-      throw new Error(`Environment variable ${varName} is not set`);
-    }
-  });
-}
-
-validateEnv();
+import { Vehicle } from '@utils/typeorm/entities/Vehicle';
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
@@ -21,13 +9,14 @@ export const AppDataSource = new DataSource({
   username: process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_DATABASE,
-  synchronize: true,
-  logging: true,
-  logger: 'advanced-console',
+  // synchronize: process.env.NODE_ENVIRONMENT === 'development' ? true : false,
+  // logging: process.env.NODE_ENVIRONMENT === 'development' ? true : false,
+  // logger:
+  //   process.env.NODE_ENVIRONMENT === 'development'
+  //     ? 'advanced-console'
+  //     : undefined,
   entities: [Vehicle],
   migrations: [],
   subscribers: [],
-  poolSize: 1000,
-  // it doenst make it automatically?
-  // schema: 'bus',
+  schema: process.env.DB_SCHEMA,
 });

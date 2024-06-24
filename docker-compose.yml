@@ -5,7 +5,7 @@ services:
     environment:
       - NODE_ENV=production
     ports:
-      - 9080:80
+      - 8080:8080
     depends_on:
       backend:
         condition: service_started
@@ -33,12 +33,34 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+      worker-bus-api:
+        condition: service_started
+      worker-gtfs:
+        condition: service_started
+    # yes i know
+    command: >
+      sh -c "
+        echo 'Waiting for services to start...' &&
+        sleep 20 &&
+        echo 'Starting queue-manager' &&
+        node --unhandled-rejections=strict --env-file=.env build/index.js
+      "
+
   worker-bus-api:
     build:
       context: ./services/workers/worker-bus-api
       dockerfile: Dockerfile
-    environment:
-      - NODE_ENV=production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    deploy:
+      replicas: 2
+  worker-gtfs:
+    build:
+      context: ./services/workers/worker-gtfs
+      dockerfile: Dockerfile.dev
     depends_on:
       postgres:
         condition: service_healthy
@@ -48,6 +70,8 @@ services:
     image: 'redis:7.2.5'
   postgres:
     image: 'postgres:16.3'
+    volumes:
+      - ./init:/docker-entrypoint-initdb.d
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready']
       interval: 10s
