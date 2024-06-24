@@ -10,6 +10,8 @@ import Redis from 'ioredis';
 import { VehicleSql } from '@utils/types';
 
 (async () => {
+  app.set('trust proxy', true);
+
   const port = process.env.EXPRESS_PORT || 3000;
   const corsOptions = { origin: ['http://localhost:4200', 'http://localhost:8080', 'https://nagahama-group.com'] };
   const redisHost = process.env.REDIS_HOST || 'redis';
@@ -42,12 +44,14 @@ import { VehicleSql } from '@utils/types';
   const wss = new WebSocketServer({ noServer: true });
 
   server.on('upgrade', (request, socket, head) => {
+    console.log('do i get it?', request.url);
     if (request.url === '/ws') {
       console.log('HTTP to WS upgrade request.');
       wss.handleUpgrade(request, socket, head, (ws) => {
         wss.emit('connection', ws, request);
       });
     } else {
+      console.log('nope');
       socket.destroy();
     }
   });
