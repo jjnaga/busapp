@@ -39,6 +39,14 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+    # yes i know
+    command: >
+      sh -c "
+        echo 'Waiting for services to start...' &&
+        sleep 30 &&
+        echo 'Starting queue-manager' &&
+        tsx watch --unhandled-rejections=strict --env-file=.env src/index.ts
+      "
   worker-bus-api:
     build:
       context: ./services/workers/worker-bus-api

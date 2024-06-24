@@ -2,8 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import helloRoutes from '@routes/helloRoutes';
-import { AppDataSource } from '@typeorm/typeorm';
+import stopsRoutes from '@routes/stopsRoutes';
 import vehiclesRoutes from '@routes/vehiclesRoutes';
+import { AppDataSource } from '@typeorm/typeorm';
 import http from 'http';
 import { WebSocketServer } from 'ws';
 import Redis from 'ioredis';
@@ -37,6 +38,7 @@ import { VehicleSql } from '@utils/types';
   const apiRouter = express.Router();
   apiRouter.use('/hello', helloRoutes);
   apiRouter.use('/vehicles', vehiclesRoutes);
+  apiRouter.use('/stops', stopsRoutes);
   app.use('/api', apiRouter);
 
   const server = http.createServer(app);
@@ -133,7 +135,7 @@ import { VehicleSql } from '@utils/types';
   const shutdown = () => {
     server.closeAllConnections();
     server.close();
-    redis.shutdown();
+    redis.quit();
     wss.close();
     AppDataSource.destroy();
   };
