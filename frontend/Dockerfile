@@ -32,6 +32,6 @@ RUN chown -R nginxuser:nginxuser /var/cache/nginx \
 
 USER nginxuser
 
-EXPOSE 8080
+EXPOSE 9080
 
 ENTRYPOINT ["dumb-init", "nginx", "-g", "daemon off;"]
