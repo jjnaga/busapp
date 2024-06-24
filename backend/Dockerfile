@@ -22,9 +22,15 @@ WORKDIR /app
 
 COPY --from=build /app/build ./build
 COPY --from=build /app/package*.json ./
-COPY .env .
 
 RUN npm install ci --only-production
-CMD ["npm", "run", "start"]
+
+COPY --from=build /app/.env .
+
+# Set non-root user
+USER node
+
+# Start app
+CMD ["node", "--unhandled-rejections=strict", "--env-file=.env", "build/index.js"]
 
 
