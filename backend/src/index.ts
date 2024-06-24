@@ -11,7 +11,7 @@ import { VehicleSql } from '@utils/types';
 
 (async () => {
   const port = process.env.EXPRESS_PORT || 3000;
-  const corsOptions = { origin: ['http://localhost:4200', 'https://nagahama-group.com'] };
+  const corsOptions = { origin: ['http://localhost:4200', 'http://localhost:8080', 'https://nagahama-group.com'] };
   const redisHost = process.env.REDIS_HOST || 'redis';
   const redisPort = process.env.REDIS_PORT || '6379';
   const redisVehiclesSubscribe = process.env.REDIS_VEHICLE_PUBLISH_CHANNEL || 'vehicleUpsert';
@@ -32,18 +32,24 @@ import { VehicleSql } from '@utils/types';
   app.use(morgan('combined'));
 
   // Setup routes
-  app.use('/hello', helloRoutes);
-  app.use('/vehicles', vehiclesRoutes);
+  const apiRouter = express.Router();
+  apiRouter.use('/hello', helloRoutes);
+  apiRouter.use('/vehicles', vehiclesRoutes);
+  app.use('/api', apiRouter);
 
   const server = http.createServer(app);
 
   const wss = new WebSocketServer({ noServer: true });
 
   server.on('upgrade', (request, socket, head) => {
-    console.log('HTTP to WS upgrade request.');
-    wss.handleUpgrade(request, socket, head, (ws) => {
-      wss.emit('connection', ws, request);
-    });
+    if (request.url === '/ws') {
+      console.log('HTTP to WS upgrade request.');
+      wss.handleUpgrade(request, socket, head, (ws) => {
+        wss.emit('connection', ws, request);
+      });
+    } else {
+      socket.destroy();
+    }
   });
 
   // Webhost listen.
