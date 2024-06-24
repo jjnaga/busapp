@@ -29,6 +29,7 @@ export class WebsocketService {
       url: url,
       // deserializer: defaults to JSON.parse
     });
+    console.log('do i work?', this.socket$);
   }
 
   // public sendMessage(msg: any): void {
