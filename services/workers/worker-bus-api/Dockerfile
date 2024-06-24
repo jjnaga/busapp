@@ -1,5 +1,5 @@
 # Stage 1: Build
-FROM node:20 AS build
+FROM node:20-alpine AS build
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -17,7 +17,11 @@ COPY . .
 RUN npm run build
 
 # Stage 2: Run
-FROM node:20 AS runtime
+FROM node:20-alpine AS runtime
+
+# Set Node environment to production
+ENV NODE_ENV=production
+
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -25,10 +29,14 @@ WORKDIR /app
 # Copy only the built files from the build stage
 COPY --from=build /app/build ./build
 COPY --from=build /app/package*.json ./
-COPY .env .
 
 # Install only production dependencies
-RUN npm install ci --only=production
+RUN npm install ci --only=production 
+
+COPY --from=build /app/.env .
+
+# Set non-root user
+USER node
 
 # Set the command to start the application
-CMD ["npm", "run", "start"]
+CMD ["node", "--unhandled-rejections=strict", "--env-file=.env", "build/index.js"]

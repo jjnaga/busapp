@@ -1,55 +1,91 @@
-import { addJob, clearJob, createQueue } from './utils/bullmq';
-import { JobsOptions } from 'bullmq';
+import redisClient from '@utils/redisClient';
 
-const loadRecurringJob = async (jobName: string, jobOptions: JobsOptions) => {
-  // Clear any exisiting jobs.
-  await clearJob(jobName, jobOptions);
-  // Add reoccurring job
-  await addJob(jobName, {}, { ...jobOptions, jobId: `${jobName}-repeating` });
+const REDIS_JOB_API_NAME = process.env.REDIS_JOB_API_NAME;
+const REDIS_JOB_GTFS_NAME = process.env.REDIS_JOB_GTFS_NAME;
+const REDIS_JOBS_MAX_LENGTH = process.env.REDIS_JOBS_MAX_LENGTH;
+const REDIS_STREAM_API_NAME = process.env.REDIS_STREAM_API_NAME;
+const REDIS_STREAM_GTFS_NAME = process.env.REDIS_STREAM_GTFS_NAME;
+let shutdown = false;
 
-  // Initial run of job.
-  await addJob(jobName);
-};
+if (
+  !REDIS_JOB_API_NAME ||
+  !REDIS_JOB_GTFS_NAME ||
+  !REDIS_JOBS_MAX_LENGTH ||
+  !REDIS_STREAM_API_NAME ||
+  !REDIS_STREAM_GTFS_NAME
+) {
+  throw new Error(`Init Error. A environment variable not defined.`);
+}
 
-const main = () => {
-  const queueName = process.env.BULL_QUEUE_NAME;
-  const host = process.env.BULL_HOST;
-  const port = process.env.BULL_PORT;
-  const jobBusApiEtl = process.env.BULL_JOB_BUS_API_ETL;
+const setupShutdownHandlers = () => {
+  process.on('SIGTERM', () => {
+    console.log('Received SIGTERM. Starting graceful shutdown.');
+    shutdown = true;
+  });
 
-  if (!queueName) {
-    throw new Error(
-      `Queue Init Error. BULL_QUEUE_NAME is not defined in the environment variables`
-    );
-  }
-
-  if (!jobBusApiEtl) {
-    throw new Error(
-      `Queue Init Error. BULL_JOB_BUS_API_ETL is not defined in the environment variables`
-    );
-  }
-
-  if (!host) {
-    throw new Error(
-      `Queue Init Error. BULL_HOST is not defined in the environment variables`
-    );
-  }
-
-  if (!port) {
-    throw new Error(
-      `Queue Init Error. BULL_PORT is not defined in the environment variables`
-    );
-  }
-
-  // Create bullmq queue.
-  createQueue(queueName, host, port);
-
-  // Load all jobs.
-  loadRecurringJob(jobBusApiEtl, {
-    repeat: {
-      every: 10 * 1000,
-    },
+  process.on('SIGINT', () => {
+    console.log('Received SIGINT. Starting graceful shutdown.');
+    shutdown = true;
   });
 };
 
-main();
+const addJob = async (streamName: string, jobType: string) => {
+  console.log(`[${streamName}] Adding job '${jobType}'`);
+
+  await redisClient.xadd(
+    streamName,
+    'MAXLEN',
+    '~',
+    REDIS_JOBS_MAX_LENGTH,
+    '*',
+    'jobType',
+    jobType
+  );
+};
+
+const loadRecurringJob = async (
+  streamName: string,
+  jobName: string,
+  interval: number
+) => {
+  console.log(`Creating recurring job '${jobName}' with interval ${interval}`);
+  addJob(streamName, jobName);
+  return setInterval(async () => {
+    await addJob(streamName, jobName);
+  }, interval);
+};
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const main = async () => {
+  setupShutdownHandlers();
+
+  // Load all jobs.
+  let interval1 = await loadRecurringJob(
+    REDIS_STREAM_API_NAME,
+    REDIS_JOB_API_NAME,
+    10000
+  );
+
+  let interval2 = await loadRecurringJob(
+    REDIS_STREAM_GTFS_NAME,
+    REDIS_JOB_GTFS_NAME,
+    3600000
+  );
+
+  // Listen for shutdown and close connections.
+  while (!shutdown) {
+    await sleep(1000);
+  }
+
+  // Shutdown
+  console.log('Shutting Down: Ending intervals');
+  clearInterval(interval1);
+  clearInterval(interval2);
+  console.log('Shutting Down: Closing Redis connection');
+  redisClient.disconnect();
+
+  console.log('Shutting Down: bye');
+};
+
+main().catch(console.error);

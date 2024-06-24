@@ -1,7 +1,7 @@
-export type BULL_JOB_STATUS = 'success' | 'failed';
+export type JOB_STATUS = 'success' | 'failed';
 
-export interface BULL_JOB_RESULT {
-  status: BULL_JOB_STATUS;
+export interface JOB_RESULT {
+  status: JOB_STATUS;
   message: string;
   data?: object;
   duration?: string;
