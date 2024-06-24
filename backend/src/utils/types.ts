@@ -9,3 +9,15 @@ export interface VehicleSql {
   route_name: string;
   headsign: string;
 }
+
+// Define a type for the coordinates
+export interface Coordinate {
+  x: number;
+  y: number;
+}
+
+// Define a type for the bounding box
+export interface BoundingBox {
+  topLeft: Coordinate;
+  bottomRight: Coordinate;
+}
