@@ -10,8 +10,6 @@ import Redis from 'ioredis';
 import { VehicleSql } from '@utils/types';
 
 (async () => {
-  app.set('trust proxy', true);
-
   const port = process.env.EXPRESS_PORT || 3000;
   const corsOptions = { origin: ['http://localhost:4200', 'http://localhost:8080', 'https://nagahama-group.com'] };
   const redisHost = process.env.REDIS_HOST || 'redis';
@@ -23,6 +21,8 @@ import { VehicleSql } from '@utils/types';
 
   // Initialize Express
   const app = express();
+
+  app.set('trust proxy', true);
 
   // Initialize Redis for subscriptions
   const redis = new Redis(`${redisHost}:${redisPort}`);
