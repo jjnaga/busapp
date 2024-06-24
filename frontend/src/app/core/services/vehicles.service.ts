@@ -4,10 +4,11 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { Vehicle, Vehicles } from '../models/global.model';
 import { WebsocketService } from '../../shared/services/websocket.service';
 import { formatDistanceToNow } from 'date-fns';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class VehiclesService {
-  private vehiclesLink = 'http://localhost:3000/vehicles';
+  privatehost = window.location.host;
   private state: Vehicles = new Map();
   private stateSubject = new BehaviorSubject<Vehicles>(this.state);
 
@@ -30,6 +31,19 @@ export class VehiclesService {
       },
     });
   }
+
+  private getBaseUrl(): string {
+    const protocol = window.location.protocol;
+    let host = window.location.host;
+
+    if (!environment.production) {
+      host = 'localhost:3000';
+    }
+
+    return `${protocol}//${host}`;
+  }
+
+  private vehiclesLink = `${this.getBaseUrl()}/api/vehicles`;
 
   private cleanVehicle(vehicle: Vehicle): Vehicle {
     return {
