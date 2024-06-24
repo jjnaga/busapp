@@ -7,6 +7,7 @@ import vehiclesRoutes from '@routes/vehiclesRoutes';
 import http from 'http';
 import { WebSocketServer } from 'ws';
 import Redis from 'ioredis';
+import { VehicleSql } from '@utils/types';
 
 (async () => {
   const port = process.env.EXPRESS_PORT || 3000;
@@ -59,13 +60,36 @@ import Redis from 'ioredis';
   });
 
   const broadcast = (message: string) => {
-    const data = JSON.stringify({ message: message });
+    const { data } = JSON.parse(message);
 
-    wss.clients.forEach((client) => {
-      if (client.readyState === client.OPEN) {
-        client.send(data);
-      }
-    });
+    if (data.length > 0) {
+      // Data comes in in postgres snake case. Format to camel case.
+      const cleanedData = data.map((vehicle: VehicleSql) => ({
+        busNumber: vehicle.bus_number,
+        tripId: vehicle.trip_id,
+        driver: vehicle.driver,
+        latitude: vehicle.latitude,
+        longitude: vehicle.longitude,
+        adherence: vehicle.adherence,
+        heartbeat: vehicle.heartbeat,
+        routeName: vehicle.route_name,
+        headsign: vehicle.headsign,
+      }));
+
+      const broadcastData = JSON.stringify({ message: cleanedData });
+
+      console.log(
+        `Redis subscription ${redisVehiclesSubscribe}: ${data.length} message${
+          data.length > 1 && 's'
+        } received. Broadcasting to ${wss.clients.size} clients.`
+      );
+
+      wss.clients.forEach((client) => {
+        if (client.readyState === client.OPEN) {
+          client.send(broadcastData);
+        }
+      });
+    }
   };
 
   // Listen

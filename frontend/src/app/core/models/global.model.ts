@@ -11,6 +11,4 @@ export interface Vehicle {
   headsign: string;
 }
 
-export interface Vehicles {
-  [vehicleNumber: string]: Vehicle;
-}
+export type Vehicles = Map<string, Vehicle>;
