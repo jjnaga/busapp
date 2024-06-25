@@ -28,7 +28,7 @@ load_dotenv()
 
 def run_upsert_procedure(engine: Engine) -> int:
     try:
-        with engine.connect() as connection:
+        with engine.begin() as connection:
             logging.info("Calling procedure perform_gtfs_upserts")
             result = connection.execute(text("SELECT gtfs.perform_gtfs_upserts()"))
 
@@ -267,14 +267,20 @@ def main():
 
     # Upsert from staging into real tables via procedure
     try:
+        logging.info("Running upsert procedure")
         total_affected_rows = run_upsert_procedure(pg_sqlalchemy_engine)
+        logging.info(
+            f"Running upsert procedure: OK. {total_affected_rows} rows upserted."
+        )
     except Exception as e:
         job_status["message"] = f"Unable to run upsert procedure: {e}"
         return job_status
 
     # ETL complete. Update gtfs.last_checked with the current time so job won't run until next GTFS update
     try:
+        logging.info("Updating last checked timestamp")
         update_gtfs_last_checked(pg_sqlalchemy_engine)
+        logging.info("Updating last checked timestamp: OK")
     except Exception as e:
         job_status["message"] = (
             f"Unable to update last_checked timestamp in gtfs.last_checked: {e}"
