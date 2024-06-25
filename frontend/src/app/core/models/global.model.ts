@@ -11,6 +11,8 @@ export interface Vehicle {
   headsign: string;
 }
 
+export type SelectedStop = Stop | undefined;
+
 export interface Stop {
   stopId: string;
   stopCode: string | null;
