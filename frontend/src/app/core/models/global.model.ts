@@ -11,4 +11,14 @@ export interface Vehicle {
   headsign: string;
 }
 
+export interface Stop {
+  stopId: string;
+  stopCode: string | null;
+  stopName: string | null;
+  stopLat: number | null;
+  stopLon: number | null;
+  stopUrl: string | null;
+  stopSerialNumber: number | null;
+}
+
 export type Vehicles = Map<string, Vehicle>;
