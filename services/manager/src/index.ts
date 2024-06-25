@@ -64,7 +64,7 @@ const main = async () => {
   let interval1 = await loadRecurringJob(
     REDIS_STREAM_API_NAME,
     REDIS_JOB_API_NAME,
-    10000
+    5000
   );
 
   let interval2 = await loadRecurringJob(
