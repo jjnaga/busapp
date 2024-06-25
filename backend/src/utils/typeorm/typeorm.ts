@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
 import { Vehicle } from '@typeorm/entities/Vehicle';
+import { Stops } from '@typeorm/entities/Stops';
 
 function validateEnv() {
   const requiredEnvVars = ['DB_HOST', 'DB_PORT', 'DB_DATABASE'];
@@ -26,7 +27,7 @@ export const AppDataSource = new DataSource({
   dropSchema: false, // Don't drop the schema on connection
   // logging: true,
   // logger: 'advanced-console',
-  entities: [Vehicle],
+  entities: [Vehicle, Stops],
   migrations: [],
   subscribers: [],
   poolSize: 1000,
