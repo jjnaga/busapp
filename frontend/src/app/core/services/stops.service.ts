@@ -1,14 +1,14 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { Stop } from '../models/global.model';
+import { SelectedStop, Stop } from '../models/global.model';
 import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class StopsService {
   private vehiclesLink = `${this.getBaseUrl()}/api/stops`;
-  private state: Stop[] = [];
-  private stateSubject = new BehaviorSubject<Stop[]>(this.state);
+  private stopsSubject = new BehaviorSubject<Stop[]>([]);
+  private selectedStopSubject = new BehaviorSubject<SelectedStop>(undefined);
 
   constructor(private http: HttpClient) {
     this.fetchData();
@@ -29,8 +29,7 @@ export class StopsService {
     this.http.get(this.vehiclesLink).subscribe({
       next: (response: any) => {
         if (response?.status === 'success' && Array.isArray(response.data)) {
-          this.state = response.data;
-          this.stateSubject.next(this.state);
+          this.stopsSubject.next(response.data);
         } else {
           console.error(`Invalid JSON returned from ${this.vehiclesLink}`);
         }
@@ -38,7 +37,15 @@ export class StopsService {
     });
   }
 
-  getState(): Observable<Stop[]> {
-    return this.stateSubject.asObservable();
+  getStopsObservable(): Observable<Stop[]> {
+    return this.stopsSubject.asObservable();
+  }
+
+  getSelectedStopObservable(): Observable<SelectedStop> {
+    return this.selectedStopSubject.asObservable();
+  }
+
+  setSelectedStop(stop: Stop) {
+    this.selectedStopSubject.next(stop);
   }
 }
