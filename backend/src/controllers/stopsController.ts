@@ -18,24 +18,14 @@ const getStopsInBoundingBox = async (req: Request, res: Response) => {
   try {
     const { topLeftX, topLeftY, bottomRightX, bottomRightY } = req.query;
 
-    if (!topLeftX) {
-      res.status(400).send('Missing required query parameter: topLeftX');
-      return;
-    }
+    // Check for missing URL params.
+    const missingParams = ['topLeftX', 'topLeftY', 'bottomRightX', 'bottomRightY'].filter((param) => !req.query[param]);
 
-    if (!topLeftY) {
-      res.status(400).send('Missing required query parameter: topLeftY');
-      return;
-    }
-
-    if (!bottomRightX) {
-      res.status(400).send('Missing required query parameter: bottomRightX');
-      return;
-    }
-
-    if (!bottomRightY) {
-      res.status(400).send('Missing required query parameter: bottomRightY');
-      return;
+    if (missingParams.length > 0) {
+      return res.status(400).json({
+        status: 'fail',
+        message: `Missing URL Params: ${missingParams}`,
+      });
     }
 
     // Parse query parameters into the BoundingBox type

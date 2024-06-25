@@ -8,7 +8,6 @@ import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class VehiclesService {
-  privatehost = window.location.host;
   private state: Vehicles = new Map();
   private stateSubject = new BehaviorSubject<Vehicles>(this.state);
 

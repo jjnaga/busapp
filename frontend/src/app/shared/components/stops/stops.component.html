@@ -1,0 +1,25 @@
+<div class="pt-5">
+  <h1 class="text-3xl">Stops</h1>
+
+  <div>
+    <ul class="flex flex-row overflow-auto">
+      <li *ngFor="let stop of stops">
+        <div class="stops-row">
+          <h1 class="text-xl underline">Stop {{ stop.stopId}}</h1>
+          <ul>
+            <li>Stop Code:{{ stop.stopCode }}</li>
+            <li>Coordinates (DD): {{ stop.stopLat}}, {{ stop.stopLon }}</li>
+            <li>URL: {{ stop.stopUrl }}</li>
+          </ul>
+        </div>
+    </ul>
+  </div>
+  <!-- stopId: string;
+  stopCode: string | null;
+  stopName: string | null;
+  stopLat: number | null;
+  stopLon: number | null;
+  stopUrl: string | null;
+  stopSerialNumber: number | null; -->
+
+</div>
