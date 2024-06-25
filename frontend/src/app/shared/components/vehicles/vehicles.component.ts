@@ -16,7 +16,7 @@ export class VehiclesComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     // Initial API fetch of vehicles.
     this.subscription = this.vehiclesService
-      .getState()
+      .getVehiclesObservable()
       .subscribe((vehicles: Vehicles) => {
         const newVehicles: Vehicle[] = [];
         for (const [vehicleNumber, vehicle] of vehicles) {

@@ -8,9 +8,8 @@ import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class VehiclesService {
-  privatehost = window.location.host;
-  private state: Vehicles = new Map();
-  private stateSubject = new BehaviorSubject<Vehicles>(this.state);
+  private vehicles: Vehicles = new Map();
+  private vehiclesSubject = new BehaviorSubject<Vehicles>(this.vehicles);
 
   constructor(
     private http: HttpClient,
@@ -58,20 +57,20 @@ export class VehiclesService {
   private updateVehicles(vehicles: Vehicle[]): void {
     vehicles.forEach((vehicle) => {
       const cleanedVehicle = this.cleanVehicle(vehicle);
-      this.state.set(cleanedVehicle.busNumber, cleanedVehicle);
+      this.vehicles.set(cleanedVehicle.busNumber, cleanedVehicle);
     });
     this.sortAndUpdateSubject();
   }
 
   private sortAndUpdateSubject(): void {
-    const sortedEntries = Array.from(this.state).sort(
+    const sortedEntries = Array.from(this.vehicles).sort(
       ([, a], [, b]) => b.heartbeat.getTime() - a.heartbeat.getTime()
     );
 
-    this.state = new Map(sortedEntries);
-    this.stateSubject.next(this.state);
+    this.vehicles = new Map(sortedEntries);
+    this.vehiclesSubject.next(this.vehicles);
 
-    console.log('State sorted and updated. New State:', this.state);
+    console.log('Vehicles sorted and updated. Vehicles:', this.vehicles);
   }
 
   private subscribeToWebSocket(): void {
@@ -88,7 +87,7 @@ export class VehiclesService {
     });
   }
 
-  getState(): Observable<Vehicles> {
-    return this.stateSubject.asObservable();
+  getVehiclesObservable(): Observable<Vehicles> {
+    return this.vehiclesSubject.asObservable();
   }
 }

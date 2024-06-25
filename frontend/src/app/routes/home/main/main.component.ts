@@ -1,5 +1,4 @@
-import { Component, OnInit } from '@angular/core';
-import { VehiclesService } from '../../../core/services/vehicles.service';
+import { Component } from '@angular/core';
 
 @Component({
   templateUrl: './main.component.html',
