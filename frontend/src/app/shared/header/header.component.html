@@ -1,14 +1,27 @@
-<header>
-  <div class="flex bg-slate-200">
-    <div id="logo" class="m-3">
-      <div id="logo_inner"><span class="text-3xl font-bold underline">Bus App</span></div>
+<header class="fixed left-0 top-0 h-screen w-24 bg-white p-4 z-20 shadow-md border">
+  <div class="flex flex-col">
+    <div id="logo" class="m-1">
+      <div id="logo_inner"><span class="text-xl font-bold text-center">Bettah Bus</span></div>
     </div>
-    <div id="links" class="flex items-center">
-      <ul class="flex">
-        <li *ngFor="let link of links" class="p-3">
-          <a [routerLink]="link.path"><span class="text-2xl underline hover:text-blue-400">{{link.label}}</span></a>
-        </li>
-      </ul>
-    </div>
+    <ul class="flex flex-col mt-10">
+      <li class="flex flex-col items-center p-3">
+        <button class="hover:text-blue-600">
+          <fa-icon [icon]="faStar" [size]="'xl'"></fa-icon>
+          <p class="pt-2 text-md text-gray-700 hover:text-blue-600">Favorites</p>
+        </button>
+      </li>
+    </ul>
   </div>
 </header>
+
+<div id="siderbar" class="fixed left-24 top-0 h-screen z-10 w-96" [ngClass]="{'bg-white' : showSidebar}">
+  <div id="sidebar-inner" class="flex flex-col">
+    <div id="search" class="mt-5 pl-2 p-1">
+      <div id="search_inner" class="relative flex items-center">
+        <input type="text" [(ngModel)]="searchResult" (ngModelChange)="onSearch()"
+          class="w-full h-12 pr-10 p-2 rounded-2xl border-[1px] hover:border-blue-600 focus:outline-none focus:border-blue-600 focus:border-[2px] shadow-lg"
+          placeholder="Search routes">
+        <fa-icon [icon]="faSearch" class="absolute right-5 text-gray-400"></fa-icon>
+      </div>
+    </div>
+  </div>

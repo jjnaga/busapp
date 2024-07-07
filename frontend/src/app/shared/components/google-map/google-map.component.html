@@ -3,7 +3,8 @@
     @for (marker of markers$ | async; track marker) {
     <!-- <map-advanced-marker [position]="marker.position" [title]="marker.title" [content]="marker.content"
       [options]="marker.options" /> -->
-    <map-advanced-marker [position]="marker.position" [title]="marker.title" [content]="marker.content" />
+    <map-advanced-marker [position]="marker.position" [title]="marker.title" [content]="marker.content"
+      (mapClick)="onBusStopClick(marker)" />
     }
   </google-map>
 </div>

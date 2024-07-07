@@ -20,6 +20,7 @@ import { AsyncPipe } from '@angular/common';
   imports: [GoogleMap, MapAdvancedMarker, AsyncPipe],
 })
 export class GoogleMapComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
   map: google.maps.Map | null = null;
   markers$ = new BehaviorSubject<Marker[]>([]);
   mapOptions: google.maps.MapOptions = {
@@ -28,9 +29,6 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
     zoom: 12,
     disableDefaultUI: true,
   };
-  private destroy$ = new Subject<void>();
-  vehicleIcon: HTMLImageElement | null = null;
-  // vehicleIcon = 'assets/puppy.jpeg';
 
   constructor(
     private vehiclesService: VehiclesService,
@@ -40,7 +38,6 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
 
   async ngOnInit() {
     await this.waitForGoogleMaps();
-    this.initializeIcon();
     this.subscribeToData();
   }
 
@@ -59,23 +56,6 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
         resolve();
       }
     });
-  }
-
-  private initializeIcon(): void {
-    const imgTag = document.createElement('img');
-    imgTag.src = 'assets/puppy.jpeg';
-    this.vehicleIcon = imgTag;
-  }
-
-  onMapReady(map: google.maps.Map) {
-    this.map = map;
-    this.map.setCenter({ lat: 21.2968, lng: -157.8531 });
-    this.map.setZoom(14);
-  }
-
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 
   private subscribeToData() {
@@ -103,7 +83,6 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
     let busMarkers: any[] = [];
     let stopMarkers: any[] = [];
 
-    console.log('what is vehicleIcon', this.vehicleIcon);
     if (vehicles) {
       busMarkers = Array.from(vehicles.values()).map((vehicle) => {
         const imgTag = document.createElement('img');
@@ -142,5 +121,30 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
     }
 
     return [...busMarkers, ...stopMarkers];
+  }
+
+  onMapReady(map: google.maps.Map) {
+    this.map = map;
+    this.map.setCenter({ lat: 21.2968, lng: -157.8531 });
+    this.map.setZoom(14);
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  onBusStopClick(marker: any): void {
+    console.log('Marker clicked', marker);
+    switch (marker.type) {
+      case 'bus':
+        console.log('bus');
+        break;
+      case 'stop':
+        console.log('stop');
+        break;
+      default:
+        console.log('NA');
+    }
   }
 }
