@@ -24,3 +24,11 @@ export interface Stop {
 }
 
 export type Vehicles = Map<string, Vehicle>;
+
+export interface Marker {
+  position: google.maps.LatLngLiteral;
+  title: string;
+  type: 'bus' | 'stop';
+  options: any;
+  content: any;
+}

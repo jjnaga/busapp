@@ -50,6 +50,8 @@ services:
     build:
       context: ./services/workers/worker-bus-api
       dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=production
     depends_on:
       postgres:
         condition: service_healthy
