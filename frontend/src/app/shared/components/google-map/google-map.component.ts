@@ -116,10 +116,11 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
           title: `Bus ${vehicle.busNumber}`,
           type: 'bus',
           content: imgTag,
-          options: {
-            // icon: imgTag,
-            size: new google.maps.Size(32, 32),
-          },
+          // This causes issues?
+          // options: {
+          //   // icon: imgTag,
+          //   size: new google.maps.Size(32, 32),
+          // },
         };
       });
     }
