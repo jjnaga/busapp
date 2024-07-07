@@ -59,24 +59,26 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const main = async () => {
   setupShutdownHandlers();
+  let interval1;
+  let interval2;
 
   // Load all jobs.
   if (process.env.NODE_ENV === 'development') {
     console.log('in dev');
-    let interval1 = await loadRecurringJob(
+    interval1 = await loadRecurringJob(
       REDIS_STREAM_API_NAME,
       REDIS_JOB_API_NAME,
       25000
     );
   } else {
-    let interval1 = await loadRecurringJob(
+    interval1 = await loadRecurringJob(
       REDIS_STREAM_API_NAME,
       REDIS_JOB_API_NAME,
       5000
     );
   }
 
-  let interval2 = await loadRecurringJob(
+  interval2 = await loadRecurringJob(
     REDIS_STREAM_GTFS_NAME,
     REDIS_JOB_GTFS_NAME,
     3600000
