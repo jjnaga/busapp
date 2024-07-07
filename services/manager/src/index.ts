@@ -61,11 +61,20 @@ const main = async () => {
   setupShutdownHandlers();
 
   // Load all jobs.
-  let interval1 = await loadRecurringJob(
-    REDIS_STREAM_API_NAME,
-    REDIS_JOB_API_NAME,
-    5000
-  );
+  if (process.env.NODE_ENV === 'development') {
+    console.log('in dev');
+    let interval1 = await loadRecurringJob(
+      REDIS_STREAM_API_NAME,
+      REDIS_JOB_API_NAME,
+      25000
+    );
+  } else {
+    let interval1 = await loadRecurringJob(
+      REDIS_STREAM_API_NAME,
+      REDIS_JOB_API_NAME,
+      5000
+    );
+  }
 
   let interval2 = await loadRecurringJob(
     REDIS_STREAM_GTFS_NAME,
