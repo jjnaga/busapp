@@ -7,8 +7,8 @@ import { provideHttpClient } from '@angular/common/http';
 import { MainModule } from './routes/home/main/main.module';
 
 @NgModule({
-  declarations: [AppComponent, HeaderComponent],
-  imports: [BrowserModule, AppRoutingModule],
+  declarations: [AppComponent],
+  imports: [BrowserModule, AppRoutingModule, HeaderComponent],
   providers: [provideHttpClient()],
   bootstrap: [AppComponent],
 })
