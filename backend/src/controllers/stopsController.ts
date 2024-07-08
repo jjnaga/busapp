@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
-import { fetchAllStops, fetchStopsInBoundingBox } from '@logic/stops';
+import { fetchAllStops, fetchSingleStop, fetchStopsInBoundingBox } from '@logic/stops';
 import { BoundingBox } from '@utils/types';
 
-const getAllStops = async (req: Request, res: Response) => {
+export const getAllStops = async (req: Request, res: Response) => {
   try {
     const data = await fetchAllStops();
     console.log('data found,', data);
@@ -14,7 +14,24 @@ const getAllStops = async (req: Request, res: Response) => {
   }
 };
 
-const getStopsInBoundingBox = async (req: Request, res: Response) => {
+export const getSingleStopData = async (req: Request, res: Response) => {
+  try {
+    const { stopNumber } = req.params;
+
+    if (!stopNumber) {
+      return res.status(400).json({ error: '"stopNumber" parameter is required.' });
+    }
+
+    const data = await fetchSingleStop(stopNumber);
+
+    return res.status(200).json({ status: 'success', data });
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    return res.status(500).json({ status: 'failure', error: errorMessage });
+  }
+};
+
+export const getStopsInBoundingBox = async (req: Request, res: Response) => {
   try {
     const { topLeftX, topLeftY, bottomRightX, bottomRightY } = req.query;
 
@@ -42,5 +59,3 @@ const getStopsInBoundingBox = async (req: Request, res: Response) => {
     return res.status(500).json({ status: 'failure', error: errorMessage });
   }
 };
-
-export { getAllStops, getStopsInBoundingBox };
