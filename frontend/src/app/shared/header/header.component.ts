@@ -7,10 +7,18 @@ import { CommonModule } from '@angular/common';
 import { sideBarModes } from '../../core/models/global.model';
 import { Subscription } from 'rxjs';
 import { UserDataService } from '../../core/services/user-data.service';
+import { StopsSidebarComponent } from './sidebar/stops/stops-sidebar.component';
+import { FavoritesSidebarComponent } from './sidebar/favorites/favorites-sidebar.component';
 
 @Component({
   selector: 'header-component',
-  imports: [FontAwesomeModule, FormsModule, CommonModule],
+  imports: [
+    FontAwesomeModule,
+    FormsModule,
+    CommonModule,
+    StopsSidebarComponent,
+    FavoritesSidebarComponent,
+  ],
   templateUrl: './header.component.html',
   standalone: true,
 })
@@ -61,6 +69,6 @@ export class HeaderComponent implements OnInit {
   };
 
   onXmarkClick = () => {
-    this.userDataService.setSidebarMode(null);
+    this.userDataService.resetSidebar();
   };
 }

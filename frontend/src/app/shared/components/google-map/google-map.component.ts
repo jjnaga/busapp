@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, NgZone } from '@angular/core';
-import { BehaviorSubject, combineLatest } from 'rxjs';
+import { BehaviorSubject, combineLatest, Subscription } from 'rxjs';
 import { map, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { VehiclesService } from '../../../core/services/vehicles.service';
@@ -12,6 +12,7 @@ import {
 } from '../../../core/models/global.model';
 import { GoogleMap, MapAdvancedMarker } from '@angular/google-maps';
 import { AsyncPipe } from '@angular/common';
+import { UserDataService } from '../../../core/services/user-data.service';
 
 @Component({
   selector: 'google-map-component',
@@ -20,6 +21,7 @@ import { AsyncPipe } from '@angular/common';
   imports: [GoogleMap, MapAdvancedMarker, AsyncPipe],
 })
 export class GoogleMapComponent implements OnInit, OnDestroy {
+  private subscriptions: Subscription = new Subscription();
   private destroy$ = new Subject<void>();
   map: google.maps.Map | null = null;
   markers$ = new BehaviorSubject<Marker[]>([]);
@@ -33,7 +35,8 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
   constructor(
     private vehiclesService: VehiclesService,
     private stopsService: StopsService,
-    private ngZone: NgZone
+    private ngZone: NgZone,
+    private userDataService: UserDataService
   ) {}
 
   async ngOnInit() {
@@ -65,8 +68,8 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
     ])
       .pipe(
         takeUntil(this.destroy$),
-        // map(([vehicles, stops]) => this.createMarkers(vehicles, stops))
-        map(([vehicles, stops]) => this.createMarkers(vehicles))
+        map(([vehicles, stops]) => this.createMarkers(vehicles, stops))
+        // map(([vehicles, stops]) => this.createMarkers(vehicles))
       )
       .subscribe((markers) => {
         this.markers$.next(markers);
@@ -114,6 +117,7 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
             !isNaN(stop.stopLon)
         )
         .map((stop) => ({
+          stopCode: stop.stopCode,
           position: { lat: stop.stopLat, lng: stop.stopLon },
           title: stop.stopName || 'Unnamed Stop',
           type: 'stop',
@@ -134,14 +138,15 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  onBusStopClick(marker: any): void {
-    console.log('Marker clicked', marker);
+  onMarkerClick(marker: any): void {
     switch (marker.type) {
       case 'bus':
         console.log('bus');
         break;
       case 'stop':
-        console.log('stop');
+        const { stopCode } = marker;
+        console.log('stop', stopCode, typeof stopCode);
+        this.userDataService.setSelectedStop(stopCode);
         break;
       default:
         console.log('NA');
