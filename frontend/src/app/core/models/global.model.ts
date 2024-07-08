@@ -26,11 +26,12 @@ export interface Stop {
 export type Vehicles = Map<string, Vehicle>;
 
 export interface Marker {
+  id: string;
   position: google.maps.LatLngLiteral;
   title: string;
   type: 'bus' | 'stop';
-  options: any;
-  content: any;
+  options?: any;
+  content?: any;
 }
 
 export type sideBarModes = 'favorites' | 'stop' | null;

@@ -7,8 +7,8 @@ import { Stop } from '../../../core/models/global.model';
   templateUrl: './stops.component.html',
 })
 export class StopsComponent {
-  stops$ = this.stopsService.getStopsObservable();
-  selectedStop$ = this.stopsService.getSelectedStopObservable();
+  stops$ = this.stopsService.stops$;
+  selectedStop$ = this.stopsService.selectedStop$;
 
   constructor(private stopsService: StopsService) {}
 
