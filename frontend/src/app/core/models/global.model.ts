@@ -33,4 +33,4 @@ export interface Marker {
   content: any;
 }
 
-export type sideBarModes = 'favorites' | 'idk' | null;
+export type sideBarModes = 'favorites' | 'stop' | null;
