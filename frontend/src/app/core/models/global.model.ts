@@ -15,7 +15,7 @@ export type SelectedStop = Stop | undefined;
 
 export interface Stop {
   stopId: string;
-  stopCode: string | null;
+  stopCode: string;
   stopName: string | null;
   stopLat: number | null;
   stopLon: number | null;
@@ -35,3 +35,25 @@ export interface Marker {
 }
 
 export type sideBarModes = 'favorites' | 'stop' | null;
+
+export interface StopApiResponse {
+  stop: string;
+  timestamp: Date;
+  arrivals: Arrival[];
+}
+
+export interface Arrival {
+  canceled: string;
+  date: string;
+  direction: string;
+  estimated: string;
+  headsign: string;
+  id: string;
+  latitude: string;
+  longitude: string;
+  route: string;
+  shape: string;
+  stopTime: string;
+  trip: string;
+  vehicle: string;
+}

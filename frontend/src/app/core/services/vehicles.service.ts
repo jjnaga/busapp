@@ -11,6 +11,8 @@ export class VehiclesService {
   private vehicles: Vehicles = new Map();
   private vehiclesSubject = new BehaviorSubject<Vehicles>(this.vehicles);
 
+  vehicles$ = this.vehiclesSubject.asObservable();
+
   constructor(
     private http: HttpClient,
     private webSocketService: WebsocketService
@@ -85,9 +87,5 @@ export class VehiclesService {
       },
       error: (error) => console.error('Websocket error: ', error),
     });
-  }
-
-  getVehiclesObservable(): Observable<Vehicles> {
-    return this.vehiclesSubject.asObservable();
   }
 }

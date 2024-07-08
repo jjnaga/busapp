@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, tap } from 'rxjs';
 import { sideBarModes } from '../models/global.model';
+import { StopsService } from './stops.service';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class UserDataService {
@@ -8,13 +10,16 @@ export class UserDataService {
   private sidebarModeSubject = new BehaviorSubject<sideBarModes>(null);
   private showSidebarSubject = new BehaviorSubject<boolean>(false);
   private favoritesSubject = new BehaviorSubject<any[]>([]);
-  private selectedStopSubject = new BehaviorSubject<string | null>(null);
 
   searchResult$ = this.searchResultSubject.asObservable();
   sidebarMode$ = this.sidebarModeSubject.asObservable();
   // .pipe(tap((sidebar) => console.log('sidebarmode changed', sidebar)));
   showSidebar$ = this.showSidebarSubject.asObservable();
   favorites$ = this.favoritesSubject.asObservable();
+  // selectedStop$ = this.selectedStopSubject.asObservable();
+  // private selectedStopSubject = new BehaviorSubject<string | null>(null);
+
+  constructor(private stopsService: StopsService) {}
 
   setSearchResult(searchResult: string) {
     this.searchResultSubject.next(searchResult);
@@ -49,7 +54,7 @@ export class UserDataService {
   }
 
   setSelectedStop(stop: string) {
-    this.selectedStopSubject.next(stop);
+    this.stopsService.setSelectedStop(stop);
     this.showSidebarSubject.next(true);
     this.sidebarModeSubject.next('stop');
   }
