@@ -1,7 +1,15 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { SelectedStop, Stop } from '../models/global.model';
+import {
+  BehaviorSubject,
+  catchError,
+  map,
+  Observable,
+  of,
+  switchMap,
+  tap,
+} from 'rxjs';
+import { SelectedStop, Stop, StopApiResponse } from '../models/global.model';
 import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
@@ -9,9 +17,60 @@ export class StopsService {
   private vehiclesLink = `${this.getBaseUrl()}/api/stops`;
   private stopsSubject = new BehaviorSubject<Stop[]>([]);
   private selectedStopSubject = new BehaviorSubject<SelectedStop>(undefined);
+  private selectedStopDataSubject = new BehaviorSubject<
+    StopApiResponse | undefined
+  >(undefined);
+
+  stops$ = this.stopsSubject.asObservable();
+  selectedStop$ = this.selectedStopSubject.asObservable();
+  selectedStopData$ = this.selectedStopDataSubject.asObservable();
+
+  private selectedStopDataLink = (stopCode: string) =>
+    `${this.getBaseUrl()}/api/stops/${stopCode}`;
 
   constructor(private http: HttpClient) {
     this.fetchData();
+
+    this.selectedStop$
+      .pipe(
+        switchMap((selectedStop) => {
+          if (selectedStop) {
+            return this.fetchSelectedStopData(
+              this.selectedStopSubject.value!.stopCode
+            );
+          } else {
+            return of(undefined);
+          }
+        })
+      )
+      .subscribe({
+        next: (selectedStopData) => {
+          this.selectedStopDataSubject.next(selectedStopData);
+        },
+        error: (error) => {
+          console.error('Unhandled error in stop data stream', error);
+          this.selectedStopDataSubject.next(undefined);
+        },
+      });
+  }
+
+  private fetchSelectedStopData(
+    stopCode: string
+  ): Observable<StopApiResponse | undefined> {
+    return this.http.get<any>(this.selectedStopDataLink(stopCode)).pipe(
+      map((response) => {
+        if (response?.status !== 'success') {
+          throw new Error(
+            `API returned non-success status: ${response?.error}`
+          );
+        }
+        return response.data;
+      }),
+      catchError((error) => {
+        console.error('Error fetching stop data: ', error);
+        return of(undefined);
+      })
+    );
   }
 
   private getBaseUrl(): string {
@@ -37,15 +96,9 @@ export class StopsService {
     });
   }
 
-  getStopsObservable(): Observable<Stop[]> {
-    return this.stopsSubject.asObservable();
-  }
-
-  getSelectedStopObservable(): Observable<SelectedStop> {
-    return this.selectedStopSubject.asObservable();
-  }
-
-  setSelectedStop(stop: Stop) {
-    this.selectedStopSubject.next(stop);
+  setSelectedStop(selectedStopCode: string) {
+    this.selectedStopSubject.next(
+      this.stopsSubject.value.find((stop) => stop.stopCode === selectedStopCode)
+    );
   }
 }
