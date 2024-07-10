@@ -20,10 +20,10 @@ export class UserDataService {
   // private selectedStopSubject = new BehaviorSubject<string | null>(null);
 
   constructor(private stopsService: StopsService) {
-    setTimeout(() => {
-      console.log('pickign 47');
-      this.setSelectedStop('47');
-    }, 1000);
+    // setTimeout(() => {
+    //   console.log('pickign 47');
+    //   this.setSelectedStop('47');
+    // }, 1000);
   }
 
   setSearchResult(searchResult: string) {
