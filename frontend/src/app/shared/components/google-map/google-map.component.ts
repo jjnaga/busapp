@@ -38,9 +38,6 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
     disableDefaultUI: true,
     // mobile friendly options
     zoomControl: true,
-    zoomControlOptions: {
-      position: google.maps.ControlPosition.RIGHT_BOTTOM,
-    },
     mapTypeControl: false,
     streetViewControl: false,
     fullscreenControl: false,
@@ -175,6 +172,13 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
     this.map.setCenter({ lat: 21.2968, lng: -157.8531 });
     this.map.setZoom(14);
 
+    // Set zoom control options here
+    this.map.setOptions({
+      zoomControlOptions: {
+        position: google.maps.ControlPosition.RIGHT_BOTTOM,
+      },
+    });
+
     this.map.addListener('zoom_changed', () => {
       this.updateVisibleMarkers();
     });
@@ -185,6 +189,7 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
 
     this.updateVisibleMarkers();
   }
+
   private updateVisibleMarkers() {
     if (!this.map) return;
 
