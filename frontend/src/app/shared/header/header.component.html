@@ -33,13 +33,12 @@
       </div>
     </div>
     <ng-container *ngIf="sidebarMode">
-      <div class="mt-3">
-        <h2 class="text-xl uppercase">{{sidebarMode}}</h2>
+      <div class="w-full">
+        <ng-container [ngSwitch]="sidebarMode">
+          <favorites-sidebar *ngSwitchCase="'favorites'"></favorites-sidebar>
+          <stops-sidebar *ngSwitchCase="'stop'"></stops-sidebar>
+        </ng-container>
       </div>
-      <ng-container [ngSwitch]="sidebarMode">
-        <favorites-sidebar *ngSwitchCase="'favorites'"></favorites-sidebar>
-        <stops-sidebar *ngSwitchCase="'stop'"></stops-sidebar>
-      </ng-container>
     </ng-container>
   </div>
 </div>

@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { UserDataService } from '../../../../core/services/user-data.service';
 import { Subscription } from 'rxjs';
 import { StopsService } from '../../../../core/services/stops.service';
+import { format, formatDistanceToNow } from 'date-fns';
 import {
   Arrival,
   SelectedStop,
@@ -19,6 +20,7 @@ export class StopsSidebarComponent implements OnInit {
   private subscriptions: Subscription = new Subscription();
   selectedStop: SelectedStop = undefined;
   selectedStopData: StopApiResponse | undefined = undefined;
+  selectedStopTimeFromNow: string = '';
 
   constructor(
     private userDataService: UserDataService,
@@ -36,6 +38,16 @@ export class StopsSidebarComponent implements OnInit {
       this.stopsService.selectedStopData$.subscribe((selectedStopData) => {
         if (selectedStopData !== undefined) {
           this.selectedStopData = selectedStopData;
+
+          if (
+            selectedStopData.timestamp instanceof Date &&
+            !isNaN(selectedStopData.timestamp.getTime())
+          ) {
+            this.selectedStopTimeFromNow = formatDistanceToNow(
+              selectedStopData.timestamp,
+              { addSuffix: true }
+            );
+          }
         }
       })
     );

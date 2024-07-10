@@ -45,7 +45,14 @@ export class StopsService {
       )
       .subscribe({
         next: (selectedStopData) => {
-          this.selectedStopDataSubject.next(selectedStopData);
+          if (selectedStopData) {
+            // Transform
+            // Load
+            this.selectedStopDataSubject.next({
+              ...selectedStopData,
+              timestamp: new Date(selectedStopData.timestamp),
+            });
+          }
         },
         error: (error) => {
           console.error('Unhandled error in stop data stream', error);

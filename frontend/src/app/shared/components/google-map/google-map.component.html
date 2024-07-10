@@ -2,16 +2,10 @@
   <google-map id="map" height=100vh width=100vw [options]="mapOptions" (mapInitialized)=" onMapReady($event)">
     <map-advanced-marker *ngFor="let marker of vehicleMarkers$ | async; trackBy: trackByMarkerId"
       [position]="marker.position" [title]="marker.title" [content]="marker.content" (mapClick)="onMarkerClick(marker)">
-      <ng-container *ngIf="marker.type === 'bus'">
-        <img [src]="'assets/bus.png'" width="50" height="50" />
-      </ng-container>
     </map-advanced-marker>
 
     <map-advanced-marker *ngFor="let marker of visibleStopMarkers$ | async; trackBy: trackByMarkerId"
       [position]="marker.position" [title]="marker.title" (mapClick)="onMarkerClick(marker)">
-      <ng-container *ngIf="marker.type === 'stop'">
-        <!-- Add stop marker content here if needed -->
-      </ng-container>
     </map-advanced-marker>
   </google-map>
 </div>

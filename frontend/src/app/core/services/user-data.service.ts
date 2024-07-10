@@ -19,7 +19,12 @@ export class UserDataService {
   // selectedStop$ = this.selectedStopSubject.asObservable();
   // private selectedStopSubject = new BehaviorSubject<string | null>(null);
 
-  constructor(private stopsService: StopsService) {}
+  constructor(private stopsService: StopsService) {
+    setTimeout(() => {
+      console.log('pickign 47');
+      this.setSelectedStop('47');
+    }, 1000);
+  }
 
   setSearchResult(searchResult: string) {
     this.searchResultSubject.next(searchResult);
@@ -33,12 +38,10 @@ export class UserDataService {
   }
 
   updateShowSidebar() {
-    console.log('huh?', this.showSidebarSubject.value);
     const showSidebar =
       this.searchResultSubject.value.length > 0 ||
       this.sidebarModeSubject.value !== null;
     this.showSidebarSubject.next(showSidebar);
-    console.log('huh?', this.showSidebarSubject.value);
   }
 
   resetSidebar() {
