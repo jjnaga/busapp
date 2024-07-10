@@ -1,27 +1,30 @@
-<div class="z-[200] w-full">
-  <div>
-    <p>
-      Stop #{{selectedStop?.stopCode}} - {{selectedStop?.stopName}}
+<div class="z-[200] w-full pt-5">
+  <div id="stops-header" class="text-center p-3 border-b-2">
+    <p class="text-center text-xl font-semibold tracking-tighter">
+      {{selectedStop?.stopName}}
     </p>
-    <p>Last Updated: {{selectedStopData?.timestamp}}</p>
-    <div>
-      <ul>
-        <li *ngFor="let arrival of selectedStopData?.arrivals" class="border mx-1 my-3">
-          <div class="p-1">
-            <p *ngIf="arrival.canceled === '0'" class="text-center font-bold underline">{{arrival.route}} -
-              {{arrival.headsign}}
-            </p>
-            <p *ngIf="arrival.canceled !== '0'" class="font-bold line-through text-red-600">{{arrival.route}} -
-              {{arrival.headsign}} - CANCELED
-            </p>
-            <p>Direction: {{arrival.direction}}</p>
-            <p>Arriving {{arrival.stopTime}}</p>
-            <p>Estimated Arrival: {{arrival.estimated}}</p>
-          </div>
-        </li>
-      </ul>
-      <!-- <map-advanced-marker *ngFor="let marker of visibleStopMarkers$ | async; trackBy: trackByMarkerId"
+    <p class="text-center px-2">Stop #{{selectedStop?.stopCode}}</p>
+    <p>
+      Updated: {{selectedStopTimeFromNow}}
+    </p>
+  </div>
+  <!-- <p>{{selectedStop?.stopCode}} Updated: {{selectedStopData?.timestamp}}</p> -->
+  <div>
+    <ul>
+      <li *ngFor="let arrival of selectedStopData?.arrivals" class="border mx-1 my-3">
+        <div class="p-1">
+          <p *ngIf="arrival.canceled === '0'" class="text-center font-bold underline">{{arrival.route}} -
+            {{arrival.headsign}}
+          </p>
+          <p *ngIf="arrival.canceled !== '0'" class="font-bold line-through text-red-600">{{arrival.route}} -
+            {{arrival.headsign}} - CANCELED
+          </p>
+          <p><span class="font-semibold">ARRIVAL:</span> {{arrival.stopTime}}</p>
+          <p>Direction: {{arrival.direction}}</p>
+        </div>
+      </li>
+    </ul>
+    <!-- <map-advanced-marker *ngFor="let marker of visibleStopMarkers$ | async; trackBy: trackByMarkerId"
       [position]="marker.position" [title]="marker.title" (mapClick)="onMarkerClick(marker)"> -->
-    </div>
   </div>
 </div>

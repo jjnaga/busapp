@@ -29,6 +29,7 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
   stopMarkers$ = new BehaviorSubject<Marker[]>([]);
   vehicleMarkers$ = new BehaviorSubject<Marker[]>([]);
   visibleStopMarkers$ = new BehaviorSubject<Marker[]>([]);
+  console = console;
 
   mapOptions: google.maps.MapOptions = {
     mapId: '53da1ad002655c53',
