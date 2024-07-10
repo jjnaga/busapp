@@ -36,6 +36,16 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
     center: { lat: 21.3069, lng: -157.8583 },
     zoom: 12,
     disableDefaultUI: true,
+    // mobile friendly options
+    zoomControl: true,
+    zoomControlOptions: {
+      position: google.maps.ControlPosition.RIGHT_BOTTOM,
+    },
+    mapTypeControl: false,
+    streetViewControl: false,
+    fullscreenControl: false,
+    gestureHandling: 'greedy',
+    scrollwheel: false,
   };
 
   constructor(
@@ -48,7 +58,36 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
   async ngOnInit() {
     await this.waitForGoogleMaps();
     this.subscribeToData();
+
+    // mobile friendly options
+    this.addTouchEventListeners();
   }
+
+  ngOnDestory() {
+    this.removeTouchEventListeners();
+  }
+  private removeTouchEventListeners() {
+    const mapElement = document.getElementById('map');
+    if (mapElement) {
+      mapElement.removeEventListener('touchstart', this.preventZoom);
+      mapElement.removeEventListener('touchmove', this.preventZoom);
+    }
+  }
+
+  private addTouchEventListeners = () => {
+    const mapElement = document.getElementById('map');
+    if (mapElement) {
+      mapElement.addEventListener('touchstart', this.preventZoom, {
+        passive: false,
+      });
+    }
+  };
+
+  private preventZoom = (e: TouchEvent) => {
+    if (e.touches.length > 1) {
+      e.preventDefault();
+    }
+  };
 
   private waitForGoogleMaps(): Promise<void> {
     return new Promise<void>(async (resolve) => {
