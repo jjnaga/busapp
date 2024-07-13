@@ -1,44 +1,50 @@
-<header class="fixed left-0 top-0 h-20 w-full lg:h-screen lg:w-24 bg-white p-1 lg:p-4 z-20 shadow-md border">
-  <div class="flex justify-between lg:flex-col">
-    <div id="logo" class="m-1">
-      <div id="logo_inner"><span class="text-xl font-bold text-center">Bettah Bus</span></div>
-    </div>
-    <ul class="flex lg:flex-col lg:mt-10">
-      <li class="flex flex-col lg:items-center p-3">
-        <button (click)="toggleMode('favorites')" class="hover:text-blue-600">
-          <fa-icon [icon]="faStar" [size]="'xl'"></fa-icon>
-          <p class="pt-2 text-md text-gray-700 hover:text-blue-600">Favorites</p>
-        </button>
-      </li>
-    </ul>
-  </div>
-</header>
+<!-- TODO remove lg:w-24, set desktop to be content-sized -->
+<div class="fixed left-0 top-0 z-20 w-full lg:h-screen lg:w-24 lg:flex lg:flex-row lg:space-x-5">
+  <header class="bg-white shadow-md border h-full opacity-75 lg:opacity-100" [ngClass]="{'opacity-100': showSidebar}">
 
-<div id="siderbar" class="fixed left-0 top-20 w-full z-10 lg:left-24 lg:top-0 lg:w-96" [ngClass]="{'bg-white' : showSidebar,
+    <div class="flex lg:flex-col justify-between mx-3 my-2 h-full">
+      <div id="logo">
+        <div id="logo_inner"><span class="text-xl font-bold text-center">Bettah Bus</span></div>
+      </div>
+      <div class="flex-1"></div>
+      <ul class="flex lg:flex-col">
+        <li>
+          <button (click)="toggleMode('favorites')" class="hover:text-blue-600">
+            <fa-icon class='text-nagahama-blue text-xl lg:text-3xl' [icon]="faStar"></fa-icon>
+          </button>
+        </li>
+      </ul>
+    </div>
+  </header>
+  <div id="siderbar" class="w-full lg:left-24 lg:top-0 lg:w-96 opacity-[95] lg:opacity-100" [ngClass]="{'bg-white' : showSidebar,
   'h-full': showSidebar,
   'h-fit': !showSidebar
 }">
-  <div id="sidebar-inner" class="flex flex-col items-center">
-    <div id="search" class="w-full mt-5 pl-2 p-1">
-      <div id="search_inner" class="relative flex items-center">
-        <input type="text" [(ngModel)]="searchResult" (ngModelChange)="onSearchResultChange()"
-          class="w-full h-12 pr-10 p-2 rounded-2xl border-[1px] hover:border-blue-600 focus:outline-none focus:border-blue-600 focus:border-[2px] shadow-lg"
-          placeholder="Search routes">
-        <button *ngIf="showSidebar" (click)="onXmarkClick()" class="absolute right-5">
-          <fa-icon [icon]="faXmark" class="text-gray-400"></fa-icon>
-        </button>
-        <button *ngIf="!showSidebar" class="absolute right-5">
-          <fa-icon [icon]="faSearch" class="text-gray-400"></fa-icon>
-        </button>
+    <div id="sidebar-inner" class="flex flex-col items-center lg:w-96">
+      <div id="search" class="w-full pl-2 p-1 pt-3 lg:pt-10">
+        <div id="search_inner" class="relative flex items-center">
+          <input type="text" [(ngModel)]="searchResult" (ngModelChange)="onSearchResultChange()"
+            class="w-full h-12 pr-10 p-2 rounded-2xl border-[1px] hover:border-blue-600 focus:outline-none focus:border-blue-600 focus:border-[2px] shadow-lg"
+            placeholder="Search routes">
+          <button *ngIf="showSidebar" (click)="onXmarkClick()" class="absolute right-5">
+            <fa-icon [icon]="faXmark" class="text-gray-400"></fa-icon>
+          </button>
+          <button *ngIf="!showSidebar" class="absolute right-5">
+            <fa-icon [icon]="faSearch" class="text-gray-400"></fa-icon>
+          </button>
+        </div>
       </div>
-    </div>
-    <ng-container *ngIf="sidebarMode">
-      <div class="w-full">
-        <ng-container [ngSwitch]="sidebarMode">
-          <favorites-sidebar *ngSwitchCase="'favorites'"></favorites-sidebar>
-          <stops-sidebar *ngSwitchCase="'stop'"></stops-sidebar>
+      <div class="w-full max-h-[calc(100vh-100px)] overflow-y-auto">
+
+        <ng-container *ngIf="sidebarMode">
+          <div class="w-full">
+            <ng-container [ngSwitch]="sidebarMode">
+              <favorites-sidebar *ngSwitchCase="'favorites'"></favorites-sidebar>
+              <stops-sidebar *ngSwitchCase="'stop'"></stops-sidebar>
+            </ng-container>
+          </div>
         </ng-container>
       </div>
-    </ng-container>
+    </div>
   </div>
 </div>

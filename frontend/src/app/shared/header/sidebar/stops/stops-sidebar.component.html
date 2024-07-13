@@ -5,7 +5,12 @@
     </p>
     <p class="text-center px-2">Stop #{{selectedStop?.stopCode}}</p>
     <p>
-      Updated: {{selectedStopTimeFromNow}}
+      Updated: {{selectedStopTimeFromNow | date:'M/d/yy h:mm a'}}
+      <ng-container *ngIf="(liveSeconds$ | async) as seconds">
+        <span class="value">
+          ({{ seconds | number:'2.0-0' }})
+        </span>
+      </ng-container>
     </p>
   </div>
   <!-- <p>{{selectedStop?.stopCode}} Updated: {{selectedStopData?.timestamp}}</p> -->
@@ -19,7 +24,7 @@
           <p *ngIf="arrival.canceled !== '0'" class="font-bold line-through text-red-600">{{arrival.route}} -
             {{arrival.headsign}} - CANCELED
           </p>
-          <p><span class="font-semibold">ARRIVAL:</span> {{arrival.stopTime}}</p>
+          <p><span class="font-semibold">ARRIVAL:</span> {{arrival.stopTime}} </p>
           <p>Direction: {{arrival.direction}}</p>
         </div>
       </li>

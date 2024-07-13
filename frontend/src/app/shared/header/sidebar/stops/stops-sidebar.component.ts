@@ -20,7 +20,8 @@ export class StopsSidebarComponent implements OnInit {
   private subscriptions: Subscription = new Subscription();
   selectedStop: SelectedStop = undefined;
   selectedStopData: StopApiResponse | undefined = undefined;
-  selectedStopTimeFromNow: string = '';
+  selectedStopTimeFromNow: Date | undefined = undefined;
+  liveSeconds$ = this.stopsService.liveSeconds$;
 
   constructor(
     private userDataService: UserDataService,
@@ -43,10 +44,11 @@ export class StopsSidebarComponent implements OnInit {
             selectedStopData.timestamp instanceof Date &&
             !isNaN(selectedStopData.timestamp.getTime())
           ) {
-            this.selectedStopTimeFromNow = formatDistanceToNow(
-              selectedStopData.timestamp,
-              { addSuffix: true }
-            );
+            this.selectedStopTimeFromNow = new Date();
+            // this.selectedStopTimeFromNow = formatDistanceToNow(
+            //   selectedStopData.timestamp,
+            //   { addSuffix: true }
+            // );
           }
         }
       })

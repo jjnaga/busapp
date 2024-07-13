@@ -41,8 +41,8 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
     mapTypeControl: false,
     streetViewControl: false,
     fullscreenControl: false,
-    gestureHandling: 'greedy',
-    scrollwheel: false,
+    gestureHandling: 'cooperative',
+    scrollwheel: true,
   };
 
   constructor(
@@ -57,18 +57,50 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
     this.subscribeToData();
 
     // mobile friendly options
-    this.addTouchEventListeners();
+    if (this.isMobileDevice()) {
+      this.setMobileViewport();
+      this.applyMobileSettings();
+    }
   }
 
-  ngOnDestory() {
-    this.removeTouchEventListeners();
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+    if (this.isMobileDevice()) {
+      this.removeTouchEventListeners();
+    }
   }
+
   private removeTouchEventListeners() {
     const mapElement = document.getElementById('map');
     if (mapElement) {
       mapElement.removeEventListener('touchstart', this.preventZoom);
       mapElement.removeEventListener('touchmove', this.preventZoom);
     }
+  }
+
+  private isMobileDevice(): boolean {
+    const mobileRegex =
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Windows Phone|Kindle|Silk|Mobile|Mobile Safari/i;
+    return (
+      mobileRegex.test(navigator.userAgent) || navigator.maxTouchPoints > 1
+    );
+  }
+
+  private setMobileViewport() {
+    const viewport = document.querySelector('meta[name="viewport"]');
+    if (viewport) {
+      viewport.setAttribute(
+        'content',
+        'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no'
+      );
+    }
+  }
+
+  private applyMobileSettings() {
+    this.mapOptions.scrollwheel = false;
+    this.mapOptions.gestureHandling = 'greedy';
+    this.addTouchEventListeners();
   }
 
   private addTouchEventListeners = () => {
@@ -212,11 +244,6 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
     } else {
       this.visibleStopMarkers$.next([]);
     }
-  }
-
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 
   onMarkerClick(marker: any): void {
