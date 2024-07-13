@@ -25,6 +25,7 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
 
   private subscriptions: Subscription = new Subscription();
   private destroy$ = new Subject<void>();
+  userPosition: google.maps.LatLngLiteral | null = null;
   map: google.maps.Map | null = null;
   stopMarkers$ = new BehaviorSubject<Marker[]>([]);
   vehicleMarkers$ = new BehaviorSubject<Marker[]>([]);
@@ -55,28 +56,12 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
   async ngOnInit() {
     await this.waitForGoogleMaps();
     this.subscribeToData();
-
-    // mobile friendly options
-    if (this.isMobileDevice()) {
-      this.setMobileViewport();
-      this.applyMobileSettings();
-    }
+    this.startLocationTracking();
   }
 
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
-    if (this.isMobileDevice()) {
-      this.removeTouchEventListeners();
-    }
-  }
-
-  private removeTouchEventListeners() {
-    const mapElement = document.getElementById('map');
-    if (mapElement) {
-      mapElement.removeEventListener('touchstart', this.preventZoom);
-      mapElement.removeEventListener('touchmove', this.preventZoom);
-    }
   }
 
   private isMobileDevice(): boolean {
@@ -98,25 +83,15 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
   }
 
   private applyMobileSettings() {
-    this.mapOptions.scrollwheel = false;
-    this.mapOptions.gestureHandling = 'greedy';
-    this.addTouchEventListeners();
+    this.setMobileViewport();
+    this.mapOptions = {
+      ...this.mapOptions,
+      gestureHandling: 'greedy',
+      zoomControl: false,
+    };
+
+    this.map?.setOptions(this.mapOptions);
   }
-
-  private addTouchEventListeners = () => {
-    const mapElement = document.getElementById('map');
-    if (mapElement) {
-      mapElement.addEventListener('touchstart', this.preventZoom, {
-        passive: false,
-      });
-    }
-  };
-
-  private preventZoom = (e: TouchEvent) => {
-    if (e.touches.length > 1) {
-      e.preventDefault();
-    }
-  };
 
   private waitForGoogleMaps(): Promise<void> {
     return new Promise<void>(async (resolve) => {
@@ -211,6 +186,11 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
       },
     });
 
+    // mobile friendly options
+    if (this.isMobileDevice()) {
+      this.applyMobileSettings();
+    }
+
     this.map.addListener('zoom_changed', () => {
       this.updateVisibleMarkers();
     });
@@ -220,6 +200,8 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
     });
 
     this.updateVisibleMarkers();
+
+    this.startPeriodicCenterUpdate();
   }
 
   private updateVisibleMarkers() {
@@ -244,6 +226,40 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
     } else {
       this.visibleStopMarkers$.next([]);
     }
+  }
+
+  private updateUserPosition(position: GeolocationPosition) {
+    this.ngZone.run(() => {
+      this.userPosition = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude,
+      };
+      if (this.map) {
+        this.map.setCenter(this.userPosition);
+      }
+    });
+  }
+
+  private startLocationTracking() {
+    if (navigator.geolocation) {
+      navigator.geolocation.watchPosition(
+        (position) => this.updateUserPosition(position),
+        (error) => console.error('Error getting geolocation: ', error),
+        {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0,
+        }
+      );
+    }
+  }
+
+  private startPeriodicCenterUpdate() {
+    setInterval(() => {
+      if (this.userPosition && this.map) {
+        this.map.setCenter(this.userPosition);
+      }
+    }, 1000);
   }
 
   onMarkerClick(marker: any): void {
