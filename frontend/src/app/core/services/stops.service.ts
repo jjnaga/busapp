@@ -3,6 +3,8 @@ import { Injectable } from '@angular/core';
 import {
   BehaviorSubject,
   catchError,
+  combineLatest,
+  interval,
   map,
   Observable,
   of,
@@ -20,13 +22,29 @@ export class StopsService {
   private selectedStopDataSubject = new BehaviorSubject<
     StopApiResponse | undefined
   >(undefined);
+  private selectedStopDataCreatedAtSubject = new BehaviorSubject<
+    Date | undefined
+  >(undefined);
 
   stops$ = this.stopsSubject.asObservable();
   selectedStop$ = this.selectedStopSubject.asObservable();
   selectedStopData$ = this.selectedStopDataSubject.asObservable();
+  selectedStopDataCreatedAt$ =
+    this.selectedStopDataCreatedAtSubject.asObservable();
 
-  private selectedStopDataLink = (stopCode: string) =>
-    `${this.getBaseUrl()}/api/stops/${stopCode}`;
+  liveSeconds$ = combineLatest([
+    interval(1000),
+    this.selectedStopDataCreatedAt$,
+  ]).pipe(
+    map(([_, createdAt]) => {
+      if (createdAt) {
+        const now = new Date();
+        return Math.floor((now.getTime() - createdAt.getTime()) / 1000);
+      }
+
+      return 0;
+    })
+  );
 
   constructor(private http: HttpClient) {
     this.fetchData();
@@ -52,6 +70,11 @@ export class StopsService {
               ...selectedStopData,
               timestamp: new Date(selectedStopData.timestamp),
             });
+
+            this.selectedStopDataCreatedAtSubject.next(new Date());
+          } else {
+            this.selectedStopDataCreatedAtSubject.next(undefined);
+            this.selectedStopDataSubject.next(undefined);
           }
         },
         error: (error) => {
@@ -60,6 +83,9 @@ export class StopsService {
         },
       });
   }
+
+  private selectedStopDataLink = (stopCode: string) =>
+    `${this.getBaseUrl()}/api/stops/${stopCode}`;
 
   private fetchSelectedStopData(
     stopCode: string
