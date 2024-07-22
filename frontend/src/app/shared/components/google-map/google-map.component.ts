@@ -1,43 +1,47 @@
 import { Component, OnInit, OnDestroy, NgZone } from '@angular/core';
-import { BehaviorSubject, combineLatest, Subscription } from 'rxjs';
+import { BehaviorSubject, Subscription } from 'rxjs';
 import { map, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { VehiclesService } from '../../../core/services/vehicles.service';
 import { StopsService } from '../../../core/services/stops.service';
-import {
-  Marker,
-  Stop,
-  Vehicle,
-  Vehicles,
-} from '../../../core/models/global.model';
+import { Marker, Stop, Vehicle } from '../../../core/models/global.model';
 import { GoogleMap, MapAdvancedMarker } from '@angular/google-maps';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { UserDataService } from '../../../core/services/user-data.service';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faLocationCrosshairs } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'google-map-component',
   templateUrl: './google-map.component.html',
   standalone: true,
-  imports: [GoogleMap, MapAdvancedMarker, AsyncPipe, CommonModule],
+  imports: [
+    GoogleMap,
+    MapAdvancedMarker,
+    AsyncPipe,
+    CommonModule,
+    FontAwesomeModule,
+  ],
 })
 export class GoogleMapComponent implements OnInit, OnDestroy {
-  MIN_ZOOM_LEVEL_FOR_MARKERS = 16; // Adjust this value as needed
+  MIN_ZOOM_LEVEL_FOR_MARKERS = 16;
 
   private subscriptions: Subscription = new Subscription();
   private destroy$ = new Subject<void>();
-  userPosition: google.maps.LatLngLiteral | null = null;
-  map: google.maps.Map | null = null;
   stopMarkers$ = new BehaviorSubject<Marker[]>([]);
   vehicleMarkers$ = new BehaviorSubject<Marker[]>([]);
   visibleStopMarkers$ = new BehaviorSubject<Marker[]>([]);
   console = console;
+  userPosition: google.maps.LatLngLiteral | null = null;
+  map: google.maps.Map | null = null;
+  watchPositionCallbackID: number = -1;
+  faLocationCrosshairs = faLocationCrosshairs;
 
   mapOptions: google.maps.MapOptions = {
     mapId: '53da1ad002655c53',
     center: { lat: 21.3069, lng: -157.8583 },
     zoom: 12,
     disableDefaultUI: true,
-    // mobile friendly options
     zoomControl: true,
     mapTypeControl: false,
     streetViewControl: false,
@@ -56,7 +60,6 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
   async ngOnInit() {
     await this.waitForGoogleMaps();
     this.subscribeToData();
-    this.startLocationTracking();
   }
 
   ngOnDestroy() {
@@ -95,7 +98,6 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
 
   private waitForGoogleMaps(): Promise<void> {
     return new Promise<void>(async (resolve) => {
-      // TODO: I know there is a event driven way to do this.
       if (typeof google?.maps?.Size === 'undefined') {
         const checkGoogleInterval = setInterval(() => {
           if (typeof google?.maps?.Size !== 'undefined') {
@@ -170,6 +172,14 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
     return imgTag;
   }
 
+  private createUserIconContent(): HTMLImageElement {
+    const imgTag = document.createElement('img');
+    imgTag.src = 'assets/bus.png';
+    imgTag.width = 50;
+    imgTag.height = 50;
+    return imgTag;
+  }
+
   trackByMarkerId(index: number, marker: Marker): string {
     return marker.id;
   }
@@ -179,14 +189,12 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
     this.map.setCenter({ lat: 21.2968, lng: -157.8531 });
     this.map.setZoom(14);
 
-    // Set zoom control options here
     this.map.setOptions({
       zoomControlOptions: {
         position: google.maps.ControlPosition.RIGHT_BOTTOM,
       },
     });
 
-    // mobile friendly options
     if (this.isMobileDevice()) {
       this.applyMobileSettings();
     }
@@ -201,7 +209,40 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
 
     this.updateVisibleMarkers();
 
-    this.startPeriodicCenterUpdate();
+    const centerControlDiv = document.createElement('div');
+    const centerControl = this.createCenterControl();
+    centerControlDiv.appendChild(centerControl);
+
+    this.map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(
+      centerControlDiv
+    );
+  }
+
+  createCenterControl() {
+    const controlButton = document.createElement('button');
+
+    controlButton.style.backgroundColor = '#fff';
+    controlButton.style.border = '2px solid #fff';
+    controlButton.style.borderRadius = '3px';
+    controlButton.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
+    controlButton.style.color = 'rgb(25,25,25)';
+    controlButton.style.cursor = 'pointer';
+    controlButton.style.fontFamily = 'Roboto,Arial,sans-serif';
+    controlButton.style.fontSize = '16px';
+    controlButton.style.lineHeight = '38px';
+    controlButton.style.margin = '8px 0 22px';
+    controlButton.style.padding = '0 5px';
+    controlButton.style.textAlign = 'center';
+
+    controlButton.textContent = 'Center Map';
+    controlButton.title = 'Click to recenter the map';
+    controlButton.type = 'button';
+
+    controlButton.addEventListener('click', () => {
+      this.startLocationTracking();
+    });
+
+    return controlButton;
   }
 
   private updateVisibleMarkers() {
@@ -229,21 +270,35 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
   }
 
   private updateUserPosition(position: GeolocationPosition) {
+    console.log('Updating user position');
     this.ngZone.run(() => {
       this.userPosition = {
         lat: position.coords.latitude,
         lng: position.coords.longitude,
       };
-      if (this.map) {
-        this.map.setCenter(this.userPosition);
-      }
     });
   }
 
-  private startLocationTracking() {
-    if (navigator.geolocation) {
-      navigator.geolocation.watchPosition(
-        (position) => this.updateUserPosition(position),
+  startLocationTracking() {
+    console.log('Starting location tracking');
+    if (navigator.geolocation && this.map) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          this.ngZone.run(() => {
+            const newCenter = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude,
+            };
+            this.updateUserPosition(position);
+
+            // Instantly set the new center and zoom
+            this.map!.setCenter(newCenter);
+            this.map!.setZoom(this.MIN_ZOOM_LEVEL_FOR_MARKERS);
+
+            console.log('New center:', newCenter);
+            console.log('New zoom:', this.MIN_ZOOM_LEVEL_FOR_MARKERS);
+          });
+        },
         (error) => console.error('Error getting geolocation: ', error),
         {
           enableHighAccuracy: true,
@@ -251,15 +306,11 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
           maximumAge: 0,
         }
       );
+    } else {
+      console.error(
+        'Geolocation is not supported by this browser or map is not initialized.'
+      );
     }
-  }
-
-  private startPeriodicCenterUpdate() {
-    setInterval(() => {
-      if (this.userPosition && this.map) {
-        this.map.setCenter(this.userPosition);
-      }
-    }, 1000);
   }
 
   onMarkerClick(marker: any): void {

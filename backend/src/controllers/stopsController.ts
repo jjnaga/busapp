@@ -5,7 +5,6 @@ import { BoundingBox } from '@utils/types';
 export const getAllStops = async (req: Request, res: Response) => {
   try {
     const data = await fetchAllStops();
-    console.log('data found,', data);
 
     return res.status(200).json({ status: 'success', message: `${data.length} rows`, data });
   } catch (err) {

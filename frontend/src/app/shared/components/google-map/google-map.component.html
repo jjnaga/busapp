@@ -8,9 +8,10 @@
       [position]="marker.position" [title]="marker.title" (mapClick)="onMarkerClick(marker)">
     </map-advanced-marker>
     <map-advanced-marker *ngIf="userPosition" [position]="userPosition" [title]="'Your Location'">
-      <div class="flex justify-center items-center w-12 h-12">
+      <p>hehe</p>
+      <!-- <div class="flex justify-center items-center w-12 h-12">
         <i class="fas fa-user-circle text-3xl text-blue-500"></i>
-      </div>
+      </div> -->
     </map-advanced-marker>
   </google-map>
 </div>
