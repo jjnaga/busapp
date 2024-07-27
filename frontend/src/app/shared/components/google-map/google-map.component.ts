@@ -4,7 +4,7 @@ import { distinctUntilChanged, map, takeUntil, tap } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { VehiclesService } from '../../../core/services/vehicles.service';
 import { StopsService } from '../../../core/services/stops.service';
-import { Marker, Stop, Vehicle } from '../../../core/models/global.model';
+import { Marker, Stop, Vehicle } from '../../../core/utils/global.types';
 import { GoogleMap, MapAdvancedMarker } from '@angular/google-maps';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { UserDataService } from '../../../core/services/user-data.service';

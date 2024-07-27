@@ -11,12 +11,13 @@ import {
   switchMap,
   tap,
 } from 'rxjs';
-import { SelectedStop, Stop, StopApiResponse } from '../models/global.model';
+import { SelectedStop, Stop, StopApiResponse } from '../utils/global.types';
 import { environment } from '../../../environments/environment';
+import { getBaseUrl } from '../utils/utils';
 
 @Injectable({ providedIn: 'root' })
 export class StopsService {
-  private vehiclesLink = `${this.getBaseUrl()}/api/stops`;
+  private vehiclesLink = `${getBaseUrl()}/api/stops`;
   private stopsSubject = new BehaviorSubject<Stop[]>([]);
   private selectedStopSubject = new BehaviorSubject<SelectedStop>(undefined);
   private selectedStopDataSubject = new BehaviorSubject<
@@ -104,17 +105,6 @@ export class StopsService {
         return of(undefined);
       })
     );
-  }
-
-  private getBaseUrl(): string {
-    const protocol = window.location.protocol;
-    let host = window.location.host;
-
-    if (!environment.production) {
-      host = 'localhost:3000';
-    }
-
-    return `${protocol}//${host}`;
   }
 
   private fetchData(): void {

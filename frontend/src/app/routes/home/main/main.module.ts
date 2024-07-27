@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { MainComponent } from './main.component';
 import { MainRoutingModule } from './main-routing.module';
-import { WebsocketService } from '../../../shared/services/websocket.service';
+import { WebsocketService } from '../../../core/services/websocket.service';
 import { GoogleMapComponent } from '../../../shared/components/google-map/google-map.component';
 
 @NgModule({

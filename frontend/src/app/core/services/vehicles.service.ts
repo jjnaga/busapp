@@ -1,14 +1,16 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, OnInit } from '@angular/core';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
-import { Arrival, Vehicle, Vehicles } from '../models/global.model';
-import { WebsocketService } from '../../shared/services/websocket.service';
+import { Arrival, Vehicle, Vehicles } from '../utils/global.types';
+import { WebsocketService } from './websocket.service';
 import { formatDistanceToNow } from 'date-fns';
 import { environment } from '../../../environments/environment';
 import { ToastrService } from 'ngx-toastr';
+import { getBaseUrl } from '../utils/utils';
 
 @Injectable({ providedIn: 'root' })
 export class VehiclesService {
+  private vehiclesLink = `${getBaseUrl()}/api/vehicles`;
   private vehicles: Vehicles = new Map();
   private vehiclesSubject = new BehaviorSubject<Vehicles>(this.vehicles);
   private trackedVehicleSubject = new BehaviorSubject<Vehicle | null>(null);
@@ -36,19 +38,6 @@ export class VehiclesService {
       },
     });
   }
-
-  private getBaseUrl(): string {
-    const protocol = window.location.protocol;
-    let host = window.location.host;
-
-    if (!environment.production) {
-      host = 'localhost:3000';
-    }
-
-    return `${protocol}//${host}`;
-  }
-
-  private vehiclesLink = `${this.getBaseUrl()}/api/vehicles`;
 
   private cleanVehicle(vehicle: Vehicle): Vehicle {
     return {
