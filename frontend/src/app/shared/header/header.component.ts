@@ -4,7 +4,7 @@ import { RouteService } from '../../core/services/routes.service';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faStar, faSearch, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { CommonModule } from '@angular/common';
-import { sideBarModes, Vehicle } from '../../core/models/global.model';
+import { sideBarModes, Vehicle } from '../../core/utils/global.types';
 import { Subscription } from 'rxjs';
 import { UserDataService } from '../../core/services/user-data.service';
 import { StopsSidebarComponent } from './sidebar/stops/stops-sidebar.component';

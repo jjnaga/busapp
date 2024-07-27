@@ -1,6 +1,6 @@
-import { Injectable } from '@angular/core';
+import { Injectable, OnInit } from '@angular/core';
 import { BehaviorSubject, tap } from 'rxjs';
-import { sideBarModes } from '../models/global.model';
+import { sideBarModes } from '../utils/global.types';
 import { StopsService } from './stops.service';
 import { environment } from '../../../environments/environment';
 
@@ -16,6 +16,7 @@ export class UserDataService {
   // .pipe(tap((sidebar) => console.log('sidebarmode changed', sidebar)));
   showSidebar$ = this.showSidebarSubject.asObservable();
   favorites$ = this.favoritesSubject.asObservable();
+
   // selectedStop$ = this.selectedStopSubject.asObservable();
   // private selectedStopSubject = new BehaviorSubject<string | null>(null);
 
@@ -24,6 +25,14 @@ export class UserDataService {
     //   console.log('pickign 47');
     //   this.setSelectedStop('47');
     // }, 1000);
+    console.log('setting favorite?');
+    setTimeout(() => {
+      this.setSelectedStop('44');
+    }, 2000);
+  }
+
+  ngOnInit(): void {
+    console.log('hehe');
   }
 
   setSearchResult(searchResult: string) {

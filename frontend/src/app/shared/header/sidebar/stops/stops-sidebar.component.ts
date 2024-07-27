@@ -7,7 +7,7 @@ import {
   Arrival,
   SelectedStop,
   StopApiResponse,
-} from '../../../../core/models/global.model';
+} from '../../../../core/utils/global.types';
 import { CommonModule } from '@angular/common';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faBus } from '@fortawesome/free-solid-svg-icons';
