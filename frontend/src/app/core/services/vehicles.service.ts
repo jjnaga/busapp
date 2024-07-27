@@ -1,21 +1,25 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, OnInit } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { Vehicle, Vehicles } from '../models/global.model';
+import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { Arrival, Vehicle, Vehicles } from '../models/global.model';
 import { WebsocketService } from '../../shared/services/websocket.service';
 import { formatDistanceToNow } from 'date-fns';
 import { environment } from '../../../environments/environment';
+import { ToastrService } from 'ngx-toastr';
 
 @Injectable({ providedIn: 'root' })
 export class VehiclesService {
   private vehicles: Vehicles = new Map();
   private vehiclesSubject = new BehaviorSubject<Vehicles>(this.vehicles);
+  private trackedVehicleSubject = new BehaviorSubject<Vehicle | null>(null);
 
   vehicles$ = this.vehiclesSubject.asObservable();
+  trackedVehicle$ = this.trackedVehicleSubject.asObservable();
 
   constructor(
     private http: HttpClient,
-    private webSocketService: WebsocketService
+    private webSocketService: WebsocketService,
+    private toastr: ToastrService
   ) {
     this.fetchInitialData();
   }
@@ -72,6 +76,11 @@ export class VehiclesService {
     this.vehicles = new Map(sortedEntries);
     this.vehiclesSubject.next(this.vehicles);
 
+    // Trigger update on tracked vehicle if set.
+    if (this.trackedVehicleSubject.value) {
+      this.updateTrackedVehicle(this.trackedVehicleSubject.value.busNumber);
+    }
+
     console.log('Vehicles sorted and updated. Vehicles:', this.vehicles);
   }
 
@@ -87,5 +96,22 @@ export class VehiclesService {
       },
       error: (error) => console.error('Websocket error: ', error),
     });
+  }
+
+  updateTrackedVehicle(vehicleNumber: string | null) {
+    if (vehicleNumber) {
+      const trackedVehicle = this.vehicles.get(vehicleNumber);
+
+      if (!trackedVehicle) {
+        this.toastr.error('Bus not found');
+        return;
+      }
+
+      this.toastr.success('Tracked Vehicle updated');
+      this.trackedVehicleSubject.next(trackedVehicle);
+    } else {
+      this.trackedVehicleSubject.next(null);
+      this.toastr.success('Stopped tracking');
+    }
   }
 }

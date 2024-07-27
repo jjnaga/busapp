@@ -1,6 +1,6 @@
-import { Component, OnInit, OnDestroy, NgZone } from '@angular/core';
-import { BehaviorSubject, Subscription } from 'rxjs';
-import { map, takeUntil } from 'rxjs/operators';
+import { Component, NgZone, OnDestroy, OnInit } from '@angular/core';
+import { BehaviorSubject, combineLatest, Subscription } from 'rxjs';
+import { distinctUntilChanged, map, takeUntil, tap } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { VehiclesService } from '../../../core/services/vehicles.service';
 import { StopsService } from '../../../core/services/stops.service';
@@ -28,6 +28,7 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
 
   private subscriptions: Subscription = new Subscription();
   private destroy$ = new Subject<void>();
+
   stopMarkers$ = new BehaviorSubject<Marker[]>([]);
   vehicleMarkers$ = new BehaviorSubject<Marker[]>([]);
   visibleStopMarkers$ = new BehaviorSubject<Marker[]>([]);
@@ -114,14 +115,32 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
 
   private subscribeToData() {
     this.subscriptions.add(
-      this.vehiclesService.vehicles$
+      combineLatest([
+        this.vehiclesService.trackedVehicle$,
+        this.vehiclesService.vehicles$,
+      ])
         .pipe(
           takeUntil(this.destroy$),
-          map((vehicles) => this.createVehicleMarkers(vehicles))
+          // only operate if there are changes
+          distinctUntilChanged(
+            (prev, curr) => prev[0] === curr[0] && prev[1] === curr[1]
+          )
         )
-        .subscribe((vehicleMarkers) =>
-          this.vehicleMarkers$.next(vehicleMarkers)
-        )
+        .subscribe({
+          next: ([trackedVehicle, vehicles]) => {
+            const vehicleMarkers = this.createVehicleMarkers(vehicles);
+            this.vehicleMarkers$.next(vehicleMarkers);
+
+            if (trackedVehicle) {
+              console.log('ok updating', trackedVehicle);
+              this.panToVehicle(trackedVehicle);
+            } else {
+              console.log('no trackedVehicle');
+            }
+          },
+          error: (err) =>
+            console.error('Error in tracking subscription: ', err),
+        })
     );
 
     this.subscriptions.add(
@@ -132,6 +151,16 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
         )
         .subscribe((stopMarkers) => this.stopMarkers$.next(stopMarkers))
     );
+  }
+
+  panToVehicle(vehicle: Vehicle) {
+    const coordinates: google.maps.LatLngLiteral = {
+      lat: vehicle.latitude,
+      lng: vehicle.longitude,
+    };
+
+    this.map?.setZoom(this.MIN_ZOOM_LEVEL_FOR_MARKERS);
+    this.map?.panTo(coordinates);
   }
 
   private createStopMarkers(stops?: Stop[]): Marker[] {
@@ -156,7 +185,7 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
   private createVehicleMarkers(vehicles?: Map<string, Vehicle>): Marker[] {
     if (!vehicles) return [];
     return Array.from(vehicles.values()).map((vehicle) => ({
-      id: `bus-${vehicle.busNumber}`,
+      id: `${vehicle.busNumber}`,
       position: { lat: vehicle.latitude, lng: vehicle.longitude },
       title: `Bus ${vehicle.busNumber}`,
       type: 'bus',
@@ -171,6 +200,8 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
     imgTag.height = 50;
     return imgTag;
   }
+
+  private trackBusOnMap(): void {}
 
   private createUserIconContent(): HTMLImageElement {
     const imgTag = document.createElement('img');
@@ -230,11 +261,12 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
     controlButton.style.fontFamily = 'Roboto,Arial,sans-serif';
     controlButton.style.fontSize = '16px';
     controlButton.style.lineHeight = '38px';
-    controlButton.style.margin = '8px 0 22px';
+    controlButton.style.margin = '0 15px 100px 0';
+    // controlButton.style.marginBottom = '100px';
     controlButton.style.padding = '0 5px';
     controlButton.style.textAlign = 'center';
 
-    controlButton.textContent = 'Center Map';
+    controlButton.textContent = 'Center';
     controlButton.title = 'Click to recenter the map';
     controlButton.type = 'button';
 
@@ -259,9 +291,9 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
       const visibleStopMarkers = this.stopMarkers$.value.filter((marker) =>
         bounds.contains(marker.position)
       );
-      const visibleVehicleMarkers = this.vehicleMarkers$.value.filter(
-        (marker) => bounds.contains(marker.position)
-      );
+      // const visibleVehicleMarkers = this.vehicleMarkers$.value.filter(
+      //   (marker) => bounds.contains(marker.position)
+      // );
 
       this.visibleStopMarkers$.next(visibleStopMarkers);
     } else {
@@ -316,7 +348,11 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
   onMarkerClick(marker: any): void {
     switch (marker.type) {
       case 'bus':
-        console.log('bus');
+        console.log('bus', marker);
+        const { id: vehicleNumber } = marker;
+        if (vehicleNumber) {
+          this.vehiclesService.updateTrackedVehicle(vehicleNumber);
+        }
         break;
       case 'stop':
         const { stopCode } = marker;
