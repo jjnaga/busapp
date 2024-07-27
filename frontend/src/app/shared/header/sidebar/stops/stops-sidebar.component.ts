@@ -9,10 +9,13 @@ import {
   StopApiResponse,
 } from '../../../../core/models/global.model';
 import { CommonModule } from '@angular/common';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faBus } from '@fortawesome/free-solid-svg-icons';
+import { VehiclesService } from '../../../../core/services/vehicles.service';
 
 @Component({
   selector: 'stops-sidebar',
-  imports: [CommonModule],
+  imports: [CommonModule, FontAwesomeModule],
   templateUrl: './stops-sidebar.component.html',
   standalone: true,
 })
@@ -22,10 +25,12 @@ export class StopsSidebarComponent implements OnInit {
   selectedStopData: StopApiResponse | undefined = undefined;
   selectedStopTimeFromNow: Date | undefined = undefined;
   liveSeconds$ = this.stopsService.liveSeconds$;
+  faBus = faBus;
 
   constructor(
     private userDataService: UserDataService,
-    private stopsService: StopsService
+    private stopsService: StopsService,
+    private vehiclesService: VehiclesService
   ) {}
 
   ngOnInit(): void {
@@ -53,5 +58,9 @@ export class StopsSidebarComponent implements OnInit {
         }
       })
     );
+  }
+
+  onViewBusClick(vehicle: Arrival) {
+    this.vehiclesService.updateTrackedVehicle(vehicle.vehicle);
   }
 }
