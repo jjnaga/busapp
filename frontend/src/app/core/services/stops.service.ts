@@ -12,7 +12,6 @@ import {
   tap,
 } from 'rxjs';
 import { SelectedStop, Stop, StopApiResponse } from '../utils/global.types';
-import { environment } from '../../../environments/environment';
 import { getBaseUrl } from '../utils/utils';
 
 @Injectable({ providedIn: 'root' })
@@ -86,7 +85,7 @@ export class StopsService {
   }
 
   private selectedStopDataLink = (stopCode: string) =>
-    `${this.getBaseUrl()}/api/stops/${stopCode}`;
+    `${getBaseUrl()}/api/stops/${stopCode}`;
 
   private fetchSelectedStopData(
     stopCode: string
