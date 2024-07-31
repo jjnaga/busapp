@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { UserDataService } from '../../../../core/services/user-data.service';
-import { Subscription } from 'rxjs';
+import { firstValueFrom, Subscription } from 'rxjs';
 import { StopsService } from '../../../../core/services/stops.service';
 import { format, formatDistanceToNow } from 'date-fns';
 import {
+  AppTypes,
   Arrival,
   SelectedStop,
   StopApiResponse,
@@ -12,6 +13,8 @@ import { CommonModule } from '@angular/common';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faBus } from '@fortawesome/free-solid-svg-icons';
 import { VehiclesService } from '../../../../core/services/vehicles.service';
+import { NotificationService } from '../../../../core/services/notification.service';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'stops-sidebar',
@@ -30,7 +33,9 @@ export class StopsSidebarComponent implements OnInit {
   constructor(
     private userDataService: UserDataService,
     private stopsService: StopsService,
-    private vehiclesService: VehiclesService
+    private vehiclesService: VehiclesService,
+    private notificationService: NotificationService,
+    private toastr: ToastrService
   ) {}
 
   ngOnInit(): void {
@@ -58,6 +63,14 @@ export class StopsSidebarComponent implements OnInit {
         }
       })
     );
+  }
+
+  addNewSubscription(type: AppTypes) {
+    this.userDataService.setNewSubscription({
+      type,
+      stopId: this.selectedStop?.stopId,
+    });
+    this.userDataService.setSidebarMode('subscriptions');
   }
 
   onViewBusClick(vehicle: Arrival) {

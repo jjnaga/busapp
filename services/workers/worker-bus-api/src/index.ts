@@ -78,29 +78,20 @@ const worker = async () => {
 
   while (!shutdown) {
     try {
-      const results = await Promise.race([
-        redisClient.xreadgroup(
-          'GROUP',
-          REDIS_CONSUMER_GROUP_NAME,
-          workerId,
-          'COUNT',
-          1,
-          'BLOCK',
-          0,
-          'STREAMS',
-          REDIS_STREAM_NAME,
-          '>'
-        ),
-        new Promise((resolve) => {
-          const checkInterval = setInterval(() => {
-            if (shutdown) {
-              clearInterval(checkInterval);
-              resolve(null);
-            }
-          }, 100);
-        }),
-      ]);
-      if (results) {
+      const results = await redisClient.xreadgroup(
+        'GROUP',
+        REDIS_CONSUMER_GROUP_NAME,
+        workerId,
+        'COUNT',
+        1,
+        'BLOCK',
+        2500,
+        'STREAMS',
+        REDIS_STREAM_NAME,
+        '>'
+      );
+
+      if (results && results.length > 0) {
         // @ts-ignore yea its not obvious to me how to set the types on this.
         const [[_, messages]] = results;
         const [messageId] = messages[0];

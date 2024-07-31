@@ -1,0 +1,44 @@
+<div id="subscriptions">
+  <div id="sub-header" class="text-center p-3 border-b-2">
+    <p class="text-center text-xl font-semibold tracking-tighter uppercase">
+      Subscriptions
+    </p>
+  </div>
+  <ng-container *ngIf="(newSubscription$ | async) as newSubscription">
+    <div class="p-4 bg-gray-100 rounded-lg shadow-sm">
+      <h3 class="mb-3 text-lg font-semibold text-gray-800">New Subscription</h3>
+      <p class="mb-2 text-sm font-medium text-gray-700">Stop: {{newSubscription.stopId}}</p>
+      <div class="mb-3">
+        <label for="frequency" class="block mb-1 text-sm font-medium text-gray-700">Frequency</label>
+        <select id="frequency" [(ngModel)]="selectedFrequency"
+          class="w-full px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          <option value="oneTime">One Time</option>
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+          <option value="custom">Custom</option>
+        </select>
+      </div>
+      <div *ngIf="selectedFrequency === 'custom'" class="mb-3">
+        <p class="mb-1 text-sm font-medium text-gray-700">Select days:</p>
+        <div class="flex flex-wrap gap-2">
+          <label *ngFor="let day of weekDays" class="inline-flex items-center">
+            <input type="checkbox" [value]="day" (change)="onDayChange($event)"
+              class="form-checkbox h-4 w-4 text-blue-600">
+            <span class="ml-2 text-sm text-gray-700">{{day}}</span>
+          </label>
+        </div>
+      </div>
+      <div class="relative mb-3">
+        <input [owlDateTime]="dt1" [owlDateTimeTrigger]="dt1" placeholder="Notify me at..." [(ngModel)]="selectedDate"
+          class="w-full px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+        <owl-date-time #dt1></owl-date-time>
+      </div>
+      <button (click)="this.enableNotifications()"
+        class="bg-blue-600 text-white w-full py-2 rounded-lg shadow-sm">Submit</button>
+    </div>
+  </ng-container>
+
+
+
+
+</div>

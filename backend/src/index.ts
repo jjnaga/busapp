@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import helloRoutes from '@routes/helloRoutes';
+import notificationsRoutes from '@routes/notificationsRoutes';
+import bodyParser from 'body-parser';
 import stopsRoutes from '@routes/stopsRoutes';
 import vehiclesRoutes from '@routes/vehiclesRoutes';
 import { AppDataSource } from '@typeorm/typeorm';
@@ -31,6 +33,8 @@ import { VehicleSql } from '@utils/types';
   // Enable CORS
   app.use(cors(corsOptions));
 
+  app.use(bodyParser.json());
+
   // Express Logging
   app.use(morgan('combined'));
 
@@ -39,6 +43,8 @@ import { VehicleSql } from '@utils/types';
   apiRouter.use('/hello', helloRoutes);
   apiRouter.use('/vehicles', vehiclesRoutes);
   apiRouter.use('/stops', stopsRoutes);
+  apiRouter.use('/notifications', notificationsRoutes);
+
   app.use('/api', apiRouter);
 
   const server = http.createServer(app);

@@ -73,6 +73,17 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+  worker-notification:
+    build:
+      context: ./services/workers/worker-notification
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./services/workers/worker-notification/src:/app/src
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
   redis:
     image: 'redis:7.2.5'
   postgres:

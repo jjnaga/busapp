@@ -1,6 +1,25 @@
 CREATE SCHEMA IF NOT EXISTS gtfs;
 CREATE SCHEMA IF NOT EXISTS thebus;
 
+CREATE TABLE IF NOT EXISTS thebus.subscription (
+  id SERIAL PRIMARY KEY,
+  subscription JSON NOT NULL
+);
+
+CREATE TYPE thebus.day_of_week AS ENUM ('Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday');
+
+
+CREATE TABLE IF NOT EXISTS thebus.notification (
+  id SERIAL PRIMARY KEY,
+  subscription JSON NOT NULL,
+  frequency thebus.day_of_week[],
+  notification_sent TIMESTAMPTZ,
+  notification_data json NOT NULL,
+  notification_date TIMESTAMPTZ NOT NULL
+);
+
+
+
 CREATE TABLE thebus.vehicle (
     bus_number TEXT PRIMARY KEY,
     trip_id TEXT,
@@ -90,6 +109,7 @@ CREATE TABLE IF NOT EXISTS gtfs.shapes (
   shape_pt_sequence INT,
   PRIMARY KEY (shape_id, shape_pt_sequence)
 );
+
 
 CREATE TABLE IF NOT EXISTS gtfs.last_checked (
     last_modified TIMESTAMP NOT NULL

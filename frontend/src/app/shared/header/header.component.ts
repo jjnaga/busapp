@@ -2,7 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouteService } from '../../core/services/routes.service';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faStar, faSearch, faXmark } from '@fortawesome/free-solid-svg-icons';
+import {
+  faStar,
+  faSearch,
+  faXmark,
+  faBell,
+} from '@fortawesome/free-solid-svg-icons';
 import { CommonModule } from '@angular/common';
 import { sideBarModes, Vehicle } from '../../core/utils/global.types';
 import { Subscription } from 'rxjs';
@@ -10,6 +15,7 @@ import { UserDataService } from '../../core/services/user-data.service';
 import { StopsSidebarComponent } from './sidebar/stops/stops-sidebar.component';
 import { FavoritesSidebarComponent } from './sidebar/favorites/favorites-sidebar.component';
 import { VehiclesService } from '../../core/services/vehicles.service';
+import { SubscriptionsSidebarComponent } from './sidebar/subscriptions/subscriptions-sidebar.component';
 
 @Component({
   selector: 'header-component',
@@ -19,6 +25,7 @@ import { VehiclesService } from '../../core/services/vehicles.service';
     CommonModule,
     StopsSidebarComponent,
     FavoritesSidebarComponent,
+    SubscriptionsSidebarComponent,
   ],
   templateUrl: './header.component.html',
   standalone: true,
@@ -28,6 +35,7 @@ export class HeaderComponent implements OnInit {
   faStar = faStar;
   faSearch = faSearch;
   faXmark = faXmark;
+  faBell = faBell;
   searchResult: string = '';
   showSidebar: boolean = false;
   sidebarMode: sideBarModes = null;

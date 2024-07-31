@@ -25,16 +25,18 @@ export interface Stop {
 
 export type Vehicles = Map<string, Vehicle>;
 
+export type AppTypes = 'bus' | 'stop';
+
 export interface Marker {
   id: string;
   position: google.maps.LatLngLiteral;
   title: string;
-  type: 'bus' | 'stop';
+  type: AppTypes;
   options?: any;
   content?: any;
 }
 
-export type sideBarModes = 'favorites' | 'stop' | null;
+export type sideBarModes = 'favorites' | 'stop' | 'subscriptions' | null;
 
 export interface StopApiResponse {
   stop: string;
@@ -56,4 +58,11 @@ export interface Arrival {
   stopTime: string;
   trip: string;
   vehicle: string;
+}
+
+export interface Subscription {
+  type: AppTypes;
+  stopId?: string;
+  busId?: string;
+  notificationDate?: Date;
 }
