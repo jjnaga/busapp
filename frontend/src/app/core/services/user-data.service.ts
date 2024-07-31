@@ -1,6 +1,6 @@
 import { Injectable, OnInit } from '@angular/core';
 import { BehaviorSubject, tap } from 'rxjs';
-import { sideBarModes } from '../utils/global.types';
+import { sideBarModes, Subscription } from '../utils/global.types';
 import { StopsService } from './stops.service';
 import { environment } from '../../../environments/environment';
 
@@ -10,26 +10,19 @@ export class UserDataService {
   private sidebarModeSubject = new BehaviorSubject<sideBarModes>(null);
   private showSidebarSubject = new BehaviorSubject<boolean>(false);
   private favoritesSubject = new BehaviorSubject<any[]>([]);
+  private newSubscriptionSubject = new BehaviorSubject<Subscription | null>(
+    null
+  );
+  private subscriptionsSubject = new BehaviorSubject<Subscription[]>([]);
 
   searchResult$ = this.searchResultSubject.asObservable();
   sidebarMode$ = this.sidebarModeSubject.asObservable();
-  // .pipe(tap((sidebar) => console.log('sidebarmode changed', sidebar)));
   showSidebar$ = this.showSidebarSubject.asObservable();
   favorites$ = this.favoritesSubject.asObservable();
+  newSubscription$ = this.newSubscriptionSubject.asObservable();
+  subscriptions$ = this.subscriptionsSubject.asObservable();
 
-  // selectedStop$ = this.selectedStopSubject.asObservable();
-  // private selectedStopSubject = new BehaviorSubject<string | null>(null);
-
-  constructor(private stopsService: StopsService) {
-    // setTimeout(() => {
-    //   console.log('pickign 47');
-    //   this.setSelectedStop('47');
-    // }, 1000);
-    console.log('setting favorite?');
-    setTimeout(() => {
-      this.setSelectedStop('44');
-    }, 2000);
-  }
+  constructor(private stopsService: StopsService) {}
 
   ngOnInit(): void {
     console.log('hehe');
@@ -69,5 +62,13 @@ export class UserDataService {
     this.stopsService.setSelectedStop(stop);
     this.showSidebarSubject.next(true);
     this.sidebarModeSubject.next('stop');
+  }
+
+  setNewSubscription(subscription?: Subscription) {
+    if (subscription) {
+      this.newSubscriptionSubject.next(subscription);
+    } else {
+      this.newSubscriptionSubject.next(null);
+    }
   }
 }

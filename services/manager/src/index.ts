@@ -1,10 +1,15 @@
+import { loadRecurringJob, startNotificationJob } from '@utils/jobs';
 import redisClient from '@utils/redisClient';
+import { AppDataSource } from '@utils/typeorm/typeorm';
 
 const REDIS_JOB_API_NAME = process.env.REDIS_JOB_API_NAME;
 const REDIS_JOB_GTFS_NAME = process.env.REDIS_JOB_GTFS_NAME;
 const REDIS_JOBS_MAX_LENGTH = process.env.REDIS_JOBS_MAX_LENGTH;
 const REDIS_STREAM_API_NAME = process.env.REDIS_STREAM_API_NAME;
 const REDIS_STREAM_GTFS_NAME = process.env.REDIS_STREAM_GTFS_NAME;
+const REDIS_STREAM_NOTIFICATION_NAME =
+  process.env.REDIS_STREAM_NOTIFICATION_NAME;
+
 let shutdown = false;
 
 if (
@@ -12,12 +17,19 @@ if (
   !REDIS_JOB_GTFS_NAME ||
   !REDIS_JOBS_MAX_LENGTH ||
   !REDIS_STREAM_API_NAME ||
-  !REDIS_STREAM_GTFS_NAME
+  !REDIS_STREAM_GTFS_NAME ||
+  !REDIS_STREAM_NOTIFICATION_NAME
 ) {
   throw new Error(`Init Error. A environment variable not defined.`);
 }
 
-const setupShutdownHandlers = () => {
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const main = async () => {
+  let intervals: NodeJS.Timeout[] = [];
+  await AppDataSource.initialize();
+
+  // Setup shutdown handlers.
   process.on('SIGTERM', () => {
     console.log('Received SIGTERM. Starting graceful shutdown.');
     shutdown = true;
@@ -27,62 +39,24 @@ const setupShutdownHandlers = () => {
     console.log('Received SIGINT. Starting graceful shutdown.');
     shutdown = true;
   });
-};
-
-const addJob = async (streamName: string, jobType: string) => {
-  console.log(`[${streamName}] Adding job '${jobType}'`);
-
-  await redisClient.xadd(
-    streamName,
-    'MAXLEN',
-    '~',
-    REDIS_JOBS_MAX_LENGTH,
-    '*',
-    'jobType',
-    jobType
-  );
-};
-
-const loadRecurringJob = async (
-  streamName: string,
-  jobName: string,
-  interval: number
-) => {
-  console.log(`Creating recurring job '${jobName}' with interval ${interval}`);
-  addJob(streamName, jobName);
-  return setInterval(async () => {
-    await addJob(streamName, jobName);
-  }, interval);
-};
-
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-const main = async () => {
-  setupShutdownHandlers();
-  let interval1;
-  let interval2;
 
   // Load all jobs.
   if (process.env.NODE_ENV === 'development') {
     console.log('in dev');
-    interval1 = await loadRecurringJob(
-      REDIS_STREAM_API_NAME,
-      REDIS_JOB_API_NAME,
-      25000
+    intervals.push(
+      await loadRecurringJob(REDIS_STREAM_API_NAME, REDIS_JOB_API_NAME, 25000)
     );
   } else {
-    interval1 = await loadRecurringJob(
-      REDIS_STREAM_API_NAME,
-      REDIS_JOB_API_NAME,
-      2000
+    intervals.push(
+      await loadRecurringJob(REDIS_STREAM_API_NAME, REDIS_JOB_API_NAME, 2000)
     );
   }
 
-  interval2 = await loadRecurringJob(
-    REDIS_STREAM_GTFS_NAME,
-    REDIS_JOB_GTFS_NAME,
-    3600000
+  intervals.push(
+    await loadRecurringJob(REDIS_STREAM_GTFS_NAME, REDIS_JOB_GTFS_NAME, 3600000)
   );
+
+  intervals.push(await startNotificationJob(REDIS_STREAM_NOTIFICATION_NAME));
 
   // Listen for shutdown and close connections.
   while (!shutdown) {
@@ -91,10 +65,13 @@ const main = async () => {
 
   // Shutdown
   console.log('Shutting Down: Ending intervals');
-  clearInterval(interval1);
-  clearInterval(interval2);
+  for (let interval of intervals) {
+    clearInterval(interval);
+  }
+
   console.log('Shutting Down: Closing Redis connection');
-  redisClient.disconnect();
+  await redisClient.disconnect();
+  await AppDataSource.destroy();
 
   console.log('Shutting Down: bye');
 };

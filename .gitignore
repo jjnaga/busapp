@@ -6,3 +6,5 @@ venv
 services/workers/worker-bus-api/.env
 __pycache__/
 backend/.env
+services/**/.env
+.tomg-config

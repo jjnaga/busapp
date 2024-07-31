@@ -6,7 +6,7 @@ import { HeaderComponent } from './shared/header/header.component';
 import { provideHttpClient } from '@angular/common/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ToastrModule } from 'ngx-toastr';
-import { MainModule } from './routes/home/main/main.module';
+import { ServiceWorkerModule } from '@angular/service-worker';
 
 @NgModule({
   declarations: [AppComponent],
@@ -16,6 +16,13 @@ import { MainModule } from './routes/home/main/main.module';
     HeaderComponent,
     BrowserAnimationsModule,
     ToastrModule.forRoot(),
+    ServiceWorkerModule.register('ngsw-worker.js', {
+      // enabled: !isDevMode(),
+      enabled: true,
+      // Register the ServiceWorker as soon as the application is stable
+      // or after 30 seconds (whichever comes first).
+      registrationStrategy: 'registerWhenStable:30000',
+    }),
   ],
   providers: [provideHttpClient()],
   bootstrap: [AppComponent],

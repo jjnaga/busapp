@@ -195,7 +195,7 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
 
   private createBusMarkerContent(): HTMLImageElement {
     const imgTag = document.createElement('img');
-    imgTag.src = 'assets/bus.png';
+    imgTag.src = 'bus.png';
     imgTag.width = 50;
     imgTag.height = 50;
     return imgTag;
@@ -205,7 +205,7 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
 
   private createUserIconContent(): HTMLImageElement {
     const imgTag = document.createElement('img');
-    imgTag.src = 'assets/bus.png';
+    imgTag.src = 'bus.png';
     imgTag.width = 50;
     imgTag.height = 50;
     return imgTag;

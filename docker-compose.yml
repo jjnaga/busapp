@@ -59,6 +59,19 @@ services:
         condition: service_started
     deploy:
       replicas: 2
+  worker-notification:
+    build:
+      context: ./services/workers/worker-notification
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    deploy:
+      replicas: 2
   worker-gtfs:
     build:
       context: ./services/workers/worker-gtfs
@@ -68,6 +81,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+    deploy:
+      replicas: 3
   redis:
     image: 'redis:7.2.5'
     volumes:
