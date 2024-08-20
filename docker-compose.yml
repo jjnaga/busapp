@@ -9,6 +9,7 @@ services:
     depends_on:
       backend:
         condition: service_started
+    restart: always
   backend:
     build:
       context: ./backend
@@ -22,6 +23,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+    restart: always
   queue-manager:
     build:
       context: ./services/manager
@@ -45,7 +47,7 @@ services:
         echo 'Starting queue-manager' &&
         node --unhandled-rejections=strict --env-file=.env build/index.js
       "
-
+    restart: always
   worker-bus-api:
     build:
       context: ./services/workers/worker-bus-api
@@ -59,6 +61,8 @@ services:
         condition: service_started
     deploy:
       replicas: 2
+    restart: always
+
   worker-notification:
     build:
       context: ./services/workers/worker-notification
@@ -72,6 +76,7 @@ services:
         condition: service_started
     deploy:
       replicas: 2
+    restart: always
   worker-gtfs:
     build:
       context: ./services/workers/worker-gtfs
@@ -83,6 +88,7 @@ services:
         condition: service_started
     deploy:
       replicas: 3
+    restart: always
   redis:
     image: 'redis:7.2.5'
     volumes:
@@ -104,6 +110,7 @@ services:
       - POSTGRES_USER=admin
       - POSTGRES_HOST_AUTH_METHOD=trust # TODO: For the health check to work without password. I'm sure there is a
         # good way to do this.
+    restart: always
 volumes:
   redis_data:
   postgres_data:
