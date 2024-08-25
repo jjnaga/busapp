@@ -9,7 +9,7 @@ import {
   faBell,
 } from '@fortawesome/free-solid-svg-icons';
 import { CommonModule } from '@angular/common';
-import { sideBarModes, Vehicle } from '../../core/utils/global.types';
+import { sideBarModes } from '../../core/utils/global.types';
 import { Subscription } from 'rxjs';
 import { UserDataService } from '../../core/services/user-data.service';
 import { StopsSidebarComponent } from './sidebar/stops/stops-sidebar.component';

@@ -9,7 +9,6 @@ import {
   Observable,
   of,
   switchMap,
-  tap,
 } from 'rxjs';
 import { SelectedStop, Stop, StopApiResponse } from '../utils/global.types';
 import { getBaseUrl } from '../utils/utils';
@@ -122,5 +121,9 @@ export class StopsService {
     this.selectedStopSubject.next(
       this.stopsSubject.value.find((stop) => stop.stopCode === selectedStopCode)
     );
+  }
+
+  getStops() {
+    return this.stopsSubject.getValue();
   }
 }

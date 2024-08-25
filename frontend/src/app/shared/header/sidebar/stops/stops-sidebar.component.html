@@ -11,11 +11,18 @@
       </span>
     </ng-container>
   </p>
-  <button class="border bg-slate-300 rounded-xl p-3" (click)="this.addNewSubscription('stop')">
-    Subscribe
-  </button>
+  <div class="flex justify-evenly p-4">
+    <button class="bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg px-4 py-2 focus:outline-none
+      focus:ring-2 focus:ring-blue-500 shadow-md" (click)="this.addNewSubscription('stop')">
+      Subscribe
+    </button>
+    <button
+      class="bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50"
+      (click)="this.addNewFavorite()">
+      Favorite
+    </button>
+  </div>
 </div>
-<!-- <p>{{selectedStop?.stopCode}} Updated: {{selectedStopData?.timestamp}}</p> -->
 <div>
   <ul>
     <li *ngFor="let arrival of selectedStopData?.arrivals" class="border mx-1 my-3">
@@ -39,6 +46,4 @@
       </div>
     </li>
   </ul>
-  <!-- <map-advanced-marker *ngFor="let marker of visibleStopMarkers$ | async; trackBy: trackByMarkerId"
-      [position]="marker.position" [title]="marker.title" (mapClick)="onMarkerClick(marker)"> -->
 </div>
