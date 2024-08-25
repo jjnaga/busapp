@@ -69,4 +69,8 @@ export class FavoritesSidebarComponent {
   deleteFavorite(index: number) {
     this.userDataService.deleteFavorite(index);
   }
+
+  setSelectedStop(stopId: string) {
+    this.userDataService.setSelectedStop(stopId);
+  }
 }

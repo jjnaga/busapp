@@ -348,7 +348,6 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
   onMarkerClick(marker: any): void {
     switch (marker.type) {
       case 'bus':
-        console.log('bus', marker);
         const { id: vehicleNumber } = marker;
         if (vehicleNumber) {
           this.vehiclesService.updateTrackedVehicle(vehicleNumber);
@@ -356,7 +355,6 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
         break;
       case 'stop':
         const { stopCode } = marker;
-        console.log('stop', stopCode, typeof stopCode);
         this.userDataService.setSelectedStop(stopCode);
         break;
       default:

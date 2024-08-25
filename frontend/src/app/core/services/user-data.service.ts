@@ -123,4 +123,8 @@ export class UserDataService {
       this.newSubscriptionSubject.next(null);
     }
   }
+
+  getFavorites() {
+    return this.favoritesSubject.getValue();
+  }
 }

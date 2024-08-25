@@ -6,7 +6,8 @@
   </div>
   <div *ngFor="let favorite of favorites$ | async; let i = index">
     <ng-container *ngIf="i !== editingFavoriteIndex; else editMode">
-      <div id="favorite-{{favorite.stopId}}" class="min-h-[66px] w-full py-2 px-2 bg-gray-50 shadow-lg border">
+      <div (click)="this.setSelectedStop(favorite.stopId)" id="favorite-{{favorite.stopId}}"
+        class="min-h-[66px] w-full py-2 px-2 bg-gray-50 shadow-lg border">
         <div class="relative w-full cursor-pointer">
           <h3 class="font-semibold uppercase ">{{favorite.stopName}}</h3>
           <p>Stop #: {{favorite.stopId}}</p>

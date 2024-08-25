@@ -35,9 +35,21 @@ export class StopsSidebarComponent implements OnInit {
 
   ngOnInit(): void {
     this.subscriptions.add(
-      this.stopsService.selectedStop$.subscribe(
-        (selectedStop) => (this.selectedStop = selectedStop)
-      )
+      this.stopsService.selectedStop$.subscribe((selectedStop) => {
+        if (selectedStop) {
+          const favorites = this.userDataService.getFavorites();
+          const selectedStopInFavorites = favorites.find(
+            (favorite) => selectedStop?.stopId === favorite.stopId
+          );
+
+          if (selectedStopInFavorites) {
+            selectedStop.stopName = selectedStopInFavorites.stopName;
+            this.selectedStop = selectedStop;
+          } else {
+            this.selectedStop = selectedStop;
+          }
+        }
+      })
     );
 
     this.subscriptions.add(
