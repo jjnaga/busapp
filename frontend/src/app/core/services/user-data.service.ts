@@ -1,15 +1,16 @@
-import { Injectable, OnInit } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { BehaviorSubject, tap } from 'rxjs';
-import { sideBarModes, Subscription } from '../utils/global.types';
+import { sideBarModes, Stop, Subscription } from '../utils/global.types';
 import { StopsService } from './stops.service';
-import { environment } from '../../../environments/environment';
+import { ToastrService } from 'ngx-toastr';
+import { LocalStorageService } from './local-storage.service';
 
 @Injectable({ providedIn: 'root' })
 export class UserDataService {
   private searchResultSubject = new BehaviorSubject<string>('');
   private sidebarModeSubject = new BehaviorSubject<sideBarModes>(null);
   private showSidebarSubject = new BehaviorSubject<boolean>(false);
-  private favoritesSubject = new BehaviorSubject<any[]>([]);
+  private favoritesSubject = new BehaviorSubject<Stop[]>([]);
   private newSubscriptionSubject = new BehaviorSubject<Subscription | null>(
     null
   );
@@ -22,16 +23,24 @@ export class UserDataService {
   newSubscription$ = this.newSubscriptionSubject.asObservable();
   subscriptions$ = this.subscriptionsSubject.asObservable();
 
-  constructor(private stopsService: StopsService) {}
+  constructor(
+    private stopsService: StopsService,
+    private toastr: ToastrService,
+    private localStorageService: LocalStorageService
+  ) {
+    this.loadFromLocalStorage();
+  }
 
-  ngOnInit(): void {
-    console.log('hehe');
+  private loadFromLocalStorage(): void {
+    this.favoritesSubject.next(
+      this.localStorageService.getFromLocalStorage<Stop[]>('favorites', [])
+    );
   }
 
   setSearchResult(searchResult: string) {
     this.searchResultSubject.next(searchResult);
+
     this.updateShowSidebar();
-    console.log('im changed hehe', this.searchResultSubject.value);
   }
 
   setSidebarMode(mode: sideBarModes) {
@@ -52,10 +61,53 @@ export class UserDataService {
     this.sidebarModeSubject.next(null);
   }
 
-  setFavorite(favorite: any) {
+  addFavoriteStop(stopId: string) {
     const currentFavorites = this.favoritesSubject.value;
-    const updatedFavorites = [...currentFavorites, favorite];
+    const stops = this.stopsService.getStops();
+
+    const newStop = stops.find((stop) => stop.stopId === stopId);
+
+    // Return early if stop is not found in stopsService
+    if (newStop === undefined) {
+      console.error(`Stop ${stopId} not found`);
+      this.toastr.error(`Stop ${stopId} not found`);
+      return;
+    }
+
+    const updatedFavorites = [...currentFavorites, newStop];
     this.favoritesSubject.next(updatedFavorites);
+    this.localStorageService.saveToLocalStorage('favorites', updatedFavorites);
+    this.toastr.success(`Stop ${newStop.stopName} added to favorites`);
+  }
+
+  editFavoriteStop(index: number, newName: string) {
+    let favorites = this.favoritesSubject.value;
+    if (index < 0 || index > favorites.length - 1) {
+      console.error('Invalid index for editFavoriteStop(): ', index);
+      return;
+    }
+
+    favorites[index].stopName = newName;
+
+    this.localStorageService.saveToLocalStorage('favorites', favorites);
+    this.favoritesSubject.next(favorites);
+    this.toastr.success(`New Name: ${favorites[index].stopName}`);
+  }
+
+  deleteFavorite(index: number) {
+    console.log('index is what?', index);
+    let newFavorites = this.favoritesSubject.value;
+
+    if (index < 0 || index > newFavorites.length - 1) {
+      console.log('Invalid index for editFavoriteStop(): ', index);
+      return;
+    }
+
+    const deletedFavorite = newFavorites.splice(index, 1);
+
+    this.localStorageService.saveToLocalStorage('favorites', newFavorites);
+    this.favoritesSubject.next(newFavorites);
+    this.toastr.success(`Deleted: ${deletedFavorite[0].stopName}`);
   }
 
   setSelectedStop(stop: string) {
