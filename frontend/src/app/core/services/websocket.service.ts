@@ -1,19 +1,50 @@
-import { Injectable } from '@angular/core';
-import { Observable, Subject } from 'rxjs';
+import { Injectable, NgZone } from '@angular/core';
+import {
+  Observable,
+  retry,
+  Subject,
+  switchMap,
+  take,
+  takeUntil,
+  timer,
+} from 'rxjs';
 import { WebSocketSubject, webSocket } from 'rxjs/webSocket';
 import { environment } from '../../../environments/environment';
+import { ToastrService } from 'ngx-toastr';
 
 @Injectable({
   providedIn: 'root',
 })
 export class WebsocketService {
   private socket$!: WebSocketSubject<any>;
+  private reconnection$: Observable<number>;
+  private reconnectAttempts = 0;
+  private readonly RECONNECT_INTERVAL = 5000;
+  private readonly MAX_RECONNECT_ATTEMPTS = 5;
+  private readonly HEALTH_CHECK_INTERVAL = 5000;
+  private connecting$ = new Subject<void>();
+  private closing$ = new Subject<void>();
+  private connectionState: 'connected' | 'connecting' | 'disconnected' =
+    'disconnected';
 
-  constructor() {
+  constructor(private toastr: ToastrService, private ngZone: NgZone) {
+    this.reconnection$ = timer(
+      this.RECONNECT_INTERVAL,
+      this.RECONNECT_INTERVAL
+    );
     this.connect();
+    this.setupHealthCheck();
   }
 
   private connect(): void {
+    if (this.connectionState !== 'disconnected') {
+      return;
+    }
+
+    this.connectionState = 'connecting';
+
+    this.connecting$.next();
+
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     let host = window.location.host;
 
@@ -27,9 +58,62 @@ export class WebsocketService {
 
     this.socket$ = webSocket({
       url: url,
-      // deserializer: defaults to JSON.parse
+      openObserver: {
+        next: () => {
+          this.connectionState = 'connected';
+          this.toastr.success('Connected');
+        },
+      },
+      closeObserver: {
+        next: () => {
+          this.connectionState = 'disconnected';
+          this.toastr.info('Connection closed');
+          this.socket$ = null!;
+          this.reconnect();
+        },
+      },
     });
-    console.log('do i work?', this.socket$);
+  }
+
+  private reconnect(): void {
+    if (this.reconnectAttempts >= this.MAX_RECONNECT_ATTEMPTS) {
+      this.toastr.error('Max reconnect attempts reached.');
+      return;
+    }
+
+    this.ngZone.run(() => {
+      this.reconnection$
+        .pipe(takeUntil(this.closing$), takeUntil(this.connecting$), take(1))
+        .subscribe(() => {
+          this.reconnectAttempts++;
+          this.toastr.info(
+            `Attempting to reconnect: ${this.reconnectAttempts}/${this.MAX_RECONNECT_ATTEMPTS} tries`
+          );
+          this.connect();
+        });
+    });
+  }
+
+  private setupHealthCheck(): void {
+    timer(this.HEALTH_CHECK_INTERVAL, this.HEALTH_CHECK_INTERVAL)
+      .pipe(
+        takeUntil(this.closing$),
+        switchMap(() => this.checkConnection())
+      )
+      .subscribe();
+  }
+
+  private checkConnection(): Observable<void> {
+    return new Observable<void>((observer) => {
+      console.log('Checking connection: ', this.connectionState);
+      if (this.connectionState !== 'connected') {
+        this.toastr.info('Disconnected. Attempting to reconnect.');
+        this.connect();
+      }
+
+      observer.next();
+      observer.complete();
+    });
   }
 
   // public sendMessage(msg: any): void {
@@ -41,6 +125,7 @@ export class WebsocketService {
   }
 
   public close(): void {
+    this.closing$.next();
     this.socket$.complete();
   }
 }
