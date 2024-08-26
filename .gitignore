@@ -8,3 +8,5 @@ __pycache__/
 backend/.env
 services/**/.env
 .tomg-config
+tesh.sh
+all_src_files.txt
