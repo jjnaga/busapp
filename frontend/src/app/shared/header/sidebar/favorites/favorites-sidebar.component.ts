@@ -13,6 +13,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'favorites-sidebar',
@@ -21,16 +22,16 @@ import {
   standalone: true,
 })
 export class FavoritesSidebarComponent {
+  constructor(private UserDataService: UserDataService) {}
+
   faXmark = faXmark;
   faPencilAlt = faPencilAlt;
   faCheck = faCheck;
-  favorites$ = this.userDataService.favorites$;
+  favorites$ = this.UserDataService.favorites$;
   editingFavoriteIndex: number | null = null;
   inputForm = new FormGroup({
     newName: new FormControl('', Validators.required),
   });
-
-  constructor(private userDataService: UserDataService) {}
 
   startEditing(index: number) {
     this.inputForm.reset();
@@ -47,10 +48,7 @@ export class FavoritesSidebarComponent {
       `favorite-${index}-input`
     ) as HTMLInputElement;
     if (inputElement) {
-      console.log('Input element found, focusing');
       inputElement.focus();
-    } else {
-      console.log('Input element not found');
     }
   }
 
@@ -61,16 +59,16 @@ export class FavoritesSidebarComponent {
     ) as HTMLInputElement;
     const newName = inputElement.value;
 
-    this.userDataService.editFavoriteStop(index, newName);
+    this.UserDataService.editFavoriteStop(index, newName);
 
     this.editingFavoriteIndex = null;
   }
 
   deleteFavorite(index: number) {
-    this.userDataService.deleteFavorite(index);
+    this.UserDataService.deleteFavorite(index);
   }
 
-  setSelectedStop(stopId: string) {
-    this.userDataService.setSelectedStop(stopId);
+  setSelectedStop(stopId: string, index: number) {
+    this.UserDataService.setSelectedStop(stopId);
   }
 }

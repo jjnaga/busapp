@@ -80,8 +80,6 @@ export class SubscriptionsSidebarComponent implements OnInit {
         )
       );
 
-      console.log('nah', response);
-
       this.toastr.success('Subscribed');
     } catch (err) {
       console.error('Failed to enable notifications', err);

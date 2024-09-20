@@ -1,15 +1,39 @@
-import { Component, NgZone, OnDestroy, OnInit } from '@angular/core';
+import {
+  Component,
+  NgZone,
+  OnDestroy,
+  OnInit,
+  signal,
+  effect,
+  runInInjectionContext,
+  inject,
+  Injector,
+} from '@angular/core';
 import { BehaviorSubject, combineLatest, Subscription } from 'rxjs';
-import { distinctUntilChanged, map, takeUntil, tap } from 'rxjs/operators';
+import {
+  distinctUntilChanged,
+  filter,
+  map,
+  takeUntil,
+  tap,
+} from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { VehiclesService } from '../../../core/services/vehicles.service';
 import { StopsService } from '../../../core/services/stops.service';
 import { Marker, Stop, Vehicle } from '../../../core/utils/global.types';
-import { GoogleMap, MapAdvancedMarker } from '@angular/google-maps';
+import {
+  GoogleMap,
+  GoogleMapsModule,
+  MapAdvancedMarker,
+} from '@angular/google-maps';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { UserDataService } from '../../../core/services/user-data.service';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faLocationCrosshairs } from '@fortawesome/free-solid-svg-icons';
+import {
+  faLocationCrosshairs,
+  faPerson,
+} from '@fortawesome/free-solid-svg-icons';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'google-map-component',
@@ -17,6 +41,7 @@ import { faLocationCrosshairs } from '@fortawesome/free-solid-svg-icons';
   standalone: true,
   imports: [
     GoogleMap,
+    GoogleMapsModule,
     MapAdvancedMarker,
     AsyncPipe,
     CommonModule,
@@ -28,15 +53,21 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
 
   private subscriptions: Subscription = new Subscription();
   private destroy$ = new Subject<void>();
+  private ANIMATION_DURATION = 1000; // Animation duration in milliseconds
+  private FRAMES_PER_SECOND = 60;
 
+  boundsRectangle: google.maps.Rectangle | null = null;
   stopMarkers$ = new BehaviorSubject<Marker[]>([]);
   vehicleMarkers$ = new BehaviorSubject<Marker[]>([]);
   visibleStopMarkers$ = new BehaviorSubject<Marker[]>([]);
   console = console;
-  userPosition: google.maps.LatLngLiteral | null = null;
+  userPosition = signal<google.maps.LatLngLiteral | null>(null);
   map: google.maps.Map | null = null;
   watchPositionCallbackID: number = -1;
   faLocationCrosshairs = faLocationCrosshairs;
+  faPerson = faPerson;
+  markerIcon!: google.maps.Icon;
+  favoriteMarkerIcon!: google.maps.Icon;
 
   mapOptions: google.maps.MapOptions = {
     mapId: '53da1ad002655c53',
@@ -55,17 +86,106 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
     private vehiclesService: VehiclesService,
     private stopsService: StopsService,
     private ngZone: NgZone,
-    private userDataService: UserDataService
+    private userDataService: UserDataService,
+    private toastr: ToastrService,
+    private injector: Injector
   ) {}
 
   async ngOnInit() {
     await this.waitForGoogleMaps();
     this.subscribeToData();
+    this.initializeMarkerIcons();
+
+    runInInjectionContext(this.injector, () => {
+      effect(() => {
+        if (this.userPosition()) {
+          this.checkForNearbyFavoriteStops();
+        }
+      });
+    });
   }
 
   ngOnDestroy() {
+    this.subscriptions.unsubscribe();
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  checkForNearbyFavoriteStops() {
+    const userPosition = this.userPosition();
+    const favorites: Stop[] = [];
+
+    if (userPosition && userPosition.lat && userPosition.lng) {
+      // Convert half a mile to meters
+      const halfMileInMeters = 804.672; // 1609.34 / 2
+
+      // Create a LatLng object from the user's position
+      const center = new google.maps.LatLng(userPosition.lat, userPosition.lng);
+
+      // Calculate new points in each direction
+      const north = google.maps.geometry.spherical.computeOffset(
+        center,
+        halfMileInMeters,
+        0
+      );
+      const south = google.maps.geometry.spherical.computeOffset(
+        center,
+        halfMileInMeters,
+        180
+      );
+      const east = google.maps.geometry.spherical.computeOffset(
+        center,
+        halfMileInMeters,
+        90
+      );
+      const west = google.maps.geometry.spherical.computeOffset(
+        center,
+        halfMileInMeters,
+        270
+      );
+
+      // Create a LatLngBounds object
+      const bounds = new google.maps.LatLngBounds();
+
+      // Extend the bounds to include all points
+      bounds.extend(north);
+      bounds.extend(south);
+      bounds.extend(east);
+      bounds.extend(west);
+      const rectangle = new google.maps.Rectangle({
+        bounds: bounds,
+        strokeColor: '#FF0000',
+        strokeOpacity: 0.8,
+        strokeWeight: 2,
+        fillColor: '#FF0000',
+        fillOpacity: 0.35,
+      });
+
+      this.boundsRectangle = rectangle;
+
+      this.userDataService.getFavorites().forEach((favorite) => {
+        if (
+          favorite.stopLat !== null &&
+          favorite.stopLon !== null &&
+          !isNaN(Number(favorite.stopLat)) &&
+          !isNaN(Number(favorite.stopLon))
+        ) {
+          const favoriteLatLngLiteral: google.maps.LatLngLiteral = {
+            lat: favorite.stopLat,
+            lng: favorite.stopLon,
+          };
+
+          if (bounds.contains(favoriteLatLngLiteral)) {
+            favorites.push(favorite);
+          }
+        }
+      });
+
+      if (favorites.length > 0) {
+        this.userDataService.setFavoritesInView(favorites);
+        this.userDataService.setFavoritesInViewIndex(0);
+      }
+    }
   }
 
   private isMobileDevice(): boolean {
@@ -132,14 +252,45 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
             this.vehicleMarkers$.next(vehicleMarkers);
 
             if (trackedVehicle) {
-              console.log('ok updating', trackedVehicle);
               this.panToVehicle(trackedVehicle);
-            } else {
-              console.log('no trackedVehicle');
             }
           },
           error: (err) =>
             console.error('Error in tracking subscription: ', err),
+        })
+    );
+
+    this.subscriptions.add(
+      combineLatest([
+        this.userDataService.favoritesInView$,
+        this.userDataService.favoritesInViewIndex$,
+      ])
+        .pipe(
+          map(([favoritesInView, favoritesInViewIndex]) => ({
+            favoritesInView,
+            favoritesInViewIndex,
+          }))
+        )
+        .subscribe(({ favoritesInView, favoritesInViewIndex }) => {
+          if (
+            favoritesInView &&
+            favoritesInViewIndex &&
+            favoritesInView.length > 0 &&
+            favoritesInViewIndex >= 0 &&
+            favoritesInViewIndex < favoritesInView.length
+          ) {
+            const lat = favoritesInView[favoritesInViewIndex].stopLat!;
+            const lng = favoritesInView[favoritesInViewIndex].stopLon!;
+
+            if (isNaN(Number(lat)) || isNaN(Number(lng))) {
+              this.toastr.error(
+                `Bus stop ${favoritesInView[favoritesInViewIndex].stopId} has invalid coordinates`
+              );
+            }
+
+            const latLng: google.maps.LatLngLiteral = { lat, lng };
+            this.panTo(latLng);
+          }
         })
     );
 
@@ -151,6 +302,40 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
         )
         .subscribe((stopMarkers) => this.stopMarkers$.next(stopMarkers))
     );
+
+    this.stopsService.selectedStop$
+      .pipe(
+        takeUntil(this.destroy$),
+        filter(
+          (
+            selectedStop
+          ): selectedStop is Stop & { stopLat: number; stopLon: number } =>
+            selectedStop !== undefined &&
+            selectedStop.stopLat !== undefined &&
+            selectedStop.stopLon !== undefined
+        ),
+        map((selectedStop) => ({
+          lat: selectedStop.stopLat,
+          lng: selectedStop.stopLon,
+        }))
+      )
+      .subscribe((latLng) => {
+        this.panTo(latLng);
+      });
+
+    // As soon as a bus stop is favorited, change the color.
+    this.subscriptions.add(
+      this.userDataService.favorites$.subscribe(() => {
+        this.updateVisibleMarkers();
+      })
+    );
+  }
+  // const latLng: google.maps.LatLngLiteral = { lat, lng };
+  // this.map?.panTo(latLng);
+
+  panTo(latLng: google.maps.LatLngLiteral) {
+    this.map?.panTo(latLng);
+    this.map?.setZoom(this.MIN_ZOOM_LEVEL_FOR_MARKERS);
   }
 
   panToVehicle(vehicle: Vehicle) {
@@ -193,7 +378,7 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
     }));
   }
 
-  private createBusMarkerContent(): HTMLImageElement {
+  createBusMarkerContent(): HTMLImageElement {
     const imgTag = document.createElement('img');
     imgTag.src = 'bus.png';
     imgTag.width = 50;
@@ -201,11 +386,9 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
     return imgTag;
   }
 
-  private trackBusOnMap(): void {}
-
-  private createUserIconContent(): HTMLImageElement {
+  createUserIconContent(): HTMLImageElement {
     const imgTag = document.createElement('img');
-    imgTag.src = 'bus.png';
+    imgTag.src = 'person.jpg';
     imgTag.width = 50;
     imgTag.height = 50;
     return imgTag;
@@ -277,6 +460,56 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
     return controlButton;
   }
 
+  private initializeMarkerIcons() {
+    this.markerIcon = {
+      url:
+        'data:image/svg+xml;charset=UTF-8,' +
+        encodeURIComponent(`
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        width="16"
+        height="1"
+      >
+        <path
+          d="M12 2C8.13 2 5 5.13 5 9c0 4.97 7 13 7 13s7-8.03 7-13c0-3.87-3.13-7-7-7z"
+          fill="#DB3A34"
+          stroke="#000"
+          stroke-width="1"
+        />
+        <circle cx="12" cy="9" r="2.5" fill="#000" />
+      </svg>
+    `),
+      // scaledSize: new google.maps.Size(48, 48), // Adjust the size as needed
+      // anchor: new google.maps.Point(24, 48), // Anchor at the bottom center
+      scaledSize: new google.maps.Size(33.6, 33.6), // 70% of 48x48
+      anchor: new google.maps.Point(16.8, 33.6), // 70% of previous anchor
+    };
+
+    this.favoriteMarkerIcon = {
+      url:
+        'data:image/svg+xml;charset=UTF-8,' +
+        encodeURIComponent(`
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        width="24"
+        height="24"
+      >
+        <path
+          d="M12 2C8.13 2 5 5.13 5 9c0 4.97 7 13 7 13s7-8.03 7-13c0-3.87-3.13-7-7-7z"
+          fill="#FFD700"
+          stroke="#000"
+          stroke-width="1"
+        />
+        <circle cx="12" cy="9" r="2.5" fill="#000" />
+      </svg>
+    `),
+      scaledSize: new google.maps.Size(48, 48), // Adjust the size as needed
+      anchor: new google.maps.Point(24, 48), // Anchor at the bottom center
+    };
+  }
+
   private updateVisibleMarkers() {
     if (!this.map) return;
 
@@ -288,31 +521,42 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
       bounds &&
       currentZoom >= this.MIN_ZOOM_LEVEL_FOR_MARKERS
     ) {
-      const visibleStopMarkers = this.stopMarkers$.value.filter((marker) =>
-        bounds.contains(marker.position)
-      );
-      // const visibleVehicleMarkers = this.vehicleMarkers$.value.filter(
-      //   (marker) => bounds.contains(marker.position)
-      // );
+      const visibleStopMarkersMap = new Map<string, Marker>();
 
-      this.visibleStopMarkers$.next(visibleStopMarkers);
+      this.stopMarkers$.value.forEach((marker) => {
+        if (bounds.contains(marker.position)) {
+          marker.stopCode && visibleStopMarkersMap.set(marker.stopCode, marker);
+        }
+      });
+
+      const favorites = this.userDataService.getFavorites();
+
+      // Check if a favorite bus stop is in the visible markers, and if so, mark it.
+      for (let favorite of favorites) {
+        const marker = visibleStopMarkersMap.get(favorite.stopId);
+        if (marker) {
+          marker.favorite = true;
+        }
+      }
+
+      this.visibleStopMarkers$.next(Array.from(visibleStopMarkersMap.values()));
     } else {
       this.visibleStopMarkers$.next([]);
     }
   }
 
   private updateUserPosition(position: GeolocationPosition) {
-    console.log('Updating user position');
     this.ngZone.run(() => {
-      this.userPosition = {
+      this.userPosition.set({
         lat: position.coords.latitude,
         lng: position.coords.longitude,
-      };
+      });
     });
   }
 
   startLocationTracking() {
-    console.log('Starting location tracking');
+    this.toastr.info('Starting location tracking');
+
     if (navigator.geolocation && this.map) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -323,18 +567,17 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
             };
             this.updateUserPosition(position);
 
+            // Get favorite bus stops that are within a half mile radius of user
+
             // Instantly set the new center and zoom
             this.map!.setCenter(newCenter);
             this.map!.setZoom(this.MIN_ZOOM_LEVEL_FOR_MARKERS);
-
-            console.log('New center:', newCenter);
-            console.log('New zoom:', this.MIN_ZOOM_LEVEL_FOR_MARKERS);
           });
         },
         (error) => console.error('Error getting geolocation: ', error),
         {
           enableHighAccuracy: true,
-          timeout: 5000,
+          timeout: 15000,
           maximumAge: 0,
         }
       );
@@ -358,7 +601,7 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
         this.userDataService.setSelectedStop(stopCode);
         break;
       default:
-        console.log('NA');
+        this.toastr.info('Marker not supported');
     }
   }
 }

@@ -30,6 +30,8 @@ export type AppTypes = 'bus' | 'stop';
 export interface Marker {
   id: string;
   position: google.maps.LatLngLiteral;
+  stopCode?: string;
+  favorite?: boolean;
   title: string;
   type: AppTypes;
   options?: any;
@@ -60,9 +62,14 @@ export interface Arrival {
   vehicle: string;
 }
 
-export interface Subscription {
+export interface BusSubscription {
   type: AppTypes;
   stopId?: string;
   busId?: string;
   notificationDate?: Date;
+}
+
+export interface FavoritesViewModel {
+  favoritesInView: Stop[];
+  favoriteInViewIndex: number | null;
 }

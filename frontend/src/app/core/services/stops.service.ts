@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import {
   BehaviorSubject,
   catchError,
@@ -12,9 +12,12 @@ import {
 } from 'rxjs';
 import { SelectedStop, Stop, StopApiResponse } from '../utils/global.types';
 import { getBaseUrl } from '../utils/utils';
+import { UserDataService } from './user-data.service';
 
 @Injectable({ providedIn: 'root' })
 export class StopsService {
+  private userDataService: UserDataService | undefined;
+
   private vehiclesLink = `${getBaseUrl()}/api/stops`;
   private stopsSubject = new BehaviorSubject<Stop[]>([]);
   private selectedStopSubject = new BehaviorSubject<SelectedStop>(undefined);
@@ -45,7 +48,7 @@ export class StopsService {
     })
   );
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private injector: Injector) {
     this.fetchData();
 
     this.selectedStop$
@@ -63,8 +66,6 @@ export class StopsService {
       .subscribe({
         next: (selectedStopData) => {
           if (selectedStopData) {
-            // Transform
-            // Load
             this.selectedStopDataSubject.next({
               ...selectedStopData,
               timestamp: new Date(selectedStopData.timestamp),
@@ -81,6 +82,12 @@ export class StopsService {
           this.selectedStopDataSubject.next(undefined);
         },
       });
+  }
+
+  private initUserDataService() {
+    if (!this.userDataService) {
+      this.userDataService = this.injector.get(UserDataService);
+    }
   }
 
   private selectedStopDataLink = (stopCode: string) =>
@@ -118,9 +125,20 @@ export class StopsService {
   }
 
   setSelectedStop(selectedStopCode: string) {
-    this.selectedStopSubject.next(
-      this.stopsSubject.value.find((stop) => stop.stopCode === selectedStopCode)
+    const selectedStop = this.stopsSubject.value.find(
+      (stop) => stop.stopCode === selectedStopCode
     );
+
+    if (selectedStop) {
+      this.selectedStopSubject.next(selectedStop);
+
+      // 9.20.24
+      // Services are too coupled, but we're too deep into this already
+      this.initUserDataService();
+      if (this.userDataService) {
+        this.userDataService.setSidebarMode('stop');
+      }
+    }
   }
 
   getStops() {

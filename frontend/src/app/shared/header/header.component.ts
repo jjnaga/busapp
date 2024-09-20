@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouteService } from '../../core/services/routes.service';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -7,10 +7,15 @@ import {
   faSearch,
   faXmark,
   faBell,
+  faChevronLeft,
+  faChevronRight,
 } from '@fortawesome/free-solid-svg-icons';
 import { CommonModule } from '@angular/common';
-import { sideBarModes } from '../../core/utils/global.types';
-import { Subscription } from 'rxjs';
+import {
+  FavoritesViewModel,
+  sideBarModes,
+} from '../../core/utils/global.types';
+import { combineLatest, map, Observable, Subscription } from 'rxjs';
 import { UserDataService } from '../../core/services/user-data.service';
 import { StopsSidebarComponent } from './sidebar/stops/stops-sidebar.component';
 import { FavoritesSidebarComponent } from './sidebar/favorites/favorites-sidebar.component';
@@ -36,15 +41,20 @@ export class HeaderComponent implements OnInit {
   faSearch = faSearch;
   faXmark = faXmark;
   faBell = faBell;
+  faChevronLeft = faChevronLeft;
+  faChevronRight = faChevronRight;
   searchResult: string = '';
   showSidebar: boolean = false;
   sidebarMode: sideBarModes = null;
   trackedVehicle$ = this.vehiclesService.trackedVehicle$;
+
+  favoritesViewModel$: Observable<FavoritesViewModel> | undefined;
+
   private subscriptions: Subscription = new Subscription();
 
   constructor(
     private routeService: RouteService,
-    private userDataService: UserDataService,
+    public userDataService: UserDataService,
     public vehiclesService: VehiclesService
   ) {}
 
@@ -70,6 +80,17 @@ export class HeaderComponent implements OnInit {
       this.userDataService.sidebarMode$.subscribe(
         (sidebarMode) => (this.sidebarMode = sidebarMode)
       )
+    );
+
+    // Favorites In View variables
+    this.favoritesViewModel$ = combineLatest([
+      this.userDataService.favoritesInView$,
+      this.userDataService.favoritesInViewIndex$,
+    ]).pipe(
+      map(([favoritesInView, favoriteInViewIndex]) => ({
+        favoritesInView,
+        favoriteInViewIndex,
+      }))
     );
   }
 
