@@ -10,7 +10,9 @@ import {
 } from '../../../../core/utils/global.types';
 import { CommonModule } from '@angular/common';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faBus } from '@fortawesome/free-solid-svg-icons';
+import {
+  faBus,
+} from '@fortawesome/free-solid-svg-icons';
 import { VehiclesService } from '../../../../core/services/vehicles.service';
 
 @Component({
@@ -20,18 +22,20 @@ import { VehiclesService } from '../../../../core/services/vehicles.service';
   standalone: true,
 })
 export class StopsSidebarComponent implements OnInit {
-  private subscriptions: Subscription = new Subscription();
-  selectedStop: SelectedStop = undefined;
-  selectedStopData: StopApiResponse | undefined = undefined;
-  selectedStopTimeFromNow: Date | undefined = undefined;
-  liveSeconds$ = this.stopsService.liveSeconds$;
-  faBus = faBus;
-
   constructor(
     private userDataService: UserDataService,
     private stopsService: StopsService,
     private vehiclesService: VehiclesService
   ) {}
+
+  private subscriptions: Subscription = new Subscription();
+  selectedStop: SelectedStop = undefined;
+  selectedStopData: StopApiResponse | undefined = undefined;
+  selectedStopTimeFromNow: Date | undefined = undefined;
+  liveSeconds$ = this.stopsService.liveSeconds$;
+
+  // Icons
+  faBus = faBus;
 
   ngOnInit(): void {
     this.subscriptions.add(

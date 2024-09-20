@@ -54,7 +54,6 @@ export class WebsocketService {
     }
 
     const url = `${protocol}//${host}/ws`;
-    console.log('ws url = ', url);
 
     this.socket$ = webSocket({
       url: url,
@@ -105,7 +104,6 @@ export class WebsocketService {
 
   private checkConnection(): Observable<void> {
     return new Observable<void>((observer) => {
-      console.log('Checking connection: ', this.connectionState);
       if (this.connectionState !== 'connected') {
         this.toastr.info('Disconnected. Attempting to reconnect.');
         this.connect();

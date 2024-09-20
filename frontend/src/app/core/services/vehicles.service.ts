@@ -69,17 +69,12 @@ export class VehiclesService {
     if (this.trackedVehicleSubject.value) {
       this.updateTrackedVehicle(this.trackedVehicleSubject.value.busNumber);
     }
-
-    console.log('Vehicles sorted and updated. Vehicles:', this.vehicles);
   }
 
   private subscribeToWebSocket(): void {
     this.webSocketService.getMessages().subscribe({
       next: ({ message }) => {
         if (Array.isArray(message) && message.length > 0) {
-          console.log(
-            `Data received from websocket. ${message.length} updates.`
-          );
           this.updateVehicles(message);
         }
       },
