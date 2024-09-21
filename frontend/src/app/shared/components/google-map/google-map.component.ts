@@ -4,19 +4,10 @@ import {
   OnDestroy,
   OnInit,
   signal,
-  effect,
-  runInInjectionContext,
-  inject,
-  Injector,
+  // Injector,
 } from '@angular/core';
 import { BehaviorSubject, combineLatest, Subscription } from 'rxjs';
-import {
-  distinctUntilChanged,
-  filter,
-  map,
-  takeUntil,
-  tap,
-} from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { VehiclesService } from '../../../core/services/vehicles.service';
 import { StopsService } from '../../../core/services/stops.service';
@@ -51,10 +42,10 @@ import { ToastrService } from 'ngx-toastr';
 export class GoogleMapComponent implements OnInit, OnDestroy {
   MIN_ZOOM_LEVEL_FOR_MARKERS = 16;
 
-  private subscriptions: Subscription = new Subscription();
-  private destroy$ = new Subject<void>();
-  private ANIMATION_DURATION = 1000; // Animation duration in milliseconds
-  private FRAMES_PER_SECOND = 60;
+  private _subscriptions: Subscription = new Subscription();
+  private _destroy$ = new Subject<void>();
+  private _ANIMATION_DURATION = 1000;
+  private _FRAMES_PER_SECOND = 60;
 
   boundsRectangle: google.maps.Rectangle | null = null;
   stopMarkers$ = new BehaviorSubject<Marker[]>([]);
@@ -87,8 +78,7 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
     private stopsService: StopsService,
     private ngZone: NgZone,
     private userDataService: UserDataService,
-    private toastr: ToastrService,
-    private injector: Injector
+    private toastr: ToastrService // private injector: Injector
   ) {}
 
   async ngOnInit() {
@@ -96,19 +86,25 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
     this.subscribeToData();
     this.initializeMarkerIcons();
 
-    runInInjectionContext(this.injector, () => {
-      effect(() => {
-        if (this.userPosition()) {
-          this.checkForNearbyFavoriteStops();
-        }
-      });
-    });
+    // if (variable that determines that hey, user already agreed to share location)
+    this.startLocationTracking();
+
+    // TODO this supposed to run right away right? but we never get users locatoin
+    //
+    // it should be set such that if user already gave us permission, auto focus
+    // runInInjectionContext(this.injector, () => {
+    //   effect(() => {
+    //     if (this.userPosition()) {
+    //       this.checkForNearbyFavoriteStops();
+    //     }
+    //   });
+    // });
   }
 
   ngOnDestroy() {
-    this.subscriptions.unsubscribe();
-    this.destroy$.next();
-    this.destroy$.complete();
+    this._subscriptions.unsubscribe();
+    this._destroy$.next();
+    this._destroy$.complete();
   }
 
   checkForNearbyFavoriteStops() {
@@ -234,13 +230,13 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
   }
 
   private subscribeToData() {
-    this.subscriptions.add(
+    this._subscriptions.add(
       combineLatest([
         this.vehiclesService.trackedVehicle$,
         this.vehiclesService.vehicles$,
       ])
         .pipe(
-          takeUntil(this.destroy$),
+          takeUntil(this._destroy$),
           // only operate if there are changes
           distinctUntilChanged(
             (prev, curr) => prev[0] === curr[0] && prev[1] === curr[1]
@@ -260,7 +256,7 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
         })
     );
 
-    this.subscriptions.add(
+    this._subscriptions.add(
       combineLatest([
         this.userDataService.favoritesInView$,
         this.userDataService.favoritesInViewIndex$,
@@ -294,10 +290,10 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
         })
     );
 
-    this.subscriptions.add(
+    this._subscriptions.add(
       this.stopsService.stops$
         .pipe(
-          takeUntil(this.destroy$),
+          takeUntil(this._destroy$),
           map((stops) => this.createStopMarkers(stops))
         )
         .subscribe((stopMarkers) => this.stopMarkers$.next(stopMarkers))
@@ -305,7 +301,7 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
 
     this.stopsService.selectedStop$
       .pipe(
-        takeUntil(this.destroy$),
+        takeUntil(this._destroy$),
         filter(
           (
             selectedStop
@@ -324,14 +320,62 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
       });
 
     // As soon as a bus stop is favorited, change the color.
-    this.subscriptions.add(
+    this._subscriptions.add(
       this.userDataService.favorites$.subscribe(() => {
         this.updateVisibleMarkers();
       })
     );
   }
-  // const latLng: google.maps.LatLngLiteral = { lat, lng };
-  // this.map?.panTo(latLng);
+
+  // TODO: Set a timer, wait like 5 seconds to see if Google maps loads.
+  // panTo(latLng: google.maps.LatLngLiteral) {
+  //   if (!this.map) {
+  //     this.toastr.error('Cannot pan: map is not defined');
+  //     return;
+  //   }
+
+  //   const startLatLng = this.map.getCenter()?.toJSON() ?? null;
+
+  //   if (startLatLng === null) {
+  //     this.toastr.error('Cannot pan: center is not defined');
+  //     return;
+  //   }
+
+  //   const startZoom = this.map.getZoom() || 0;
+  //   const targetZoom = this.MIN_ZOOM_LEVEL_FOR_MARKERS;
+
+  //   const latDiff = startLatLng.lat - startLatLng.lat;
+  //   const lngDiff = startLatLng.lng - startLatLng.lng;
+  //   const zoomDiff = targetZoom - startZoom;
+
+  //   const steps = Math.floor(
+  //     this._ANIMATION_DURATION / (1000 / this._FRAMES_PER_SECOND)
+  //   );
+  //   let step = 0;
+
+  //   const animate = () => {
+  //     if (step >= steps) return;
+
+  //     const progress = step / steps;
+  //     const easedProgress = this.easeInOutCubic(progress);
+
+  //     const newLat = startLatLng.lat + latDiff * easedProgress;
+  //     const newLng = startLatLng.lng + lngDiff * easedProgress;
+  //     const newZoom = startZoom + zoomDiff * easedProgress;
+
+  //     this.map?.panTo({ lat: newLat, lng: newLng });
+  //     this.map?.setZoom(newZoom);
+
+  //     step++;
+  //     requestAnimationFrame(animate);
+  //   };
+
+  //   animate();
+  // }
+
+  // private easeInOutCubic(t: number): number {
+  //   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  // }
 
   panTo(latLng: google.maps.LatLngLiteral) {
     this.map?.panTo(latLng);
@@ -344,8 +388,7 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
       lng: vehicle.longitude,
     };
 
-    this.map?.setZoom(this.MIN_ZOOM_LEVEL_FOR_MARKERS);
-    this.map?.panTo(coordinates);
+    this.panTo(coordinates);
   }
 
   private createStopMarkers(stops?: Stop[]): Marker[] {
@@ -555,37 +598,33 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
   }
 
   startLocationTracking() {
-    this.toastr.info('Starting location tracking');
+    // TODO: Verbiage can be softer
+    this.toastr.info('Finding your location');
 
-    if (navigator.geolocation && this.map) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          this.ngZone.run(() => {
-            const newCenter = {
-              lat: position.coords.latitude,
-              lng: position.coords.longitude,
-            };
-            this.updateUserPosition(position);
-
-            // Get favorite bus stops that are within a half mile radius of user
-
-            // Instantly set the new center and zoom
-            this.map!.setCenter(newCenter);
-            this.map!.setZoom(this.MIN_ZOOM_LEVEL_FOR_MARKERS);
-          });
-        },
-        (error) => console.error('Error getting geolocation: ', error),
-        {
-          enableHighAccuracy: true,
-          timeout: 15000,
-          maximumAge: 0,
-        }
-      );
-    } else {
-      console.error(
-        'Geolocation is not supported by this browser or map is not initialized.'
-      );
+    if (!navigator.geolocation) {
+      this.toastr.error('Geolocation is not supported');
+      return;
     }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        this.ngZone.run(() => {
+          const newCenter = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          };
+
+          this.updateUserPosition(position);
+          this.panTo(newCenter);
+        });
+      },
+      (error) => console.error('Error getting geolocation: ', error),
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 0,
+      }
+    );
   }
 
   onMarkerClick(marker: any): void {
