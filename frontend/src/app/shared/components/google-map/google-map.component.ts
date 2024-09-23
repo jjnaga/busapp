@@ -3,8 +3,10 @@ import {
   NgZone,
   OnDestroy,
   OnInit,
+  runInInjectionContext,
   signal,
-  // Injector,
+  Injector,
+  effect,
 } from '@angular/core';
 import { BehaviorSubject, combineLatest, Subscription } from 'rxjs';
 import { distinctUntilChanged, filter, map, takeUntil } from 'rxjs/operators';
@@ -78,27 +80,25 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
     private stopsService: StopsService,
     private ngZone: NgZone,
     private userDataService: UserDataService,
-    private toastr: ToastrService // private injector: Injector
+    private toastr: ToastrService,
+    private injector: Injector
   ) {}
+
+  counter = signal(0);
 
   async ngOnInit() {
     await this.waitForGoogleMaps();
     this.subscribeToData();
     this.initializeMarkerIcons();
 
-    // if (variable that determines that hey, user already agreed to share location)
     this.startLocationTracking();
 
-    // TODO this supposed to run right away right? but we never get users locatoin
-    //
-    // it should be set such that if user already gave us permission, auto focus
-    // runInInjectionContext(this.injector, () => {
-    //   effect(() => {
-    //     if (this.userPosition()) {
-    //       this.checkForNearbyFavoriteStops();
-    //     }
-    //   });
-    // });
+    // Run checkForNearbyFavoriteStops() inside DI context
+    runInInjectionContext(this.injector, () => {
+      effect(() => {
+        this.checkForNearbyFavoriteStops();
+      });
+    });
   }
 
   ngOnDestroy() {
@@ -107,9 +107,12 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
     this._destroy$.complete();
   }
 
-  checkForNearbyFavoriteStops() {
+  async checkForNearbyFavoriteStops() {
+    console.log('this hsould wiat to run after userPostion updates');
     const userPosition = this.userPosition();
+
     const favorites: Stop[] = [];
+    console.log('i bet this is null', userPosition);
 
     if (userPosition && userPosition.lat && userPosition.lng) {
       // Convert half a mile to meters
