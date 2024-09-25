@@ -7,7 +7,6 @@ import { LocalStorageService } from './local-storage.service';
 
 @Injectable({ providedIn: 'root' })
 export class UserDataService {
-  private searchResultSubject = new BehaviorSubject<string>('');
   private sidebarModeSubject = new BehaviorSubject<sideBarModes>(null);
   private showSidebarSubject = new BehaviorSubject<boolean>(false);
   private favoritesSubject = new BehaviorSubject<Stop[]>([]);
@@ -24,7 +23,6 @@ export class UserDataService {
   private subscriptionsSubject = new BehaviorSubject<BusSubscription[]>([]);
   private subscriptions: Subscription = new Subscription();
 
-  searchResult$ = this.searchResultSubject.asObservable();
   sidebarMode$ = this.sidebarModeSubject.asObservable();
   showSidebar$ = this.showSidebarSubject.asObservable();
   favorites$ = this.favoritesSubject.asObservable();
@@ -98,27 +96,18 @@ export class UserDataService {
     this.selectedFavoriteIndexSubject.next(newIndex);
   }
 
-  setSearchResult(searchResult: string) {
-    this.searchResultSubject.next(searchResult);
-
-    this.updateShowSidebar();
-  }
-
   setSidebarMode(mode: sideBarModes) {
     this.sidebarModeSubject.next(mode);
     this.updateShowSidebar();
   }
 
   updateShowSidebar() {
-    const showSidebar =
-      this.searchResultSubject.value.length > 0 ||
-      this.sidebarModeSubject.value !== null;
+    const showSidebar = this.sidebarModeSubject.value !== null;
     this.showSidebarSubject.next(showSidebar);
   }
 
   resetSidebar() {
     this.showSidebarSubject.next(false);
-    this.searchResultSubject.next('');
     this.sidebarModeSubject.next(null);
   }
 

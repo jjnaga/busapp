@@ -43,7 +43,6 @@ export class HeaderComponent implements OnInit {
   faBell = faBell;
   faChevronLeft = faChevronLeft;
   faChevronRight = faChevronRight;
-  searchResult: string = '';
   showSidebar: boolean = false;
   sidebarMode: sideBarModes = null;
   trackedVehicle$ = this.vehiclesService.trackedVehicle$;
@@ -64,12 +63,6 @@ export class HeaderComponent implements OnInit {
   }
 
   private subscribeToData() {
-    this.subscriptions.add(
-      this.userDataService.searchResult$.subscribe(
-        (result) => (this.searchResult = result)
-      )
-    );
-
     this.subscriptions.add(
       this.userDataService.showSidebar$.subscribe(
         (sidebar) => (this.showSidebar = sidebar)
@@ -92,10 +85,6 @@ export class HeaderComponent implements OnInit {
         favoriteInViewIndex,
       }))
     );
-  }
-
-  onSearchResultChange() {
-    this.userDataService.setSearchResult(this.searchResult);
   }
 
   toggleMode = (mode: sideBarModes) => {
