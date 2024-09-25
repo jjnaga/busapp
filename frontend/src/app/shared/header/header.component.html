@@ -23,24 +23,11 @@
       </ul>
     </div>
   </header>
-  <div id="siderbar" class="w-full lg:left-24 lg:top-0 lg:w-96 opacity-[95] lg:opacity-100" [ngClass]="{'bg-white' : showSidebar,
+  <div id="siderbar" class="w-full lg:left-24 lg:top-0 lg:w-96 opacity-[95] lg:opacity-100" [ngClass]="{
   'h-full': showSidebar,
   'h-fit': !showSidebar
 }">
     <div id="sidebar-inner" class="flex flex-col items-center lg:w-96 p-1">
-      <div id="search" class="w-full pt-3 lg:pt-10">
-        <div id="search_inner" class="relative flex items-center">
-          <input type="text" [(ngModel)]="searchResult" (ngModelChange)="onSearchResultChange()"
-            class="w-full h-12 pr-10 p-2 rounded-2xl border-[1px] hover:border-blue-600 focus:outline-none focus:border-blue-600 focus:border-[2px] shadow-lg"
-            placeholder="Search routes">
-          <button *ngIf="showSidebar" (click)="onXmarkClick()" class="absolute right-5">
-            <fa-icon [icon]="faXmark" class="text-gray-400"></fa-icon>
-          </button>
-          <button *ngIf="!showSidebar" class="absolute right-5">
-            <fa-icon [icon]="faSearch" class="text-gray-400"></fa-icon>
-          </button>
-        </div>
-      </div>
       <div id="tracked-vehicle" *ngIf="trackedVehicle$ | async as vehicle"
         class="w-full mt-2 rounded-2xl border-[1px] bg-white">
         <div class="p-3">
@@ -63,7 +50,7 @@
         </div>
       </div>
       <div *ngIf="favoritesViewModel$ | async as fvm" id="favorites"
-        class="w-full mt-2 rounded-2xl border-[1px] bg-white">
+        class="w-full mt-2 mb-4 rounded-2xl border-[1px] bg-white">
         <ng-container *ngIf="fvm.favoritesInView.length > 0">
           <div class="px-3 py-1">
             <h2 class="text-center text-lg font-semibold uppercase overflow-y-hiddentext-center px-3 pt-1 border-b-1">
@@ -83,7 +70,7 @@
           </div>
         </ng-container>
       </div>
-      <div id="widget-container" class="w-full max-h-[calc(100vh-100px)] overflow-y-auto">
+      <div id="widget-container" class="w-full max-h-[calc(100vh-100px)] overflow-y-auto bg-white rounded-2xl">
         <ng-container *ngIf="sidebarMode">
           <div class="w-full">
             <ng-container [ngSwitch]="sidebarMode">
