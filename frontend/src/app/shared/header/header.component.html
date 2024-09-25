@@ -1,15 +1,15 @@
 <!-- TODO remove lg:w-24, set desktop to be content-sized -->
 <div class="fixed left-0 top-0 z-20 w-full lg:h-screen lg:w-24 lg:flex lg:flex-row">
   <header class="bg-white shadow-md border h-full opacity-75 lg:opacity-100" [ngClass]="{'opacity-100': showSidebar}">
-    <div class="flex lg:flex-col justify-between px-1 py-2 h-full">
-      <div id="logo">
-        <div id="logo_inner"><span class="text-xl font-bold text-center">Bettah Bus</span></div>
+    <div class="flex lg:flex-col justify-between px-1 py-2 h-full ">
+      <div id="logo" class="ml-3 lg:ml-2 flex items-center">
+        <span class="text-2xl font-bold text-center lg:text-left">Bettah Bus</span>
       </div>
       <div class="flex-1"></div>
       <ul class="flex flex-row lg:flex-col items-center">
         <li>
           <button (click)="toggleMode('favorites')" class="hover:text-blue-600">
-            <fa-icon class='text-nagahama-blue text-xl lg:text-2xl' [icon]="faStar"></fa-icon>
+            <fa-icon class='text-nagahama-blue text-xl lg:text-3xl' [icon]="faStar"></fa-icon>
             <p class="text-sm">Favorites</p>
           </button>
         </li>
@@ -17,7 +17,7 @@
 
           <button (click)="toggleMode('subscriptions')" class="hover:text-blue-600">
             <fa-icon class='text-nagahama-blue text-xl lg:text-2xl' [icon]="faBell"></fa-icon>
-            <p class="text-xs">Subscriptions</p>
+            <p class="text-sm">Subscriptions</p>
           </button>
         </li>
       </ul>
