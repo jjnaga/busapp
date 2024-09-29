@@ -83,8 +83,7 @@ export class HeaderComponent implements OnInit {
       map(([favoritesNearby, favoriteInViewIndex]) => ({
         favoritesNearby,
         favoriteInViewIndex,
-      })),
-      tap((viewModel) => console.log(viewModel))
+      }))
     );
   }
 
