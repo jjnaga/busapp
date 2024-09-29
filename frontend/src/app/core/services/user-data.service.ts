@@ -61,9 +61,6 @@ export class UserDataService {
       this.favoritesNearbySubject.getValue().length;
 
     this.favoritesNearbyIndexSubject.next(nextIndex);
-    this.stopsService.setSelectedStop(
-      this.getfavoritesNearby()[nextIndex].stopId
-    );
   }
 
   decrementfavoritesNearbyIndex(): void {
@@ -78,9 +75,6 @@ export class UserDataService {
         : this.favoritesNearbyIndexSubject.value - 1;
 
     this.favoritesNearbyIndexSubject.next(nextIndex);
-    this.stopsService.setSelectedStop(
-      this.getfavoritesNearby()[nextIndex].stopId
-    );
   }
 
   setSidebarMode(mode: sideBarModes) {
