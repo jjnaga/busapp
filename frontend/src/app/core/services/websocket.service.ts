@@ -60,7 +60,7 @@ export class WebsocketService {
       openObserver: {
         next: () => {
           this.connectionState = 'connected';
-          this.toastr.success('Connected');
+          this.toastr.success('Connected to Bettah Bus');
         },
       },
       closeObserver: {

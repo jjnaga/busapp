@@ -181,8 +181,7 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
       });
 
       if (favorites.length > 0) {
-        this.userDataService.setFavoritesInView(favorites);
-        this.userDataService.setFavoritesInViewIndex(0);
+        this.userDataService.setfavoritesNearby(favorites);
       }
     }
   }
@@ -261,29 +260,29 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
 
     this._subscriptions.add(
       combineLatest([
-        this.userDataService.favoritesInView$,
-        this.userDataService.favoritesInViewIndex$,
+        this.userDataService.favoritesNearby$,
+        this.userDataService.favoritesNearbyIndex$,
       ])
         .pipe(
-          map(([favoritesInView, favoritesInViewIndex]) => ({
-            favoritesInView,
-            favoritesInViewIndex,
+          map(([favoritesNearby, favoritesNearbyIndex]) => ({
+            favoritesNearby,
+            favoritesNearbyIndex,
           }))
         )
-        .subscribe(({ favoritesInView, favoritesInViewIndex }) => {
+        .subscribe(({ favoritesNearby, favoritesNearbyIndex }) => {
           if (
-            favoritesInView &&
-            favoritesInViewIndex &&
-            favoritesInView.length > 0 &&
-            favoritesInViewIndex >= 0 &&
-            favoritesInViewIndex < favoritesInView.length
+            favoritesNearby &&
+            favoritesNearbyIndex &&
+            favoritesNearby.length > 0 &&
+            favoritesNearbyIndex >= 0 &&
+            favoritesNearbyIndex < favoritesNearby.length
           ) {
-            const lat = favoritesInView[favoritesInViewIndex].stopLat!;
-            const lng = favoritesInView[favoritesInViewIndex].stopLon!;
+            const lat = favoritesNearby[favoritesNearbyIndex].stopLat!;
+            const lng = favoritesNearby[favoritesNearbyIndex].stopLon!;
 
             if (isNaN(Number(lat)) || isNaN(Number(lng))) {
               this.toastr.error(
-                `Bus stop ${favoritesInView[favoritesInViewIndex].stopId} has invalid coordinates`
+                `Bus stop ${favoritesNearby[favoritesNearbyIndex].stopId} has invalid coordinates`
               );
             }
 
