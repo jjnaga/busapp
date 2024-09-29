@@ -32,7 +32,11 @@ export const AppDataSource = new DataSource({
   entities: [Vehicle, Stops, Subscription, Notification],
   migrations: [],
   subscribers: [],
-  poolSize: 1000,
+  // poolSize: 1000,
+  extra: {
+    poolSize: 50, // Increase as needed
+    idleTimeoutMillis: 30000, // Close idle connections after 30 seconds
+  },
   // it doenst make it automatically?
   // schema: 'bus',
 });
