@@ -70,6 +70,6 @@ export interface BusSubscription {
 }
 
 export interface FavoritesViewModel {
-  favoritesInView: Stop[];
+  favoritesNearby: Stop[];
   favoriteInViewIndex: number | null;
 }

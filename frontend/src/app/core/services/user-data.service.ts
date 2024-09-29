@@ -10,11 +10,8 @@ export class UserDataService {
   private sidebarModeSubject = new BehaviorSubject<sideBarModes>(null);
   private showSidebarSubject = new BehaviorSubject<boolean>(false);
   private favoritesSubject = new BehaviorSubject<Stop[]>([]);
-  private favoritesInViewSubject = new BehaviorSubject<Stop[]>([]);
-  private favoritesInViewIndexSubject = new BehaviorSubject<number | null>(
-    null
-  );
-  private selectedFavoriteIndexSubject = new BehaviorSubject<number | null>(
+  private favoritesNearbySubject = new BehaviorSubject<Stop[]>([]);
+  private favoritesNearbyIndexSubject = new BehaviorSubject<number | null>(
     null
   );
   private newSubscriptionSubject = new BehaviorSubject<BusSubscription | null>(
@@ -26,9 +23,8 @@ export class UserDataService {
   sidebarMode$ = this.sidebarModeSubject.asObservable();
   showSidebar$ = this.showSidebarSubject.asObservable();
   favorites$ = this.favoritesSubject.asObservable();
-  favoritesInView$ = this.favoritesInViewSubject.asObservable();
-  favoritesInViewIndex$ = this.favoritesInViewIndexSubject.asObservable();
-  selectedFavoriteIndex$ = this.selectedFavoriteIndexSubject.asObservable();
+  favoritesNearby$ = this.favoritesNearbySubject.asObservable();
+  favoritesNearbyIndex$ = this.favoritesNearbyIndexSubject.asObservable();
   newSubscription$ = this.newSubscriptionSubject.asObservable();
   subscriptions$ = this.subscriptionsSubject.asObservable();
 
@@ -47,63 +43,59 @@ export class UserDataService {
     );
   }
 
-  getFavoritesInViewIndex(): number | null {
-    const favoritesInViewIndexSubject =
-      this.favoritesInViewIndexSubject.getValue();
+  getfavoritesNearbyIndex(): number | null {
+    const favoritesNearbyIndexSubject =
+      this.favoritesNearbyIndexSubject.getValue();
 
-    return favoritesInViewIndexSubject ?? null;
+    return favoritesNearbyIndexSubject ?? null;
   }
 
-  setFavoritesInViewIndex(index: number): void {
-    // Show the current favorite stop that is in view.
-    this.stopsService.setSelectedStop(this.getFavoritesInView()[index].stopId);
-    this.favoritesInViewIndexSubject.next(index);
-  }
-
-  incrementFavoritesInViewIndex(): void {
-    if (this.favoritesInViewIndexSubject.getValue() === null) {
+  incrementfavoritesNearbyIndex(): void {
+    if (this.favoritesNearbyIndexSubject.getValue() === null) {
       this.toastr.error('No Favorite Bus Stops Nearby');
       return;
     }
 
-    this.favoritesInViewIndexSubject.next(
-      (this.favoritesInViewIndexSubject.getValue()! + 1) %
-        this.favoritesInViewSubject.getValue().length
+    const nextIndex =
+      (this.favoritesNearbyIndexSubject.getValue()! + 1) %
+      this.favoritesNearbySubject.getValue().length;
+
+    this.favoritesNearbyIndexSubject.next(nextIndex);
+    this.stopsService.setSelectedStop(
+      this.getfavoritesNearby()[nextIndex].stopId
     );
   }
 
-  decrementFavoritesInViewIndex(): void {
-    if (this.favoritesInViewIndexSubject.getValue() === null) {
+  decrementfavoritesNearbyIndex(): void {
+    if (this.favoritesNearbyIndexSubject.value === null) {
       this.toastr.error('No Favorite Bus Stops Nearby');
       return;
     }
 
-    this.favoritesInViewIndexSubject.next(
-      (this.favoritesInViewIndexSubject.getValue()! - 1) %
-        this.favoritesInViewSubject.getValue().length
+    const nextIndex =
+      this.favoritesNearbyIndexSubject.value <= 0
+        ? this.favoritesNearbySubject.value.length - 1
+        : this.favoritesNearbyIndexSubject.value - 1;
+
+    this.favoritesNearbyIndexSubject.next(nextIndex);
+    this.stopsService.setSelectedStop(
+      this.getfavoritesNearby()[nextIndex].stopId
     );
-  }
-
-  setSelectedFavoriteIndex(newIndex: number) {
-    if (newIndex < 0 || newIndex > this.favoritesSubject.value.length - 1) {
-      console.error(
-        'setSelectedFavoriteIndex: index of out bounds. Index=',
-        newIndex
-      );
-      return;
-    }
-
-    this.selectedFavoriteIndexSubject.next(newIndex);
   }
 
   setSidebarMode(mode: sideBarModes) {
-    this.sidebarModeSubject.next(mode);
+    const currentMode = this.sidebarModeSubject.value;
+
+    if (currentMode === mode) {
+      this.sidebarModeSubject.next(null);
+    } else {
+      this.sidebarModeSubject.next(mode);
+    }
     this.updateShowSidebar();
   }
 
   updateShowSidebar() {
-    const showSidebar = this.sidebarModeSubject.value !== null;
-    this.showSidebarSubject.next(showSidebar);
+    this.showSidebarSubject.next(!this.sidebarModeSubject.value);
   }
 
   resetSidebar() {
@@ -164,12 +156,26 @@ export class UserDataService {
     this.sidebarModeSubject.next('stop');
   }
 
-  getFavoritesInView() {
-    return this.favoritesInViewSubject.getValue();
+  getfavoritesNearby() {
+    return this.favoritesNearbySubject.getValue();
   }
 
-  setFavoritesInView(favorites: Stop[]) {
-    this.favoritesInViewSubject.next(favorites);
+  setfavoritesNearby(favorites: Stop[]) {
+    this.favoritesNearbySubject.next(favorites);
+  }
+
+  setfavoritesNearbyIndex(index: number) {
+    if (index < 0) {
+      this.toastr.error('Favorites Nearby Index cannot be less than 0');
+      return;
+    }
+
+    if (index > this.favoritesNearbySubject.value.length) {
+      this.toastr.error('Favorites Nearby Index out of bounds');
+      return;
+    }
+
+    this.favoritesNearbyIndexSubject.next(index);
   }
 
   setNewSubscription(subscription?: BusSubscription) {
@@ -186,10 +192,10 @@ export class UserDataService {
 
   private initializeSubscriptions(): void {
     this.subscriptions.add(
-      this.favoritesInViewIndex$.subscribe((index) => {
+      this.favoritesNearbyIndex$.subscribe((index) => {
         if (index !== null) {
           this.stopsService.setSelectedStop(
-            this.getFavoritesInView()[index].stopCode
+            this.getfavoritesNearby()[index].stopCode
           );
         }
       })

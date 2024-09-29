@@ -15,7 +15,9 @@ import { ServiceWorkerModule } from '@angular/service-worker';
     AppRoutingModule,
     HeaderComponent,
     BrowserAnimationsModule,
-    ToastrModule.forRoot(),
+    ToastrModule.forRoot({
+      positionClass: 'toast-bottom-right',
+    }),
     ServiceWorkerModule.register('ngsw-worker.js', {
       // enabled: !isDevMode(),
       enabled: true,

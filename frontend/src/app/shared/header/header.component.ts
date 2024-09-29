@@ -15,7 +15,7 @@ import {
   FavoritesViewModel,
   sideBarModes,
 } from '../../core/utils/global.types';
-import { combineLatest, map, Observable, Subscription } from 'rxjs';
+import { combineLatest, map, Observable, Subscription, tap } from 'rxjs';
 import { UserDataService } from '../../core/services/user-data.service';
 import { StopsSidebarComponent } from './sidebar/stops/stops-sidebar.component';
 import { FavoritesSidebarComponent } from './sidebar/favorites/favorites-sidebar.component';
@@ -77,22 +77,30 @@ export class HeaderComponent implements OnInit {
 
     // Favorites In View variables
     this.favoritesViewModel$ = combineLatest([
-      this.userDataService.favoritesInView$,
-      this.userDataService.favoritesInViewIndex$,
+      this.userDataService.favoritesNearby$,
+      this.userDataService.favoritesNearbyIndex$,
     ]).pipe(
-      map(([favoritesInView, favoriteInViewIndex]) => ({
-        favoritesInView,
+      map(([favoritesNearby, favoriteInViewIndex]) => ({
+        favoritesNearby,
         favoriteInViewIndex,
-      }))
+      })),
+      tap((viewModel) => console.log(viewModel))
     );
   }
 
   toggleMode = (mode: sideBarModes) => {
     this.userDataService.setSidebarMode(mode);
-    this.userDataService.updateShowSidebar();
   };
 
   onXmarkClick = () => {
     this.userDataService.resetSidebar();
   };
+
+  setFavoritesNearbyIndex() {
+    const favoritesNearbyIndex = this.userDataService.getfavoritesNearbyIndex();
+
+    if (favoritesNearbyIndex === null) {
+      this.userDataService.setfavoritesNearbyIndex(0);
+    }
+  }
 }
