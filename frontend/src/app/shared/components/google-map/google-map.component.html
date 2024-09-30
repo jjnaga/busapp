@@ -3,7 +3,7 @@
     <map-advanced-marker *ngFor="let marker of vehicleMarkers$ | async; trackBy: trackByMarkerId"
       [position]="marker.position" [title]="marker.title" [content]="marker.content" (mapClick)="onMarkerClick(marker)">
     </map-advanced-marker>
-
+    <!-- TODO: make map-advanced-marker, set it accordingly. basically migrate these two icons to html elements. -->
     <map-marker *ngFor="let marker of visibleStopMarkers$ | async; trackBy: trackByMarkerId" [title]="marker.title"
       [icon]="marker.favorite ? favoriteMarkerIcon : markerIcon" [position]="marker.position"
       (mapClick)="onMarkerClick(marker)">

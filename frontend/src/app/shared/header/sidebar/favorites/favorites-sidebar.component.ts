@@ -14,6 +14,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
+import { StopsService } from '../../../../core/services/stops.service';
 
 @Component({
   selector: 'favorites-sidebar',
@@ -22,7 +23,10 @@ import { ToastrService } from 'ngx-toastr';
   standalone: true,
 })
 export class FavoritesSidebarComponent {
-  constructor(private UserDataService: UserDataService) {}
+  constructor(
+    private UserDataService: UserDataService,
+    private stopsService: StopsService
+  ) {}
 
   faXmark = faXmark;
   faPencilAlt = faPencilAlt;
@@ -68,7 +72,7 @@ export class FavoritesSidebarComponent {
     this.UserDataService.deleteFavorite(index);
   }
 
-  setSelectedStop(stopId: string, index: number) {
-    this.UserDataService.setSelectedStop(stopId);
+  setSelectedStop(stopId: string) {
+    this.stopsService.setSelectedStop(stopId);
   }
 }

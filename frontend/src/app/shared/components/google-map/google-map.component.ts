@@ -59,6 +59,7 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
   watchPositionCallbackID: number = -1;
   faLocationCrosshairs = faLocationCrosshairs;
   faPerson = faPerson;
+  // TODO: make map-advanced-marker, set it accordingly. basically migrate these two icons to html elements.
   markerIcon!: google.maps.Icon;
   favoriteMarkerIcon!: google.maps.Icon;
 
@@ -108,11 +109,9 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
   }
 
   async checkForNearbyFavoriteStops() {
-    console.log('this hsould wiat to run after userPostion updates');
     const userPosition = this.userPosition();
 
     const favorites: Stop[] = [];
-    console.log('i bet this is null', userPosition);
 
     if (userPosition && userPosition.lat && userPosition.lng) {
       // Convert half a mile to meters
@@ -255,40 +254,6 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
           },
           error: (err) =>
             console.error('Error in tracking subscription: ', err),
-        })
-    );
-
-    this._subscriptions.add(
-      combineLatest([
-        this.userDataService.favoritesNearby$,
-        this.userDataService.favoritesNearbyIndex$,
-      ])
-        .pipe(
-          map(([favoritesNearby, favoritesNearbyIndex]) => ({
-            favoritesNearby,
-            favoritesNearbyIndex,
-          }))
-        )
-        .subscribe(({ favoritesNearby, favoritesNearbyIndex }) => {
-          if (
-            favoritesNearby &&
-            favoritesNearbyIndex &&
-            favoritesNearby.length > 0 &&
-            favoritesNearbyIndex >= 0 &&
-            favoritesNearbyIndex < favoritesNearby.length
-          ) {
-            const lat = favoritesNearby[favoritesNearbyIndex].stopLat!;
-            const lng = favoritesNearby[favoritesNearbyIndex].stopLon!;
-
-            if (isNaN(Number(lat)) || isNaN(Number(lng))) {
-              this.toastr.error(
-                `Bus stop ${favoritesNearby[favoritesNearbyIndex].stopId} has invalid coordinates`
-              );
-            }
-
-            const latLng: google.maps.LatLngLiteral = { lat, lng };
-            this.panTo(latLng);
-          }
         })
     );
 
@@ -639,7 +604,7 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
         break;
       case 'stop':
         const { stopCode } = marker;
-        this.userDataService.setSelectedStop(stopCode);
+        this.stopsService.setSelectedStop(stopCode);
         break;
       default:
         this.toastr.info('Marker not supported');
