@@ -49,11 +49,7 @@ export class UserDataService {
     );
     this.subscriptions.add(
       this.stopsService.selectedStop$.subscribe((stop) => {
-        console.log(
-          'ah this runs on init?',
-          this.favoritesNearbyIndexSubject.value
-        );
-        if (this.favoritesNearbyIndexSubject.value !== null) {
+        if (stop !== undefined) {
           if (this.showSidebarSubject.value === false) {
             this.showSidebarSubject.next(true);
           }
