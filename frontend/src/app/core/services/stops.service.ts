@@ -84,12 +84,6 @@ export class StopsService {
       });
   }
 
-  private initUserDataService() {
-    if (!this.userDataService) {
-      this.userDataService = this.injector.get(UserDataService);
-    }
-  }
-
   private selectedStopDataLink = (stopCode: string) =>
     `${getBaseUrl()}/api/stops/${stopCode}`;
 
@@ -131,13 +125,6 @@ export class StopsService {
 
     if (selectedStop) {
       this.selectedStopSubject.next(selectedStop);
-
-      // 9.20.24
-      // Services are too coupled, but we're too deep into this already
-      this.initUserDataService();
-      if (this.userDataService) {
-        this.userDataService.setSidebarMode('stop');
-      }
     }
   }
 

@@ -37,6 +37,35 @@ export class UserDataService {
     this.initializeSubscriptions();
   }
 
+  private initializeSubscriptions(): void {
+    this.subscriptions.add(
+      this.favoritesNearbyIndex$.subscribe((index) => {
+        if (index !== null) {
+          this.stopsService.setSelectedStop(
+            this.favoritesNearbySubject.value[index].stopCode
+          );
+        }
+      })
+    );
+    this.subscriptions.add(
+      this.stopsService.selectedStop$.subscribe((stop) => {
+        console.log(
+          'ah this runs on init?',
+          this.favoritesNearbyIndexSubject.value
+        );
+        if (this.favoritesNearbyIndexSubject.value !== null) {
+          if (this.showSidebarSubject.value === false) {
+            this.showSidebarSubject.next(true);
+          }
+
+          if (this.sidebarModeSubject.value !== 'stop') {
+            this.sidebarModeSubject.next('stop');
+          }
+        }
+      })
+    );
+  }
+
   private loadFromLocalStorage(): void {
     this.favoritesSubject.next(
       this.localStorageService.getFromLocalStorage<Stop[]>('favorites', [])
@@ -144,12 +173,6 @@ export class UserDataService {
     this.toastr.success(`Deleted: ${deletedFavorite[0].stopName}`);
   }
 
-  setSelectedStop(stop: string) {
-    this.stopsService.setSelectedStop(stop);
-    this.showSidebarSubject.next(true);
-    this.sidebarModeSubject.next('stop');
-  }
-
   getfavoritesNearby() {
     return this.favoritesNearbySubject.getValue();
   }
@@ -184,18 +207,7 @@ export class UserDataService {
     return this.favoritesSubject.getValue();
   }
 
-  private initializeSubscriptions(): void {
-    this.subscriptions.add(
-      this.favoritesNearbyIndex$.subscribe((index) => {
-        if (index !== null) {
-          this.stopsService.setSelectedStop(
-            this.getfavoritesNearby()[index].stopCode
-          );
-        }
-      })
-    );
-  }
-
+  // Singleton service will probably never need this.
   destroy() {
     this.subscriptions.unsubscribe();
   }
