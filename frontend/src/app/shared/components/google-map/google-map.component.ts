@@ -74,6 +74,9 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
     fullscreenControl: false,
     gestureHandling: 'cooperative',
     scrollwheel: true,
+    // zoomControlOptions: {
+    //   position: google.maps.ControlPosition.RIGHT_BOTTOM,
+    // },
   };
 
   constructor(
@@ -344,9 +347,11 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
   //   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
   // }
 
-  panTo(latLng: google.maps.LatLngLiteral) {
-    this.map?.panTo(latLng);
-    this.map?.setZoom(this.MIN_ZOOM_LEVEL_FOR_MARKERS);
+  panTo(latLng: google.maps.LatLngLiteral, zoomLevel?: number) {
+    if (this.map) {
+      this.map.panTo(latLng);
+      this.map.setZoom(zoomLevel ?? this.MIN_ZOOM_LEVEL_FOR_MARKERS);
+    }
   }
 
   panToVehicle(vehicle: Vehicle) {
@@ -410,14 +415,8 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
 
   onMapReady(map: google.maps.Map) {
     this.map = map;
-    this.map.setCenter({ lat: 21.2968, lng: -157.8531 });
-    this.map.setZoom(14);
 
-    this.map.setOptions({
-      zoomControlOptions: {
-        position: google.maps.ControlPosition.RIGHT_BOTTOM,
-      },
-    });
+    this.map.setOptions(this.mapOptions);
 
     if (this.isMobileDevice()) {
       this.applyMobileSettings();
@@ -582,7 +581,7 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
           };
 
           this.updateUserPosition(position);
-          this.panTo(newCenter);
+          this.panTo(newCenter, 17);
         });
       },
       (error) => console.error('Error getting geolocation: ', error),
