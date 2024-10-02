@@ -21,6 +21,7 @@ import { StopsSidebarComponent } from './sidebar/stops/stops-sidebar.component';
 import { FavoritesSidebarComponent } from './sidebar/favorites/favorites-sidebar.component';
 import { VehiclesService } from '../../core/services/vehicles.service';
 import { SubscriptionsSidebarComponent } from './sidebar/subscriptions/subscriptions-sidebar.component';
+import { VersionService } from '../../core/services/version.service';
 
 @Component({
   selector: 'header-component',
@@ -46,6 +47,7 @@ export class HeaderComponent implements OnInit {
   showSidebar: boolean = false;
   sidebarMode: sideBarModes = null;
   trackedVehicle$ = this.vehiclesService.trackedVehicle$;
+  version: string = '';
 
   favoritesViewModel$: Observable<FavoritesViewModel> | undefined;
 
@@ -54,12 +56,14 @@ export class HeaderComponent implements OnInit {
   constructor(
     private routeService: RouteService,
     public userDataService: UserDataService,
-    public vehiclesService: VehiclesService
+    public vehiclesService: VehiclesService,
+    private versionService: VersionService
   ) {}
 
   ngOnInit(): void {
     const routes = this.routeService.getRoutes();
     this.subscribeToData();
+    this.version = this.versionService.getAppVersion();
   }
 
   private subscribeToData() {
