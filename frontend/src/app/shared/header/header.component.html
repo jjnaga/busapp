@@ -1,6 +1,4 @@
-<!-- <div class="w-full lg:h-screen lg:w-24 lg:flex lg:flex-row"> -->
 <header class="lg:h-screen lg:w-24">
-  <!-- <header class="lg:h-screen w-24 lg:w-24 shadow-md border "> -->
   <div class="flex lg:flex-col justify-between bg-white border shadow-md px-1 py-2 h-full ">
     <div id="logo" class="ml-3 lg:ml-2 flex flex-row lg:flex-col items-center">
       <div></div>
@@ -25,48 +23,3 @@
     </ul>
   </div>
 </header>
-<!-- <div id="siderbar" class="w-full lg:left-24 lg:top-0 lg:w-96 opacity-[95] lg:opacity-100" [ngClass]="{
-  'h-full': showSidebar,
-  'h-fit': !showSidebar
-}">
-    <div *ngIf="favoritesViewModel$ | async as fvm" id="favorites" (click)="setFavoritesNearbyIndex()">
-      <ng-container *ngIf="fvm.favoritesNearby.length > 0">
-        <div class="px-3 py-1">
-          <h2 class="text-center text-lg font-semibold uppercase overflow-y-hiddentext-center px-3 pt-1 border-b-1">
-            Favorites Nearby</h2>
-          <div [ngClass]="{'invisible': fvm.favoriteInViewIndex === null}"
-            class="flex items-center flex-grow justify-between px-16 pt-1">
-            <div class=" p-1">
-              <fa-icon [icon]="faChevronLeft" (click)="userDataService.decrementfavoritesNearbyIndex()"
-                class="text-gray-400 hover:scale-110 hover:text-gray-700 active:text-gray-700 transition-colors duration-200 text-lg cursor-pointer"></fa-icon>
-            </div>
-            <span>{{fvm.favoriteInViewIndex! + 1}} of
-              {{fvm.favoritesNearby.length}}</span>
-            <div class="p-1">
-              <fa-icon [icon]="faChevronRight" (click)="userDataService.incrementfavoritesNearbyIndex()"
-                class="text-gray-400 hover:scale-110 hover:text-gray-700 active:text-gray-700 transition-colors duration-200 text-lg cursor-pointer"></fa-icon>
-            </div>
-          </div>
-        </div>
-      </ng-container>
-    </div>
-    <div id="menu-container" class="w-full max-h-[calc(100vh-100px)] overflow-y-auto bg-white rounded-2xl">
-      <ng-container *ngIf="sidebarMode">
-        <div class="w-full relative">
-          <ng-container [ngSwitch]="sidebarMode">
-            <div class="z-[200] w-full pt-5 px-3">
-              <div class="absolute right-0 top-0 mx-3 py-1">
-                <button (click)="userDataService.resetSidebar()"
-                  class="flex items-center justify-center px-2  bg-white border border-gray-300 rounded-full shadow-sm hover:bg-red-100 hover:scale-110 transition-transform duration-200 cursor-pointer">
-                  <fa-icon [icon]="faXmark" class="text-red-600 text-xl"></fa-icon>
-                </button>
-              </div>
-              <favorites-sidebar *ngSwitchCase="'favorites'"></favorites-sidebar>
-              <stops-sidebar *ngSwitchCase="'stop'"></stops-sidebar>
-              <subscriptions-sidebar *ngSwitchCase="'subscriptions'"></subscriptions-sidebar>
-            </div>
-          </ng-container>
-        </div>
-      </ng-container>
-    </div>
-  </div> -->

@@ -2,14 +2,7 @@ import { Component, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouteService } from '../../core/services/routes.service';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import {
-  faStar,
-  faSearch,
-  faXmark,
-  faBell,
-  faChevronLeft,
-  faChevronRight,
-} from '@fortawesome/free-solid-svg-icons';
+import { faStar, faBell } from '@fortawesome/free-solid-svg-icons';
 import { CommonModule } from '@angular/common';
 import {
   FavoritesViewModel,
@@ -17,33 +10,19 @@ import {
 } from '../../core/utils/global.types';
 import { combineLatest, map, Observable, Subscription, tap } from 'rxjs';
 import { UserDataService } from '../../core/services/user-data.service';
-import { StopsSidebarComponent } from './sidebar/stops/stops-sidebar.component';
-import { FavoritesSidebarComponent } from './sidebar/favorites/favorites-sidebar.component';
 import { VehiclesService } from '../../core/services/vehicles.service';
-import { SubscriptionsSidebarComponent } from './sidebar/subscriptions/subscriptions-sidebar.component';
 import { VersionService } from '../../core/services/version.service';
 
 @Component({
   selector: 'header-component',
-  imports: [
-    FontAwesomeModule,
-    FormsModule,
-    CommonModule,
-    StopsSidebarComponent,
-    FavoritesSidebarComponent,
-    SubscriptionsSidebarComponent,
-  ],
+  imports: [FontAwesomeModule, FormsModule, CommonModule],
   templateUrl: './header.component.html',
   standalone: true,
 })
 export class HeaderComponent implements OnInit {
   links: { path: string; label: string }[] = [];
   faStar = faStar;
-  faSearch = faSearch;
-  faXmark = faXmark;
   faBell = faBell;
-  faChevronLeft = faChevronLeft;
-  faChevronRight = faChevronRight;
   showSidebar: boolean = false;
   sidebarMode: sideBarModes = null;
   trackedVehicle$ = this.vehiclesService.trackedVehicle$;
