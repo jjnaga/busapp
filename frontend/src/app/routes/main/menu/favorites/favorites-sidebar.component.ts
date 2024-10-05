@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { UserDataService } from '../../../../../core/services/user-data.service';
+import { UserDataService } from '../../../../core/services/user-data.service';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import {
   faXmark,
@@ -14,7 +14,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
-import { StopsService } from '../../../../../core/services/stops.service';
+import { StopsService } from '../../../../core/services/stops.service';
 
 @Component({
   selector: 'favorites-sidebar',

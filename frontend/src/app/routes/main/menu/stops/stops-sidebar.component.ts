@@ -1,17 +1,17 @@
 import { Component, OnInit } from '@angular/core';
-import { UserDataService } from '../../../../../core/services/user-data.service';
+import { UserDataService } from '../../../../core/services/user-data.service';
 import { Subscription } from 'rxjs';
-import { StopsService } from '../../../../../core/services/stops.service';
+import { StopsService } from '../../../../core/services/stops.service';
 import {
   AppTypes,
   Arrival,
   SelectedStop,
   StopApiResponse,
-} from '../../../../../core/utils/global.types';
+} from '../../../../core/utils/global.types';
 import { CommonModule } from '@angular/common';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faBus } from '@fortawesome/free-solid-svg-icons';
-import { VehiclesService } from '../../../../../core/services/vehicles.service';
+import { VehiclesService } from '../../../../core/services/vehicles.service';
 
 @Component({
   selector: 'stops-sidebar',

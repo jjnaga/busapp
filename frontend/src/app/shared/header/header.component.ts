@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouteService } from '../../core/services/routes.service';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
