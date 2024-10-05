@@ -1,7 +1,14 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { NagahamaComponent } from './routes/nagahama/nagahama.component';
-import { MainComponent } from './routes/home/main/main.component';
+import { MainModule } from './routes/home/main/main.module';
+
+// const routes: Routes = [
+//   { path: '', component: MainComponent },
+//   { path: '**', redirectTo: '', pathMatch: 'full' },
+
+//   // { path: 'info', component: NagahamaComponent },
+// ];
 
 const routes: Routes = [
   {
