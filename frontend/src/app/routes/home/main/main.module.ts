@@ -5,14 +5,17 @@ import { WebsocketService } from '../../../core/services/websocket.service';
 import { GoogleMapComponent } from '../../../shared/components/google-map/google-map.component';
 import { WidgetsComponent } from '../../../shared/header/widgets/widgets.component';
 import { HeaderComponent } from '../../../shared/header/header.component';
+import { MenuComponent } from '../../../shared/header/menu/menu.component';
 
 @NgModule({
   declarations: [MainComponent],
   imports: [
     MainRoutingModule,
     HeaderComponent,
+    MenuComponent,
     GoogleMapComponent,
     WidgetsComponent,
+    MenuComponent,
   ],
   providers: [WebsocketService],
 })
