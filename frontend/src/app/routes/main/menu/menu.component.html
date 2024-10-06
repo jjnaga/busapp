@@ -17,27 +17,6 @@
   'h-full': showSidebar,
   'h-fit': !showSidebar
 }">
-    <div *ngIf="favoritesViewModel$ | async as fvm" id="favorites" (click)="setFavoritesNearbyIndex()">
-      <ng-container *ngIf="fvm.favoritesNearby.length > 0">
-        <div class="px-3 py-1">
-          <h2 class="text-center text-lg font-semibold uppercase overflow-y-hiddentext-center px-3 pt-1 border-b-1">
-            Favorites Nearby</h2>
-          <div [ngClass]="{'invisible': fvm.favoriteInViewIndex === null}"
-            class="flex items-center flex-grow justify-between px-16 pt-1">
-            <div class=" p-1">
-              <fa-icon [icon]="faChevronLeft" (click)="userDataService.decrementfavoritesNearbyIndex()"
-                class="text-gray-400 hover:scale-110 hover:text-gray-700 active:text-gray-700 transition-colors duration-200 text-lg cursor-pointer"></fa-icon>
-            </div>
-            <span>{{fvm.favoriteInViewIndex! + 1}} of
-              {{fvm.favoritesNearby.length}}</span>
-            <div class="p-1">
-              <fa-icon [icon]="faChevronRight" (click)="userDataService.incrementfavoritesNearbyIndex()"
-                class="text-gray-400 hover:scale-110 hover:text-gray-700 active:text-gray-700 transition-colors duration-200 text-lg cursor-pointer"></fa-icon>
-            </div>
-          </div>
-        </div>
-      </ng-container>
-    </div>
     <div id="menu-container" class="w-full max-h-[calc(100vh-100px)] overflow-y-auto bg-white rounded-2xl">
       <ng-container *ngIf="sidebarMode">
         <div class="w-full relative">
