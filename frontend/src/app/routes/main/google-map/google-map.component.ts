@@ -104,6 +104,7 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
       });
     });
 
+    this.vehiclesService.updateTrackedVehicle('289');
   }
 
   ngOnDestroy() {
@@ -397,16 +398,16 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
   createBusMarkerContent(): HTMLImageElement {
     const imgTag = document.createElement('img');
     imgTag.src = 'bus.png';
-    imgTag.width = 50;
-    imgTag.height = 50;
+    imgTag.width = 20;
+    imgTag.height = 20;
     return imgTag;
   }
 
   createUserIconContent(): HTMLImageElement {
     const imgTag = document.createElement('img');
     imgTag.src = 'person.jpg';
-    imgTag.width = 50;
-    imgTag.height = 50;
+    imgTag.width = 20;
+    imgTag.height = 20;
     return imgTag;
   }
 
