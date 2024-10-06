@@ -11,7 +11,6 @@ import { HeaderComponent } from '../../shared/header/header.component';
 @Component({
   standalone: true,
   templateUrl: './main.component.html',
-  styleUrls: ['./main.component.css'],
   imports: [HeaderComponent, GoogleMapComponent],
   providers: [WebsocketService],
 })
