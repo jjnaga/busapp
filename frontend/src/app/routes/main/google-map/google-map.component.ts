@@ -104,7 +104,7 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
       });
     });
 
-    this.vehiclesService.updateTrackedVehicle('289');
+    this.vehiclesService.updateTrackedVehicle('35');
   }
 
   ngOnDestroy() {

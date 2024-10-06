@@ -57,17 +57,6 @@ export class HeaderComponent implements OnInit {
         (sidebarMode) => (this.sidebarMode = sidebarMode)
       )
     );
-
-    // Favorites In View variables
-    this.favoritesViewModel$ = combineLatest([
-      this.userDataService.favoritesNearby$,
-      this.userDataService.favoritesNearbyIndex$,
-    ]).pipe(
-      map(([favoritesNearby, favoriteInViewIndex]) => ({
-        favoritesNearby,
-        favoriteInViewIndex,
-      }))
-    );
   }
 
   toggleMode = (mode: sideBarModes) => {
@@ -77,12 +66,4 @@ export class HeaderComponent implements OnInit {
   onXmarkClick = () => {
     this.userDataService.resetSidebar();
   };
-
-  setFavoritesNearbyIndex() {
-    const favoritesNearbyIndex = this.userDataService.getfavoritesNearbyIndex();
-
-    if (favoritesNearbyIndex === null) {
-      this.userDataService.setfavoritesNearbyIndex(0);
-    }
-  }
 }
