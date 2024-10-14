@@ -1,4 +1,4 @@
-export interface Vehicle {
+export type Vehicle = {
   busNumber: string;
   tripId: string;
   driver: string;
@@ -9,7 +9,7 @@ export interface Vehicle {
   heartbeatFormatted?: string;
   routeName: string;
   headsign: string;
-}
+};
 
 export type SelectedStop = Stop | undefined;
 
@@ -73,3 +73,19 @@ export interface FavoritesViewModel {
   favoritesNearby: Stop[];
   favoriteInViewIndex: number | null;
 }
+
+export type TrackedVehicle = Vehicle | null;
+
+export type TrackerComponentMode = {
+  stop: boolean;
+  bus: boolean;
+  both: boolean;
+};
+
+export type VehicleWithlastUpdated = Vehicle & { lastUpdated: number };
+
+export type TrackerComponentData = {
+  vehicle?: VehicleWithlastUpdated;
+  stop?: Stop;
+  arrival?: Arrival;
+};

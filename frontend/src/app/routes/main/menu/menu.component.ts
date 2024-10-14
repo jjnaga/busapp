@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { UserDataService } from '../../../core/services/user-data.service';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import {
