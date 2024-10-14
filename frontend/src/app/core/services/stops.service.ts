@@ -10,29 +10,33 @@ import {
   of,
   switchMap,
 } from 'rxjs';
-import { SelectedStop, Stop, StopApiResponse } from '../utils/global.types';
+import { Stop, StopApiResponse, Vehicle } from '../utils/global.types';
 import { getBaseUrl } from '../utils/utils';
 import { UserDataService } from './user-data.service';
 
 @Injectable({ providedIn: 'root' })
 export class StopsService {
-  private userDataService: UserDataService | undefined;
-
   private vehiclesLink = `${getBaseUrl()}/api/stops`;
   private stopsSubject = new BehaviorSubject<Stop[]>([]);
-  private selectedStopSubject = new BehaviorSubject<SelectedStop>(undefined);
+  private selectedStopSubject = new BehaviorSubject<Stop | undefined>(
+    undefined
+  );
   private selectedStopDataSubject = new BehaviorSubject<
     StopApiResponse | undefined
   >(undefined);
   private selectedStopDataCreatedAtSubject = new BehaviorSubject<
     Date | undefined
   >(undefined);
+  private selectedBusAtStopSubject = new BehaviorSubject<Vehicle | undefined>(
+    undefined
+  );
 
   stops$ = this.stopsSubject.asObservable();
   selectedStop$ = this.selectedStopSubject.asObservable();
   selectedStopData$ = this.selectedStopDataSubject.asObservable();
   selectedStopDataCreatedAt$ =
     this.selectedStopDataCreatedAtSubject.asObservable();
+  selectedBusAtStop$ = this.selectedBusAtStopSubject.asObservable();
 
   liveSeconds$ = combineLatest([
     interval(1000),
@@ -130,5 +134,9 @@ export class StopsService {
 
   getStops() {
     return this.stopsSubject.getValue();
+  }
+
+  setSelectedBusAtStop(vehicle: Vehicle) {
+    this.selectedBusAtStopSubject.next(vehicle);
   }
 }

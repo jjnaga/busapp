@@ -1,12 +1,13 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, OnInit } from '@angular/core';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
-import { Arrival, Vehicle, Vehicles } from '../utils/global.types';
+import { Vehicle, Vehicles } from '../utils/global.types';
 import { WebsocketService } from './websocket.service';
 import { formatDistanceToNow } from 'date-fns';
 import { environment } from '../../../environments/environment';
 import { ToastrService } from 'ngx-toastr';
 import { getBaseUrl } from '../utils/utils';
+import { StopsService } from './stops.service';
 
 @Injectable({ providedIn: 'root' })
 export class VehiclesService {
@@ -21,7 +22,8 @@ export class VehiclesService {
   constructor(
     private http: HttpClient,
     private webSocketService: WebsocketService,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private stopsService: StopsService
   ) {
     this.fetchInitialData();
   }
@@ -82,7 +84,7 @@ export class VehiclesService {
     });
   }
 
-  updateTrackedVehicle(vehicleNumber: string | null) {
+  updateTrackedVehicle(vehicleNumber: string | null, setFromStop?: boolean) {
     if (vehicleNumber) {
       const trackedVehicle = this.vehicles.get(vehicleNumber);
 
@@ -91,11 +93,13 @@ export class VehiclesService {
         return;
       }
 
-      this.toastr.success('Tracked Vehicle updated');
       this.trackedVehicleSubject.next(trackedVehicle);
+
+      if (setFromStop) {
+        this.stopsService.setSelectedBusAtStop(trackedVehicle);
+      }
     } else {
       this.trackedVehicleSubject.next(null);
-      this.toastr.success('Stopped tracking');
     }
   }
 }

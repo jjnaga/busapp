@@ -8,7 +8,6 @@ import { LocalStorageService } from './local-storage.service';
 @Injectable({ providedIn: 'root' })
 export class UserDataService {
   private sidebarModeSubject = new BehaviorSubject<sideBarModes>(null);
-  private showSidebarSubject = new BehaviorSubject<boolean>(false);
   private favoritesSubject = new BehaviorSubject<Stop[]>([]);
   private favoritesNearbySubject = new BehaviorSubject<Stop[]>([]);
   private favoritesNearbyIndexSubject = new BehaviorSubject<number | null>(
@@ -21,7 +20,6 @@ export class UserDataService {
   private subscriptions: Subscription = new Subscription();
 
   sidebarMode$ = this.sidebarModeSubject.asObservable();
-  showSidebar$ = this.showSidebarSubject.asObservable();
   favorites$ = this.favoritesSubject.asObservable();
   favoritesNearby$ = this.favoritesNearbySubject.asObservable();
   favoritesNearbyIndex$ = this.favoritesNearbyIndexSubject.asObservable();
@@ -50,10 +48,6 @@ export class UserDataService {
     this.subscriptions.add(
       this.stopsService.selectedStop$.subscribe((stop) => {
         if (stop !== undefined) {
-          if (this.showSidebarSubject.value === false) {
-            this.showSidebarSubject.next(true);
-          }
-
           if (this.sidebarModeSubject.value !== 'stop') {
             this.sidebarModeSubject.next('stop');
           }
@@ -110,15 +104,9 @@ export class UserDataService {
     } else {
       this.sidebarModeSubject.next(mode);
     }
-    this.updateShowSidebar();
-  }
-
-  updateShowSidebar() {
-    this.showSidebarSubject.next(!this.sidebarModeSubject.value);
   }
 
   resetSidebar() {
-    this.showSidebarSubject.next(false);
     this.sidebarModeSubject.next(null);
   }
 

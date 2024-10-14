@@ -41,7 +41,7 @@
         <div class="flex flex-col items-center" *ngIf="arrival.vehicle !== '???'">
           <button (click)="onViewBusClick(arrival)" class="hover:text-blue-500 text-gray-800">
             <fa-icon [icon]="faBus"></fa-icon>
-            <p class="text-sm text-center">View<br />Bus</p>
+            <p id="{{arrival.vehicle}}" class="text-sm text-center">View<br />Bus</p>
           </button>
         </div>
       </div>

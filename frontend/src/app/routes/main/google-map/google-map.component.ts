@@ -104,7 +104,10 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
       });
     });
 
-    this.vehiclesService.updateTrackedVehicle('35');
+    // setTimeout(() => {
+    //   this.stopsService.setSelectedStop('2845');
+    //   this.vehiclesService.updateTrackedVehicle('890', true);
+    // }, 3000);
   }
 
   ngOnDestroy() {
