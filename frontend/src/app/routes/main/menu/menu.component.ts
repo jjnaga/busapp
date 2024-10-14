@@ -11,6 +11,7 @@ import { CommonModule } from '@angular/common';
 import { StopsSidebarComponent } from './stops/stops-sidebar.component';
 import { FavoritesSidebarComponent } from './favorites/favorites-sidebar.component';
 import { SubscriptionsSidebarComponent } from './subscriptions/subscriptions-sidebar.component';
+import { tap } from 'rxjs';
 
 @Component({
   selector: 'menu-component',
@@ -29,7 +30,9 @@ export class MenuComponent {
   faXmark = faXmark;
   faChevronLeft = faChevronLeft;
   faChevronRight = faChevronRight;
-  sidebarMode$ = this.userDataService.sidebarMode$;
+  sidebarMode$ = this.userDataService.sidebarMode$.pipe(
+    tap((data) => console.log(data))
+  );
 
   constructor(private userDataService: UserDataService) {}
 
