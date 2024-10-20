@@ -4,6 +4,7 @@ import {
   Injector,
   ViewChild,
   ViewContainerRef,
+  ElementRef,
 } from '@angular/core';
 import { WebsocketService } from '../../core/services/websocket.service';
 import { GoogleMapComponent } from './google-map/google-map.component';

@@ -1,21 +1,23 @@
-<!-- now that im finishing this, i realize there may be a more cleaner way to do this -->
-<div class="grid grid-cols-3 gap-4 h-[100px] mx-2 my-2">
-  <!-- trust me 🤭 -->
-  <ng-container [ngTemplateOutlet]="favoritesTemplate"></ng-container>
-  <ng-container *ngIf="trackerMode.both || trackerMode.bus || trackerMode.stop">
-    <ng-container *ngIf="trackerMode.both">
-      <ng-container [ngTemplateOutlet]="combinedTemplate"></ng-container>
-    </ng-container>
-    <ng-container *ngIf="trackerMode.bus" [ngTemplateOutlet]="busTemplate"></ng-container>
-    <ng-container *ngIf="trackerMode.stop" [ngTemplateOutlet]="stopsTemplate"></ng-container>
-  </ng-container>
+<div class=" border-t-2 border-nagahama-blue shadow-lg">
+  <div class="px-2 py-2">
+    <div class="grid grid-cols-3 gap-4 h-[100px] ">
+      <ng-container [ngTemplateOutlet]="favoritesTemplate"></ng-container>
+      <ng-container *ngIf="trackerMode.both || trackerMode.bus || trackerMode.stop">
+        <ng-container *ngIf="trackerMode.both">
+          <ng-container [ngTemplateOutlet]="combinedTemplate"></ng-container>
+        </ng-container>
+        <ng-container *ngIf="trackerMode.bus" [ngTemplateOutlet]="busTemplate"></ng-container>
+        <ng-container *ngIf="trackerMode.stop" [ngTemplateOutlet]="stopsTemplate"></ng-container>
+      </ng-container>
+    </div>
+  </div>
 </div>
 
 <ng-template #favoritesTemplate>
   <ng-container *ngIf="(favoritesData$ | async) as data">
     <ng-container *ngIf="data.favoritesNearby.length > 0">
-      <div class="h-full w-full rounded-2xl border-[1px] bg-white shadow-lg border-gray-200" id="favorites"
-        (click)="setFavoritesNearbyIndex()">
+      <div class="h-full w-full rounded-2xl border-[1px]  shadow-lg border-gray-200" id="favorites"
+        (click)="setFavoritesNearbyIndex(data.favoriteInViewIndex, data.favoritesNearby)">
         <div class="h-full p-1">
           <div class="h-full flex flex-col">
             <div class="flex justify-center">
@@ -36,7 +38,7 @@
 
 <ng-template #stopsTemplate>
   <ng-container *ngIf="trackerData$ | async as data">
-    <div class="p-1 w-full h-full rounded-2xl border bg-white shadow-lg border-gray-200" (click)="onStopsWidgetClick()">
+    <div class="p-1 w-full h-full rounded-2xl border  shadow-lg border-gray-200" (click)="onStopsWidgetClick()">
       <div class="flex justify-between mx-2">
         <div class="flex">
           <fa-icon class="text-red-500" [icon]="faLocationDot"></fa-icon>
@@ -54,7 +56,7 @@
 <ng-template #busTemplate>
   <ng-container *ngIf="trackerData$ | async as data">
     <div *ngIf="data.vehicle?.busNumber" id="tracked-vehicle"
-      class="p-1 w-full h-full rounded-2xl border bg-white shadow-lg border-gray-200">
+      class="p-1 w-full h-full rounded-2xl border  shadow-lg border-gray-200">
       <div class="flex justify-between mx-2">
         <div class="flex">
           <img [src]="getBusMarkerImage()" alt="Bus Icon" class="w-[25px] h-[25px]" />
@@ -105,8 +107,7 @@
 <ng-template #combinedTemplate>
   <ng-container *ngIf="trackerData$ | async as data">
     <div class="col-span-2">
-      <div id="vehicle-and-stop"
-        class="flex flex-col p-1 w-full h-full rounded-2xl border bg-white shadow-lg border-gray-200">
+      <div id="vehicle-and-stop" class="flex flex-col p-1 w-full h-full rounded-2xl border  shadow-lg border-gray-200">
         <div class="overflow-hidden">
           <h3 id="combined-header" class="inline-block font-semibold uppercase whitespace-nowrap">
             🚌 {{data.vehicle?.busNumber}} to
@@ -124,7 +125,7 @@
             </span>
           </div>
           <ng-container *ngIf="data.arrival">
-            {{data.arrival.stopTime}}
+            {{data.arrival.stopTime}} - ({{data.vehicle?.lastUpdated}} sec ago)
           </ng-container>
           <!-- <div>7 minutes and 45 seconds</div> -->
         </div>
