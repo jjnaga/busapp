@@ -86,5 +86,6 @@ export class StopsSidebarComponent implements OnInit {
 
   onViewBusClick(vehicle: Arrival) {
     this.vehiclesService.updateTrackedVehicle(vehicle.vehicle, true);
+    this.userDataService.setSidebarMode(null);
   }
 }

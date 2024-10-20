@@ -15,6 +15,7 @@ import {
   tap,
 } from 'rxjs';
 import {
+  Stop,
   TrackerComponentData,
   TrackerComponentMode,
 } from '../../../core/utils/global.types';
@@ -166,11 +167,16 @@ export class WidgetsComponent implements OnInit, OnDestroy {
     this.userDataService.incrementfavoritesNearbyIndex();
   }
 
-  setFavoritesNearbyIndex() {
+  setFavoritesNearbyIndex(
+    favoriteInViewIndex: number | null,
+    favoritesNearby: Stop[]
+  ) {
     const favoritesNearbyIndex = this.userDataService.getfavoritesNearbyIndex();
 
-    if (favoritesNearbyIndex === null) {
+    if (favoriteInViewIndex === null) {
       this.userDataService.setfavoritesNearbyIndex(0);
+    } else {
+      this.incrementfavoritesNearbyIndex();
     }
   }
 

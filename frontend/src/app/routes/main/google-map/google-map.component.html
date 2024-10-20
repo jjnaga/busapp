@@ -1,5 +1,5 @@
-<div id="map-wrapper" class="w-full touch-pan-x touch-pan-y">
-  <google-map id="map" height=100vh width=100vw [options]="mapOptions" (mapInitialized)=" onMapReady($event)">
+<div id="map-wrapper" class="h-full w-full touch-pan-x touch-pan-y">
+  <google-map id="map" height=100% width=100% [options]="mapOptions" (mapInitialized)=" onMapReady($event)">
     <map-advanced-marker *ngFor="let marker of vehicleMarkers$ | async; trackBy: trackByMarkerId"
       [position]="marker.position" [title]="marker.title" [content]="marker.content" (mapClick)="onMarkerClick(marker)">
     </map-advanced-marker>

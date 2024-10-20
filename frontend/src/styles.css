@@ -196,3 +196,7 @@ button.toast-close-button {
     width: 25em;
   }
 }
+
+body {
+  background-color: #faf8f6;
+}
