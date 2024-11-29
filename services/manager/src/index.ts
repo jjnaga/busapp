@@ -1,3 +1,6 @@
+// 11/28/24 JJN
+// the notification job took down the whole process. that is definetly
+// a bad implementation of this worker/manager setup... who DID THIS
 import { loadRecurringJob, startNotificationJob } from '@utils/jobs';
 import redisClient from '@utils/redisClient';
 import { AppDataSource } from '@utils/typeorm/typeorm';
@@ -56,7 +59,7 @@ const main = async () => {
     await loadRecurringJob(REDIS_STREAM_GTFS_NAME, REDIS_JOB_GTFS_NAME, 3600000)
   );
 
-  intervals.push(await startNotificationJob(REDIS_STREAM_NOTIFICATION_NAME));
+  // intervals.push(await startNotificationJob(REDIS_STREAM_NOTIFICATION_NAME));
 
   // Listen for shutdown and close connections.
   while (!shutdown) {
