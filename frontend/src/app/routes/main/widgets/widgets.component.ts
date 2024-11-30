@@ -2,23 +2,8 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { VehiclesService } from '../../../core/services/vehicles.service';
 import { StopsService } from '../../../core/services/stops.service';
-import {
-  combineLatest,
-  filter,
-  interval,
-  map,
-  Observable,
-  startWith,
-  Subject,
-  switchMap,
-  takeUntil,
-  tap,
-} from 'rxjs';
-import {
-  Stop,
-  TrackerComponentData,
-  TrackerComponentMode,
-} from '../../../core/utils/global.types';
+import { combineLatest, map, Subject } from 'rxjs';
+import { Stop } from '../../../core/utils/global.types';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import {
   faChevronLeft,
@@ -28,6 +13,7 @@ import {
   faSyncAlt,
 } from '@fortawesome/free-solid-svg-icons';
 import { UserDataService } from '../../../core/services/user-data.service';
+import { TrackerService } from '../../../core/services/models/tracker.service';
 
 @Component({
   selector: 'widgets-component',
@@ -35,92 +21,22 @@ import { UserDataService } from '../../../core/services/user-data.service';
   templateUrl: './widgets.component.html',
   standalone: true,
 })
-export class WidgetsComponent implements OnInit, OnDestroy {
+export class WidgetsComponent {
   constructor(
     private vehiclesService: VehiclesService,
     private stopsService: StopsService,
-    private userDataService: UserDataService
+    private userDataService: UserDataService,
+    private trackerService: TrackerService
   ) {}
 
-  ngOnInit(): void {
-    this.trackerData$.subscribe();
-  }
-
   private readonly destroy$ = new Subject<void>();
-  private trackedVehicle$ = this.vehiclesService.trackedVehicle$;
-  private selectedStop$ = this.stopsService.selectedStop$;
-  private selectedStopData$ = this.stopsService.selectedStopData$;
-  private selectedBusAtStop$ = this.stopsService.selectedBusAtStop$;
-
-  trackerMode: TrackerComponentMode = {
-    both: false,
-    bus: false,
-    stop: false,
-  };
+  public trackerData$ = this.trackerService.trackerData$;
 
   faStar = faStar;
   faChevronLeft = faChevronLeft;
   faChevronRight = faChevronRight;
   faSyncAlt = faSyncAlt;
   faLocationDot = faLocationDot;
-
-  // Used in trackerData$
-  private trackedVehicleSecondsSinceUpdate$ = this.trackedVehicle$.pipe(
-    filter((trackedVehicle) => !!trackedVehicle?.heartbeat),
-    switchMap((trackedVehicle) =>
-      interval(1000).pipe(
-        map(() => {
-          // trust me 🤭
-          const date = new Date(trackedVehicle!.heartbeat).getTime();
-          const now = new Date().getTime();
-          return Math.floor((now - date) / 1000);
-        })
-      )
-    )
-  );
-
-  trackerData$: Observable<TrackerComponentData> = combineLatest([
-    this.trackedVehicle$,
-    this.trackedVehicleSecondsSinceUpdate$.pipe(startWith(undefined)),
-    this.selectedStop$,
-    this.selectedStopData$,
-    this.selectedBusAtStop$,
-  ]).pipe(
-    map(
-      ([
-        trackedVehicle,
-        trackedVehicleSecondsSinceUpdate,
-        selectedStop,
-        selectedStopData,
-        selectedBusAtStop,
-      ]) => {
-        const vehicle =
-          trackedVehicle !== null &&
-          trackedVehicleSecondsSinceUpdate !== undefined
-            ? {
-                ...trackedVehicle!,
-                lastUpdated: trackedVehicleSecondsSinceUpdate,
-              }
-            : undefined;
-
-        const stop = selectedStop ?? undefined;
-        const arrival = selectedStopData?.arrivals.find(
-          (arrival) => arrival.vehicle === selectedBusAtStop?.busNumber
-        );
-
-        return {
-          vehicle,
-          stop,
-          arrival,
-        };
-      }
-    ),
-    tap((data) => {
-      this.setTrackerMode(data);
-      console.log('widgets data', data);
-    }),
-    takeUntil(this.destroy$) // Automatically unsubscribes on destroy
-  );
 
   favoritesData$ = combineLatest([
     this.userDataService.favoritesNearby$,
@@ -131,33 +47,6 @@ export class WidgetsComponent implements OnInit, OnDestroy {
       favoriteInViewIndex,
     }))
   );
-
-  private setTrackerMode(data: TrackerComponentData) {
-    // If arrival, set combined mode.
-    if (!!data.arrival) {
-      this.trackerMode.both = true;
-      this.trackerMode.bus = false;
-      this.trackerMode.stop = false;
-      return;
-    }
-
-    // Set stop and/or bus
-    if (!!data.stop) {
-      this.trackerMode.stop = true;
-    }
-
-    if (!!data.vehicle) {
-      this.trackerMode.bus = true;
-      return;
-    }
-
-    // Default set to false.
-    this.trackerMode = {
-      both: false,
-      bus: false,
-      stop: false,
-    };
-  }
 
   decrementfavoritesNearbyIndex(): void {
     this.userDataService.decrementfavoritesNearbyIndex();

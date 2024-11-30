@@ -8,12 +8,21 @@ import {
   Injector,
   effect,
 } from '@angular/core';
+
+import { toObservable } from '@angular/core/rxjs-interop';
+
 import { BehaviorSubject, combineLatest, Subscription } from 'rxjs';
 import { distinctUntilChanged, filter, map, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { VehiclesService } from '../../../core/services/vehicles.service';
 import { StopsService } from '../../../core/services/stops.service';
-import { Marker, Stop, Vehicle } from '../../../core/utils/global.types';
+import {
+  Marker,
+  Stop,
+  TrackerModel,
+  Vehicle,
+  Vehicles,
+} from '../../../core/utils/global.types';
 import {
   GoogleMap,
   GoogleMapsModule,
@@ -27,6 +36,7 @@ import {
   faPerson,
 } from '@fortawesome/free-solid-svg-icons';
 import { ToastrService } from 'ngx-toastr';
+import { TrackerService } from '../../../core/services/models/tracker.service';
 
 @Component({
   selector: 'google-map-component',
@@ -43,16 +53,21 @@ import { ToastrService } from 'ngx-toastr';
 })
 export class GoogleMapComponent implements OnInit, OnDestroy {
   MIN_ZOOM_LEVEL_FOR_MARKERS = 16;
+  PAN_DISABLE_DELAY = 3000;
 
   private _subscriptions: Subscription = new Subscription();
   private _destroy$ = new Subject<void>();
   private _ANIMATION_DURATION = 1000;
   private _FRAMES_PER_SECOND = 60;
+  private isUserInteracting = new BehaviorSubject<boolean>(false);
+
+  private autoPanTimeout: any; // Timeout handler for auto-pan reactivation
 
   boundsRectangle: google.maps.Rectangle | null = null;
   stopMarkers$ = new BehaviorSubject<Marker[]>([]);
   vehicleMarkers$ = new BehaviorSubject<Marker[]>([]);
   visibleStopMarkers$ = new BehaviorSubject<Marker[]>([]);
+  trackerData$ = new BehaviorSubject<TrackerModel | null>(null);
   console = console;
   userPosition = signal<google.maps.LatLngLiteral | null>(null);
   map: google.maps.Map | null = null;
@@ -84,6 +99,7 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
     private stopsService: StopsService,
     private ngZone: NgZone,
     private userDataService: UserDataService,
+    private trackerService: TrackerService,
     private toastr: ToastrService,
     private injector: Injector
   ) {}
@@ -92,6 +108,7 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
 
   async ngOnInit() {
     await this.waitForGoogleMaps();
+    this.setupMapEventListeners();
     this.subscribeToData();
     this.initializeMarkerIcons();
 
@@ -114,6 +131,60 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
     this._subscriptions.unsubscribe();
     this._destroy$.next();
     this._destroy$.complete();
+  }
+
+  /**
+   * Sets up listeners for map events (e.g., user interactions)
+   */
+  private setupMapEventListeners() {
+    console.log('setupMapEventListeners');
+    if (!this.map) return;
+    console.log('setupMapEventListeners');
+
+    // Listen for user starting interaction (dragging the map)
+    this.map.addListener('dragstart', () => {
+      this.disableAutoPan();
+    });
+
+    // Listen for user zoom changes
+    this.map.addListener('zoom_changed', () => {
+      this.disableAutoPan();
+    });
+
+    // Listen for when the user finishes interacting
+    this.map.addListener('idle', () => {
+      console.log('map idle. running event listneers');
+      if (this.isUserInteracting.value) {
+        this.scheduleAutoPanReactivation();
+      }
+    });
+  }
+
+  /**
+   * Disables auto-pan when the user interacts with the map
+   */
+  private disableAutoPan() {
+    this.isUserInteracting.next(true);
+
+    // Clear any existing timeout to avoid immediate reactivation
+    if (this.autoPanTimeout) {
+      clearTimeout(this.autoPanTimeout);
+      this.autoPanTimeout = null;
+    }
+
+    console.log('Auto-pan disabled.');
+  }
+
+  /**
+   * Schedules auto-pan to reactivate after a delay (default 5 seconds)
+   */
+  private scheduleAutoPanReactivation() {
+    if (this.autoPanTimeout) return; // Avoid stacking timeouts
+
+    this.autoPanTimeout = setTimeout(() => {
+      this.isUserInteracting.next(false);
+      console.log('Auto-pan reactivated.');
+    }, this.PAN_DISABLE_DELAY); // 3-second delay
   }
 
   async checkForNearbyFavoriteStops() {
@@ -243,22 +314,29 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
       combineLatest([
         this.vehiclesService.trackedVehicle$,
         this.vehiclesService.vehicles$,
+        this.isUserInteracting,
       ])
         .pipe(
           takeUntil(this._destroy$),
           // only operate if there are changes
           distinctUntilChanged(
-            (prev, curr) => prev[0] === curr[0] && prev[1] === curr[1]
+            (prev, curr) =>
+              prev[0] === curr[0] && prev[1] === curr[1] && prev[2] === curr[2]
           )
         )
         .subscribe({
-          next: ([trackedVehicle, vehicles]) => {
+          next: ([trackedVehicle, vehicles, isUserInteracting]) => {
+            console.log(isUserInteracting);
+            if (!isUserInteracting) {
+              if (trackedVehicle) {
+                vehicles = new Map<string, Vehicle>([
+                  [trackedVehicle.busNumber, trackedVehicle],
+                ]);
+              }
+            }
+
             const vehicleMarkers = this.createVehicleMarkers(vehicles);
             this.vehicleMarkers$.next(vehicleMarkers);
-
-            if (trackedVehicle) {
-              this.panToVehicle(trackedVehicle);
-            }
           },
           error: (err) =>
             console.error('Error in tracking subscription: ', err),
@@ -274,83 +352,62 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
         .subscribe((stopMarkers) => this.stopMarkers$.next(stopMarkers))
     );
 
-    this.stopsService.selectedStop$
-      .pipe(
-        takeUntil(this._destroy$),
-        filter(
-          (
-            selectedStop
-          ): selectedStop is Stop & { stopLat: number; stopLon: number } =>
-            selectedStop !== undefined &&
-            selectedStop.stopLat !== undefined &&
-            selectedStop.stopLon !== undefined
-        ),
-        map((selectedStop) => ({
-          lat: selectedStop.stopLat,
-          lng: selectedStop.stopLon,
-        }))
-      )
-      .subscribe((latLng) => {
-        this.panTo(latLng);
-      });
-
     // As soon as a bus stop is favorited, change the color.
     this._subscriptions.add(
       this.userDataService.favorites$.subscribe(() => {
         this.updateVisibleMarkers();
       })
     );
+
+    // This handles the movement of the map based on if the bus is selected, blah blah
+    this._subscriptions.add(
+      this.trackerService.trackerData$.subscribe((data) => {
+        this.trackerData$.next(data);
+
+        // User is manually moving, dont move the map.
+        if (this.isUserInteracting.value) {
+          console.log('user is interacting, dont move.');
+          return;
+        }
+        const { arrival, stop, vehicle, mode } = data;
+        // Bus Mode
+        if (mode && mode.bus && vehicle) {
+          this.panToVehicle(vehicle);
+          return;
+        }
+
+        if (
+          mode &&
+          mode.both &&
+          vehicle &&
+          stop &&
+          stop.stopLat &&
+          stop.stopLon
+        ) {
+          const bounds = new google.maps.LatLngBounds();
+
+          const stopCoordinates = new google.maps.LatLng(
+            stop.stopLat,
+            stop.stopLon
+          );
+
+          const vehicleCoordinates = new google.maps.LatLng(
+            vehicle.latitude,
+            vehicle.longitude
+          );
+
+          bounds.extend(stopCoordinates);
+          bounds.extend(vehicleCoordinates);
+
+          if (this.map) {
+            this.map.fitBounds(bounds, 15);
+          }
+        }
+      })
+    );
   }
 
-  // TODO: Set a timer, wait like 5 seconds to see if Google maps loads.
-  // panTo(latLng: google.maps.LatLngLiteral) {
-  //   if (!this.map) {
-  //     this.toastr.error('Cannot pan: map is not defined');
-  //     return;
-  //   }
-
-  //   const startLatLng = this.map.getCenter()?.toJSON() ?? null;
-
-  //   if (startLatLng === null) {
-  //     this.toastr.error('Cannot pan: center is not defined');
-  //     return;
-  //   }
-
-  //   const startZoom = this.map.getZoom() || 0;
-  //   const targetZoom = this.MIN_ZOOM_LEVEL_FOR_MARKERS;
-
-  //   const latDiff = startLatLng.lat - startLatLng.lat;
-  //   const lngDiff = startLatLng.lng - startLatLng.lng;
-  //   const zoomDiff = targetZoom - startZoom;
-
-  //   const steps = Math.floor(
-  //     this._ANIMATION_DURATION / (1000 / this._FRAMES_PER_SECOND)
-  //   );
-  //   let step = 0;
-
-  //   const animate = () => {
-  //     if (step >= steps) return;
-
-  //     const progress = step / steps;
-  //     const easedProgress = this.easeInOutCubic(progress);
-
-  //     const newLat = startLatLng.lat + latDiff * easedProgress;
-  //     const newLng = startLatLng.lng + lngDiff * easedProgress;
-  //     const newZoom = startZoom + zoomDiff * easedProgress;
-
-  //     this.map?.panTo({ lat: newLat, lng: newLng });
-  //     this.map?.setZoom(newZoom);
-
-  //     step++;
-  //     requestAnimationFrame(animate);
-  //   };
-
-  //   animate();
-  // }
-
-  // private easeInOutCubic(t: number): number {
-  //   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-  // }
+  // private panToBothMode(data: TrackerModel) {}
 
   panTo(latLng: google.maps.LatLngLiteral, zoomLevel?: number) {
     if (this.map) {
