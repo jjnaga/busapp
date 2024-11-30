@@ -58,6 +58,7 @@ export interface Arrival {
   route: string;
   shape: string;
   stopTime: string;
+  stopTimeInMinutes?: string;
   trip: string;
   vehicle: string;
 }
@@ -84,8 +85,15 @@ export type TrackerComponentMode = {
 
 export type VehicleWithlastUpdated = Vehicle & { lastUpdated: number };
 
-export type TrackerComponentData = {
+export type TrackerModel = {
   vehicle?: VehicleWithlastUpdated;
   stop?: Stop;
   arrival?: Arrival;
+  mode?: TrackerMode;
+};
+
+export type TrackerMode = {
+  both: boolean;
+  bus: boolean;
+  stop: boolean;
 };

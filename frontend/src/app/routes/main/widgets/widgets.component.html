@@ -2,12 +2,14 @@
   <div class="px-2 py-2">
     <div class="grid grid-cols-3 gap-4 h-[100px] ">
       <ng-container [ngTemplateOutlet]="favoritesTemplate"></ng-container>
-      <ng-container *ngIf="trackerMode.both || trackerMode.bus || trackerMode.stop">
-        <ng-container *ngIf="trackerMode.both">
-          <ng-container [ngTemplateOutlet]="combinedTemplate"></ng-container>
+      <ng-container *ngIf="trackerData$ | async as data">
+        <ng-container *ngIf="data.mode">
+          <ng-container *ngIf="data.mode.both">
+            <ng-container [ngTemplateOutlet]="combinedTemplate"></ng-container>
+          </ng-container>
+          <ng-container *ngIf="data.mode.bus" [ngTemplateOutlet]="busTemplate"></ng-container>
+          <ng-container *ngIf="data.mode.stop" [ngTemplateOutlet]="stopsTemplate"></ng-container>
         </ng-container>
-        <ng-container *ngIf="trackerMode.bus" [ngTemplateOutlet]="busTemplate"></ng-container>
-        <ng-container *ngIf="trackerMode.stop" [ngTemplateOutlet]="stopsTemplate"></ng-container>
       </ng-container>
     </div>
   </div>
@@ -110,7 +112,7 @@
       <div id="vehicle-and-stop" class="flex flex-col p-1 w-full h-full rounded-2xl border  shadow-lg border-gray-200">
         <div class="overflow-hidden">
           <h3 id="combined-header" class="inline-block font-semibold uppercase whitespace-nowrap">
-            🚌 {{data.vehicle?.busNumber}} to
+            🚌 {{data.vehicle?.routeName}} to
             <span>
               <fa-icon class="ml-1 text-red-500" [icon]="faLocationDot"></fa-icon>
             </span>
@@ -119,10 +121,11 @@
         </div>
         <div class="flex-grow flex flex-col items-center">
           <div class="text-2xl">
-            <span>
+            <!-- <span>
               🚌 =>
               <fa-icon class="ml-1 text-red-500" [icon]="faLocationDot"></fa-icon>
-            </span>
+            </span> -->
+            <h4>{{data.arrival?.stopTimeInMinutes}}</h4>
           </div>
           <ng-container *ngIf="data.arrival">
             {{data.arrival.stopTime}} - ({{data.vehicle?.lastUpdated}} sec ago)
