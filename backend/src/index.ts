@@ -51,6 +51,11 @@ import { VehicleSql } from '@utils/types';
 
   const wss = new WebSocketServer({ noServer: true });
 
+  // Add connection monitoring
+  setInterval(() => {
+    console.log(`Active WebSocket connections: ${wss.clients.size}`);
+  }, 30000); // 30 seconds in milliseconds
+
   server.on('upgrade', (request, socket, head) => {
     console.log('do i get it?', request.url);
     if (request.url === '/ws') {
