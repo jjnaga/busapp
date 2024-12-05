@@ -122,7 +122,12 @@ export class StopsService {
     });
   }
 
-  setSelectedStop(selectedStopCode: string) {
+  setSelectedStop(selectedStopCode: string | undefined) {
+    if (typeof selectedStopCode === 'undefined') {
+      this.selectedStopSubject.next(undefined);
+      return;
+    }
+
     const selectedStop = this.stopsSubject.value.find(
       (stop) => stop.stopCode === selectedStopCode
     );
@@ -136,7 +141,12 @@ export class StopsService {
     return this.stopsSubject.getValue();
   }
 
-  setSelectedBusAtStop(vehicle: Vehicle) {
+  setSelectedBusAtStop(vehicle: Vehicle | undefined) {
+    if (typeof vehicle === 'undefined') {
+      this.selectedBusAtStopSubject.next(undefined);
+      return;
+    }
+
     this.selectedBusAtStopSubject.next(vehicle);
   }
 }

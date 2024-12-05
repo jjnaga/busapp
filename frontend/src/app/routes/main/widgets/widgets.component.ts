@@ -69,8 +69,16 @@ export class WidgetsComponent {
     }
   }
 
+  stopCombinedMode(): void {
+    this.updateTrackedVehicle(null);
+  }
+
   updateTrackedVehicle(vehicleNumber: string | null) {
     this.vehiclesService.updateTrackedVehicle(vehicleNumber);
+  }
+
+  resetState() {
+    this.trackerService.resetState();
   }
 
   getBusMarkerImage(): string {
