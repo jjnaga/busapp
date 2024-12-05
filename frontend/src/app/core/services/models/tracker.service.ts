@@ -45,6 +45,13 @@ export class TrackerService {
     )
   );
 
+  resetState(): void {
+    this.stopsService.setSelectedStop(undefined);
+    this.vehiclesService.updateTrackedVehicle(null);
+    this.stopsService.setSelectedBusAtStop(undefined);
+    this.setTrackerMode(false, false, false);
+  }
+
   private setTrackerMode(
     arrival: boolean,
     stop: boolean,
@@ -125,7 +132,6 @@ export class TrackerService {
         };
       }
     ),
-    tap((data) => console.log('trackerData updated', data)),
     takeUntil(this.destroy$) // Automatically unsubscribes on destroy
   );
 
