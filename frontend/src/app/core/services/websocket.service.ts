@@ -76,7 +76,7 @@ export class WebsocketService {
 
       this.connectSubscription = this.socket$.subscribe({
         error: (err) => {
-          this.toastr.error(`Socket Error: ${err.message}`);
+          this.toastr.error(`Socket Error: ${JSON.stringify(err)}`);
           this.isConnecting = false;
         },
       });
@@ -84,7 +84,7 @@ export class WebsocketService {
       this.connectSubscription?.add(this.socket$);
     } catch (e) {
       console.error(e);
-      this.toastr.error(`Error connecting to WS: ${e}`);
+      this.toastr.error(`Error connecting to WS: ${JSON.stringify(e)}`);
     }
   }
 
