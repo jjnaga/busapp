@@ -76,7 +76,7 @@ export class WebsocketService {
 
       this.connectSubscription = this.socket$.subscribe({
         error: (err) => {
-          this.toastr.error(`Socket Error: ${err}`);
+          this.toastr.error(`Socket Error: ${err.message}`);
           this.isConnecting = false;
         },
       });
