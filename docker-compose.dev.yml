@@ -5,20 +5,33 @@ services:
       dockerfile: Dockerfile.dev
     environment:
       - NODE_ENV=development
-    volumes:
-      - /app/node_modules/
-      - ./frontend/src:/app/src
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend/src
+          target: /app/src
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: ./frontend/package.json
     ports:
       - 4200:4200
+
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile.dev
     environment:
       - NODE_ENV=development
-    volumes:
-      - /app/node_modules/
-      - ./backend:/app
+    develop:
+      watch:
+        - action: sync
+          path: ./backend/src
+          target: /app/src
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: ./backend/package.json
     ports:
       - 3000:3000
     depends_on:
@@ -26,20 +39,27 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+
   queue-manager:
     build:
       context: ./services/manager
       dockerfile: Dockerfile.dev
     environment:
       - NODE_ENV=development
-    volumes:
-      - ./services/manager/src:/app/src
+    develop:
+      watch:
+        - action: sync
+          path: ./services/manager/src
+          target: /app/src
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: ./services/manager/package.json
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_started
-    # yes i know
     command: >
       sh -c "
         echo 'Waiting for services to start...' &&
@@ -47,14 +67,22 @@ services:
         echo 'Starting queue-manager' &&
         tsx watch --unhandled-rejections=strict --env-file=.env src/index.ts
       "
+
   worker-bus-api:
     build:
       context: ./services/workers/worker-bus-api
       dockerfile: Dockerfile.dev
     environment:
       - NODE_ENV=development
-    volumes:
-      - ./services/workers/worker-bus-api/src:/app/src
+    develop:
+      watch:
+        - action: sync
+          path: ./services/workers/worker-bus-api/src
+          target: /app/src
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: ./services/workers/worker-bus-api/package.json
     depends_on:
       postgres:
         condition: service_healthy
@@ -62,30 +90,49 @@ services:
         condition: service_started
     deploy:
       replicas: 2
+
   worker-gtfs:
     build:
       context: ./services/workers/worker-gtfs
       dockerfile: Dockerfile.dev
-    volumes:
-      - ./services/workers/worker-gtfs/src:/app/src
+    develop:
+      watch:
+        - action: sync
+          path: ./services/workers/worker-gtfs/src
+          target: /app/src
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: ./services/workers/worker-gtfs/package.json
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_started
+
   worker-notification:
     build:
       context: ./services/workers/worker-notification
       dockerfile: Dockerfile.dev
-    volumes:
-      - ./services/workers/worker-notification/src:/app/src
+    develop:
+      watch:
+        - action: sync
+          path: ./services/workers/worker-notification/src
+          target: /app/src
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: ./services/workers/worker-notification/package.json
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_started
+
+  # Redis and Postgres remain unchanged since they're using images
   redis:
     image: 'redis:7.2.5'
+
   postgres:
     image: 'postgres:16.3'
     volumes:
@@ -101,5 +148,4 @@ services:
       - POSTGRES_DB=thebus
       - POSTGRES_USER=admin
       - POSTGRES_PASSWORD=password
-      - POSTGRES_HOST_AUTH_METHOD=trust # TODO: For the health check to work without password. I'm sure there is a
-        # good way to do this.
+      - POSTGRES_HOST_AUTH_METHOD=trust
