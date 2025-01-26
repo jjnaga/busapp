@@ -6,10 +6,17 @@ import { provideHttpClient } from '@angular/common/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ToastrModule } from 'ngx-toastr';
 import { ServiceWorkerModule } from '@angular/service-worker';
+import { StateModule } from './core/state/state.module';
+import { StoreModule } from '@ngrx/store';
+import { EffectsModule } from '@ngrx/effects';
+import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 
 @NgModule({
   declarations: [AppComponent],
   imports: [
+    StoreModule.forRoot({}),
+    EffectsModule.forRoot([]),
+    StateModule,
     BrowserModule,
     AppRoutingModule,
     BrowserAnimationsModule,
@@ -23,6 +30,7 @@ import { ServiceWorkerModule } from '@angular/service-worker';
       // or after 30 seconds (whichever comes first).
       registrationStrategy: 'registerWhenStable:30000',
     }),
+    StoreDevtoolsModule.instrument({ maxAge: 25 }), // Keeps last 25 states
   ],
   providers: [provideHttpClient()],
   bootstrap: [AppComponent],

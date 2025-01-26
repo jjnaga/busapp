@@ -68,7 +68,6 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
   vehicleMarkers$ = new BehaviorSubject<Marker[]>([]);
   visibleStopMarkers$ = new BehaviorSubject<Marker[]>([]);
   trackerData$ = new BehaviorSubject<TrackerModel | null>(null);
-  console = console;
   userPosition = signal<google.maps.LatLngLiteral | null>(null);
   map: google.maps.Map | null = null;
   watchPositionCallbackID: number = -1;
@@ -137,9 +136,7 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
    * Sets up listeners for map events (e.g., user interactions)
    */
   private setupMapEventListeners() {
-    console.log('setupMapEventListeners');
     if (!this.map) return;
-    console.log('setupMapEventListeners');
 
     // Listen for user starting interaction (dragging the map)
     this.map.addListener('dragstart', () => {
@@ -153,7 +150,6 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
 
     // Listen for when the user finishes interacting
     this.map.addListener('idle', () => {
-      console.log('map idle. running event listneers');
       if (this.isUserInteracting.value) {
         this.scheduleAutoPanReactivation();
       }
@@ -171,8 +167,6 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
       clearTimeout(this.autoPanTimeout);
       this.autoPanTimeout = null;
     }
-
-    console.log('Auto-pan disabled.');
   }
 
   /**
@@ -183,7 +177,6 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
 
     this.autoPanTimeout = setTimeout(() => {
       this.isUserInteracting.next(false);
-      console.log('Auto-pan reactivated.');
     }, this.PAN_DISABLE_DELAY); // 3-second delay
   }
 
@@ -326,7 +319,6 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
         )
         .subscribe({
           next: ([trackedVehicle, vehicles, isUserInteracting]) => {
-            console.log(isUserInteracting);
             if (!isUserInteracting) {
               if (trackedVehicle) {
                 vehicles = new Map<string, Vehicle>([
@@ -366,7 +358,6 @@ export class GoogleMapComponent implements OnInit, OnDestroy {
 
         // User is manually moving, dont move the map.
         if (this.isUserInteracting.value) {
-          console.log('user is interacting, dont move.');
           return;
         }
         const { arrival, stop, vehicle, mode } = data;
