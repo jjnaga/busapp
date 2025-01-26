@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { isDevMode, NgModule } from '@angular/core';
 import { AppComponent } from './app.component';
 import { BrowserModule } from '@angular/platform-browser';
 import { AppRoutingModule } from './app-routing.module';
@@ -24,8 +24,8 @@ import { StoreDevtoolsModule } from '@ngrx/store-devtools';
       positionClass: 'toast-bottom-right',
     }),
     ServiceWorkerModule.register('ngsw-worker.js', {
-      // enabled: !isDevMode(),
-      enabled: true,
+      enabled: !isDevMode(), // Only enable in production
+
       // Register the ServiceWorker as soon as the application is stable
       // or after 30 seconds (whichever comes first).
       registrationStrategy: 'registerWhenStable:30000',

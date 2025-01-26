@@ -17,7 +17,6 @@ export class VehiclesEffects {
       mergeMap(() =>
         this.http.get<{ data: Vehicle[] }>(this.vehiclesLink).pipe(
           map((response) => {
-            console.log(response);
             const cleanedVehicles = response.data.map((vehicle: Vehicle) =>
               this.cleanVehicle(vehicle)
             );
