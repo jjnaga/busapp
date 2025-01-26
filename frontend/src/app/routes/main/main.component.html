@@ -1,13 +1,4 @@
-<!-- <div id="huh" class="h-screen w-full flex flex-col lg:flex-row -z-20 bg-[#F5F5F5] bg-nagahama-blue"> -->
-<div id="huh" class="h-screen w-full flex flex-col lg:flex-row -z-20  bg-[#FAF8F6]">
-  <header-component class=" flex-shrink-0 bg-[#F5F5F5]"></header-component>
-  <div class="flex-grow relative">
-    <div [class.hidden]="(sidebarMode$ | async) === null" class="bg-[#FAF8F6]">
-      <ng-template #menuComponent></ng-template>
-    </div>
-    <google-map-component class="absolute inset-0 flex-grow z-10"></google-map-component>
-  </div>
-  <div id="widgets-component" class="flex-shrink-0 lg:w-1/4 overflow-y-auto">
-    <ng-template #widgetsComponent></ng-template>
-  </div>
+<div class="relative flex flex-col w-screen h-screen overflow-hidden">
+  <map-component class="flex-grow w-full"></map-component>
+  <drawer class="flex-none"></drawer>
 </div>
