@@ -34,12 +34,13 @@ export class VehiclesEffects {
   });
 
   private cleanVehicle(vehicle: Vehicle): Vehicle {
-    return {
-      ...vehicle,
-      heartbeat: new Date(vehicle.heartbeat),
-      heartbeatFormatted: formatDistanceToNow(vehicle.heartbeat, {
-        addSuffix: true,
-      }),
-    };
+    return vehicle;
+    // return {
+    //   ...vehicle,
+    //   heartbeat: new Date(vehicle.heartbeat),
+    //   heartbeatFormatted: formatDistanceToNow(vehicle.heartbeat, {
+    //     addSuffix: true,
+    //   }),
+    // };
   }
 }

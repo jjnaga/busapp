@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Vehicle } from '../../../core/utils/global.types';
+import { Stop, Vehicle } from '../../../core/utils/global.types';
 import { Store } from '@ngrx/store';
 import {
   selectAllVehicles,
@@ -8,6 +8,10 @@ import {
 } from '../../../core/state/lib/vehicles/vehicles.selectors';
 import { CommonModule } from '@angular/common';
 import { BottomMenuComponent } from '../bottom-menu/bottom-menu.component';
+import {
+  selectAllStops,
+  selectStopsLoading,
+} from '../../../core/state/lib/stops/stops.selectors';
 
 @Component({
   selector: 'drawer',
@@ -17,12 +21,12 @@ import { BottomMenuComponent } from '../bottom-menu/bottom-menu.component';
 })
 export class DrawerComponent implements OnInit {
   isExpanded = false;
-  vehicles$: Observable<Vehicle[]>;
+  stops$: Observable<Stop[]>;
   loading$: Observable<boolean>;
 
   constructor(private store: Store) {
-    this.vehicles$ = this.store.select(selectAllVehicles);
-    this.loading$ = this.store.select(selectVehiclesLoading);
+    this.stops$ = this.store.select(selectAllStops);
+    this.loading$ = this.store.select(selectStopsLoading);
   }
 
   toggleDrawer() {
