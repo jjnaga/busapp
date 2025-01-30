@@ -1,10 +1,6 @@
 import { createReducer, on } from '@ngrx/store';
 import { Vehicle } from '../../../utils/global.types';
-import {
-  loadVehicles,
-  loadVehiclesFailure,
-  loadVehiclesSuccess,
-} from './vehicles.actions';
+import { loadVehiclesFailure, loadVehiclesSuccess } from './vehicles.actions';
 
 export interface VehiclesState {
   vehicles: Vehicle[];

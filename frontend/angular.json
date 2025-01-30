@@ -31,7 +31,9 @@
             "styles": [
               "src/styles.css"
             ],
-            "scripts": []
+            "scripts": [
+              "https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"
+            ]
           },
           "configurations": {
             "production": {
@@ -73,6 +75,9 @@
             "development": {
               "buildTarget": "frontend:build:development"
             }
+          },
+          "options": {
+            "liveReload": true
           },
           "defaultConfiguration": "development"
         },
