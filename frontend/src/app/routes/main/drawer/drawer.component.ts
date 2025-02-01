@@ -1,36 +1,52 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Stop, Vehicle } from '../../../core/utils/global.types';
-import { Store } from '@ngrx/store';
-import {
-  selectAllVehicles,
-  selectVehiclesLoading,
-} from '../../../core/state/lib/vehicles/vehicles.selectors';
+import { DrawerMode, Stop } from '../../../core/utils/global.types';
+import { select, Store } from '@ngrx/store';
 import { CommonModule } from '@angular/common';
 import { BottomMenuComponent } from '../bottom-menu/bottom-menu.component';
 import {
   selectAllStops,
   selectStopsLoading,
 } from '../../../core/state/lib/stops/stops.selectors';
+import {
+  selectDrawerExpanded,
+  selectDrawerMode,
+} from '../../../core/state/lib/user/user.selectors';
+import { toggleDrawerExpanded } from '../../../core/state/lib/user/user.actions';
+import { StopsComponent } from './stops/stops.components';
+import { FvoritesComponent } from './favorites/favorites.components';
 
 @Component({
   selector: 'drawer',
   templateUrl: './drawer.component.html',
   standalone: true,
-  imports: [CommonModule, BottomMenuComponent],
+  imports: [
+    CommonModule,
+    BottomMenuComponent,
+    StopsComponent,
+    FvoritesComponent,
+  ],
 })
 export class DrawerComponent implements OnInit {
-  isExpanded = false;
   stops$: Observable<Stop[]>;
   loading$: Observable<boolean>;
+  drawerMode$: Observable<DrawerMode>;
+  drawerExpanded$: Observable<boolean>;
+  DrawerMode = DrawerMode;
+  headerTitles = {
+    [DrawerMode.Stops]: 'Stops',
+    [DrawerMode.Favorites]: 'Favorites',
+  };
 
   constructor(private store: Store) {
     this.stops$ = this.store.select(selectAllStops);
     this.loading$ = this.store.select(selectStopsLoading);
+    this.drawerMode$ = this.store.select(selectDrawerMode);
+    this.drawerExpanded$ = this.store.select(selectDrawerExpanded);
   }
 
   toggleDrawer() {
-    this.isExpanded = !this.isExpanded;
+    this.store.dispatch(toggleDrawerExpanded());
   }
 
   ngOnInit(): void {
