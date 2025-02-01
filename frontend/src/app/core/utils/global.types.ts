@@ -1,3 +1,6 @@
+import { z } from 'zod';
+import { parse } from 'date-fns';
+
 export type Vehicle = {
   busNumber: string;
   tripId: string;
@@ -11,7 +14,7 @@ export type Vehicle = {
   headsign: string;
 };
 
-export type SelectedStop = Stop | undefined;
+export type SelectedStop = Stop | DetailedStop | null;
 
 export interface Stop {
   stopId: string;
@@ -21,6 +24,11 @@ export interface Stop {
   stopLon: number | null;
   stopUrl: string | null;
   stopSerialNumber: number | null;
+}
+
+export interface DetailedStop extends Stop {
+  arrivals: Arrival[];
+  lastUpdated: Date;
 }
 
 export type Vehicles = Map<string, Vehicle>;
@@ -46,22 +54,40 @@ export interface StopApiResponse {
   arrivals: Arrival[];
 }
 
-export interface Arrival {
-  canceled: string;
-  date: string;
-  direction: string;
-  estimated: string;
-  headsign: string;
-  id: string;
-  latitude: string;
-  longitude: string;
-  route: string;
-  shape: string;
-  stopTime: string;
-  stopTimeInMinutes?: string;
-  trip: string;
-  vehicle: string;
-}
+export const ArrivalSchema = z.object({
+  canceled: z.string(),
+  date: z.string(),
+  direction: z.string(),
+  estimated: z.string(),
+  headsign: z.string(),
+  id: z.string(),
+  latitude: z.string(),
+  longitude: z.string(),
+  route: z.string(),
+  shape: z.string(),
+  stopTime: z.string(),
+  stopTimeInMinutes: z.string().optional(),
+  trip: z.string(),
+  vehicle: z.string(),
+});
+
+export const StopApiResponseSchema = z.object({
+  stop: z.string(),
+  timestamp: z.preprocess((arg) => {
+    if (typeof arg === 'string') {
+      const parsedDate = parse(arg, 'M/d/yyyy h:mm:ss a', new Date());
+
+      if (isNaN(parsedDate.getTime())) {
+        return undefined;
+      }
+      return parsedDate;
+    }
+    return arg;
+  }, z.date()),
+  arrivals: z.array(ArrivalSchema),
+});
+
+export type Arrival = z.infer<typeof ArrivalSchema>;
 
 export interface BusSubscription {
   type: AppTypes;
