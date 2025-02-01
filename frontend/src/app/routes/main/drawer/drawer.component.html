@@ -1,31 +1,27 @@
 <div class="absolute bottom-0 left-0 w-full bg-white border-t shadow-lg transition-transform duration-200"
-  [ngClass]="isExpanded ? 'translate-y-0' : 'translate-y-[60%]'">
+  [ngClass]="(drawerExpanded$ | async) ? 'translate-y-0' : 'translate-y-[60%]'">
 
   <!-- Peeking area (Collapsed State) -->
   <div class="p-3 flex justify-between items-center cursor-pointer" (click)="toggleDrawer()">
-    <h3 class="text-2xl font-bold">Nearby Stops</h3>
-    <button class="text-blue-500">{{ isExpanded ? 'Close' : 'Expand' }}</button>
+    <ng-container *ngIf="drawerMode$ | async as mode">
+      <h3 class="text-2xl font-bold">
+        {{ headerTitles[mode] }}
+      </h3>
+    </ng-container>
+    <button class="text-blue-500">{{ (drawerExpanded$ | async) ? 'Close' : 'Expand' }}</button>
   </div>
 
-  <!-- Full Content (Expands on click) -->
-  <div [ngClass]="isExpanded ? 'overflow-scroll' : 'overflow-hidden'" class="transition-all duration-300 h-[50vh]">
-    <ul class="px-3 py-2">
-      <li *ngFor="let stop of stops$ | async" class="py-2 border-b">
-        <div class="flex">
-          <div class="flex-1 flex flex-col">
-            <span class="text-lg">{{ stop.stopName }}</span>
-            <span class="text-gray-500">3 - KAPIOLANI COMMUNITY COLLEGE</span>
-          </div>
-          <div id="incoming-time">
-            <div class="w-16 h-full bg-gray-200 flex flex-col items-center justify-center">
-              <!-- TBD I WANT THIS TO SHOW TIME AND MAKE IT LIKE HARD SET JUST 25ISH% percent of the total width -->
-              <span class="text-lg">4</span>
-              <span>min</span>
-            </div>
-          </div>
-        </div>
-      </li>
-    </ul>
-  </div>
+  <ng-container [ngSwitch]="drawerMode$ | async">
+    <ng-container *ngSwitchCase="DrawerMode.Favorites">
+      <drawer-favorites></drawer-favorites>
+    </ng-container>
+
+    <ng-container *ngSwitchCase="DrawerMode.Stops">
+      <drawer-stops></drawer-stops>
+    </ng-container>
+
+  </ng-container>
+
+
   <bottom-menu></bottom-menu>
 </div>

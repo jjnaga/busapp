@@ -1,0 +1,21 @@
+<!-- Full Content (Expands on click) -->
+<div [ngClass]="(drawerExpanded$ | async) ? 'overflow-scroll' : 'overflow-hidden'"
+  class="transition-all duration-300 h-[50vh]">
+  <ul class="px-3 py-2">
+    <li *ngFor="let stop of stops$ | async" class="py-2 border-b">
+      <div class="flex">
+        <div class="flex-1 flex flex-col">
+          <span class="text-lg">{{ stop.stopName }}</span>
+          <span class="text-gray-500">3 - PLACEHOLDER</span>
+        </div>
+        <div id="incoming-time">
+          <div class="w-16 h-full bg-gray-200 flex flex-col items-center justify-center">
+            <!-- TBD I WANT THIS TO SHOW TIME AND MAKE IT LIKE HARD SET JUST 25ISH% percent of the total width -->
+            <span class="text-lg">4</span>
+            <span>min</span>
+          </div>
+        </div>
+      </div>
+    </li>
+  </ul>
+</div>
