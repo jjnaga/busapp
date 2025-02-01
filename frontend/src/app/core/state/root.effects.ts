@@ -7,6 +7,7 @@ import * as StopsActions from './lib/stops/stops.actions';
 import { appInit } from './root.actions';
 import { mergeMap } from 'rxjs';
 import { StopsEffects } from './lib/stops/stops.effects';
+import { UserEffects } from './lib/user/user.effects';
 
 @Injectable()
 export class RootEffects {
@@ -19,4 +20,9 @@ export class RootEffects {
   constructor(private actions$: Actions) {}
 }
 
-export const rootEffects = [RootEffects, VehiclesEffects, StopsEffects];
+export const rootEffects = [
+  RootEffects,
+  VehiclesEffects,
+  StopsEffects,
+  UserEffects,
+];

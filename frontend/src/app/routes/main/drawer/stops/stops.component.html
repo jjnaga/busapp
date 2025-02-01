@@ -1,13 +1,39 @@
 <!-- Full Content (Expands on click) -->
 <div [ngClass]="(drawerExpanded$ | async) ? 'overflow-scroll' : 'overflow-hidden'"
   class="transition-all duration-300 h-[50vh]">
-  <ul class="px-3 py-2">
-    <li *ngFor="let stop of stops$ | async" class="py-2 border-b">
-      <button class="flex w-full text-left">
-        <div class="flex-1 flex flex-col">
-          <span class="text-lg">{{ stop.stopName }}</span>
-        </div>
-      </button>
-    </li>
-  </ul>
+  <ng-container *ngIf="selectedStop$ | async as selectedStop; else stopsList">
+    <div id="stop-details" class="px-3 py-2">
+      <ng-container *ngIf="isDetailedStop(selectedStop)">
+        <p class="text-sm text-gray-500">
+          Last Updated: {{ selectedStop.lastUpdated | date: 'short' }}
+        </p>
+        <ul class="px-3 py-2">
+          <li *ngFor="let arrival of selectedStop.arrivals" class="py-3 border-b">
+            <h3 class="text-xl font-bold">{{ arrival.headsign }}</h3>
+
+            <div class="flex items-center space-x-4">
+              <span class="text-sm text-gray-700">Vehicle: {{ arrival.vehicle }}</span>
+              <span class="text-sm text-gray-500">Stop Time: {{ arrival.stopTime }}</span>
+            </div>
+            <p class="mt-1 text-md text-blue-600 font-semibold">
+              Arrives in: {{ arrival.estimated }} min
+            </p>
+          </li>
+        </ul>
+
+      </ng-container>
+    </div>
+  </ng-container>
+
+  <ng-template #stopsList>
+    <ul class="px-3 py-2">
+      <li *ngFor="let stop of stops$ | async" class="py-2 border-b">
+        <button (click)="setSelectedStop(stop)" class="flex w-full text-left">
+          <div class="flex-1 flex flex-col">
+            <span class="text-lg">{{ stop.stopName }}</span>
+          </div>
+        </button>
+      </li>
+    </ul>
+  </ng-template>
 </div>

@@ -1,14 +1,29 @@
 import { createReducer, on } from '@ngrx/store';
-import { DrawerMode, Stop } from '../../../utils/global.types';
-import { setDrawerMode } from './user.actions';
+import {
+  DetailedStop,
+  DrawerMode,
+  SelectedStop,
+  Stop,
+} from '../../../utils/global.types';
+import {
+  setDrawerMode,
+  setSelectedStop,
+  toggleDrawerExpanded,
+  updateSelectedStop,
+} from './user.actions';
 
 export interface UserState {
+  // start abstracting drawer into its own object?
   drawerMode: DrawerMode;
+  drawerExpanded: boolean;
   favorites: Stop[];
+  selectedStop: SelectedStop;
 }
 
 export const initialUserState: UserState = {
-  drawerMode: DrawerMode.Favorites,
+  drawerMode: DrawerMode.Stops,
+  drawerExpanded: false,
+  selectedStop: null,
   favorites: [],
 };
 
@@ -17,14 +32,17 @@ export const userReducer = createReducer(
   on(setDrawerMode, (state, { drawerMode }) => ({
     ...state,
     drawerMode,
+  })),
+  on(toggleDrawerExpanded, (state, { expanded }) => ({
+    ...state,
+    drawerExpanded: expanded === undefined ? !state.drawerExpanded : expanded,
+  })),
+  on(setSelectedStop, (state, { stop }) => ({
+    ...state,
+    selectedStop: stop,
+  })),
+  on(updateSelectedStop, (state, { stop }) => ({
+    ...state,
+    selectedStop: stop,
   }))
-  // on(loadVehiclesSuccess, (state, { vehicles }) => ({
-  //   ...state,
-  //   vehicles,
-  //   loading: false,
-  // })),
-  // on(loadVehiclesFailure, (state) => ({
-  //   ...state,
-  //   loading: false,
-  // }))
 );
