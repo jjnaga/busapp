@@ -5,10 +5,12 @@ import { catchError, map, mergeMap, of } from 'rxjs';
 import { Vehicle } from '../../../utils/global.types';
 import { formatDistanceToNow } from 'date-fns';
 import { HttpClient } from '@angular/common/http';
+import { getBaseUrl } from '../../../utils/utils';
 
 @Injectable()
 export class VehiclesEffects {
-  private vehiclesLink = 'http://localhost:3000/api/vehicles';
+  private vehiclesLink = `${getBaseUrl()}/api/vehicles`;
+
   constructor(private actions$: Actions, private http: HttpClient) {}
 
   loadVehicles$ = createEffect(() => {
