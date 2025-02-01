@@ -201,9 +201,10 @@ body {
   background-color: #faf8f6;
 }
 
-.neon-icon {
-  color: #fff;
-  font-size: 40px; /* Adjust as needed */
-  text-shadow: 0 0 5px #0ff, 0 0 10px #0ff, 0 0 20px #0ff, 0 0 40px #0ff,
-    0 0 80px #0ff;
+@layer utilities {
+  .glow-neon-blue {
+    text-shadow: 0 0 8px #1e90ff, 0 0 16px #1e90ff, 0 0 24px #1e90ff;
+    --tw-text-opacity: 1;
+    color: rgb(30 64 175 / var(--tw-text-opacity));
+  }
 }

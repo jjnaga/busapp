@@ -97,3 +97,8 @@ export type TrackerMode = {
   bus: boolean;
   stop: boolean;
 };
+
+export enum DrawerMode {
+  Favorites = 'favorites',
+  Stops = 'stops',
+}
