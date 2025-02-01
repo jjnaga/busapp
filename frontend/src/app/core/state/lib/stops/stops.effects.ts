@@ -4,10 +4,11 @@ import { Actions, createEffect, ofType } from '@ngrx/effects';
 import * as StopsActions from './stops.actions';
 import { Stop } from '../../../utils/global.types';
 import { catchError, map, mergeMap, of } from 'rxjs';
+import { getBaseUrl } from '../../../utils/utils';
 
 @Injectable()
 export class StopsEffects {
-  private stopsLink = 'http://localhost:3000/api/stops';
+  private stopsLink = `${getBaseUrl()}/api/stops`;
 
   constructor(private actions$: Actions, private http: HttpClient) {}
 

@@ -30,9 +30,6 @@
             ],
             "styles": [
               "src/styles.css"
-            ],
-            "scripts": [
-              "https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"
             ]
           },
           "configurations": {
