@@ -15,9 +15,12 @@
               <span class="text-sm text-gray-700">Vehicle: {{ arrival.vehicle }}</span>
               <span class="text-sm text-gray-500">Stop Time: {{ arrival.stopTime }}</span>
             </div>
-            <p class="mt-1 text-md text-blue-600 font-semibold">
-              Arrives in: {{ arrival.estimated }} min
-            </p>
+            <ng-container *ngIf="arrival.arrivalDate">
+              <p class="mt-1 text-md text-blue-600 font-semibold">
+                Arrives in: {{ arrival.arrivalDate | diffMinutes }} min
+                <!-- Arrives in: {{ arrival.estimated }} min -->
+              </p>
+            </ng-container>
           </li>
         </ul>
 
