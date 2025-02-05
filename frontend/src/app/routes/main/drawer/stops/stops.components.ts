@@ -16,11 +16,13 @@ import {
   selectStopsLoading,
 } from '../../../../core/state/lib/stops/stops.selectors';
 import { setSelectedStop } from '../../../../core/state/lib/user/user.actions';
+import { differenceInMinutes } from 'date-fns';
+import { DiffMinutesPipe } from '../../../../core/utils/pipes/diff-minutes.pipe';
 
 @Component({
   selector: 'drawer-stops',
   templateUrl: './stops.component.html',
-  imports: [CommonModule],
+  imports: [CommonModule, DiffMinutesPipe],
   standalone: true,
 })
 export class StopsComponent {
@@ -28,6 +30,7 @@ export class StopsComponent {
   stops$: Observable<Stop[]>;
   stopsLoading$: Observable<boolean>;
   selectedStop$: Observable<SelectedStop>;
+  differenceInMinutes = differenceInMinutes;
 
   setSelectedStop(stop: Stop) {
     this.store.dispatch(setSelectedStop({ stop }));

@@ -66,7 +66,7 @@ export const ArrivalSchema = z.object({
   route: z.string(),
   shape: z.string(),
   stopTime: z.string(),
-  stopTimeInMinutes: z.string().optional(),
+  arrivalDate: z.date().optional(),
   trip: z.string(),
   vehicle: z.string(),
 });

@@ -11,6 +11,7 @@ import { HttpClient } from '@angular/common/http';
 import { getBaseUrl } from '../../../utils/utils';
 import * as UserActions from './user.actions';
 import { z } from 'zod';
+import { parse } from 'date-fns';
 
 @Injectable()
 export class UserEffects {
@@ -38,6 +39,15 @@ export class UserEffects {
                   error: 'Zod: Invalid API response',
                 });
               }
+
+              // Set date for each arrival
+              parseResult.data.arrivals.forEach((arrival) => {
+                arrival.arrivalDate = parse(
+                  `${arrival.date} ${arrival.stopTime}`,
+                  'M/d/yyyy h:mm a',
+                  new Date()
+                );
+              });
 
               const stop = {
                 ...action.stop,
@@ -67,7 +77,7 @@ export class UserEffects {
   toggleDrawerOnSelectedStop$ = createEffect(() =>
     this.actions$.pipe(
       ofType(UserActions.setSelectedStop),
-      map(() => UserActions.toggleDrawerExpanded({}))
+      map(() => UserActions.toggleDrawerExpanded({ expanded: true }))
     )
   );
 }
