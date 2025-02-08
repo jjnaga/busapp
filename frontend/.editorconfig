@@ -2,15 +2,39 @@
 root = true
 
 [*]
-charset = utf-8
-indent_style = space
-indent_size = 2
-insert_final_newline = true
-trim_trailing_whitespace = true
+charset = utf-8                 # File character encoding
+indent_style = space            # Use spaces for indentation
+indent_size = 2                 # Number of spaces per indent level
+max_line_length = 120           # jjn
+insert_final_newline = true     # Always add a newline at the end of files
+trim_trailing_whitespace = true # Remove any trailing whitespace
+end_of_line = lf                # Use LF for consistent line endings
 
 [*.ts]
-quote_type = single
+quote_type = single             # Use single quotes in TypeScript files
+semi = true                     # Enforce semicolons for consistency
+max_line_length = 120           # Maximum allowed line length
+curly_bracket_next_line = false # Keep opening curly brackets on the same line
+
+[*.html]
+indent_size = 2       # HTML specific indentation size
+max_line_length = 120 # Maximum allowed line length
+quote_type = double   # Standard practice: use double quotes in HTML
+
+[*.json]
+indent_size = 2              # Indentation for JSON files
+quote_type = double          # JSON requires double quotes
+insert_final_newline = false # JSON files typically don't end with a newline
+
+[*.scss]
+indent_size = 2       # SCSS indentation size
+max_line_length = 120 # Maximum allowed line length
 
 [*.md]
-max_line_length = off
-trim_trailing_whitespace = false
+max_line_length = off            # No max line length for Markdown files
+trim_trailing_whitespace = false # Keep trailing whitespace in Markdown
+indent_size = 4                  # Better readability for lists and nested elements
+
+[*.yml]
+indent_size = 2       # YAML indentation size
+max_line_length = 120 # Maximum allowed line length

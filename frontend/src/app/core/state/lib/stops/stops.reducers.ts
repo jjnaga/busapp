@@ -22,5 +22,5 @@ export const stopsReducer = createReducer(
   on(loadStopsFailure, (state) => ({
     ...state,
     loading: false,
-  }))
+  })),
 );

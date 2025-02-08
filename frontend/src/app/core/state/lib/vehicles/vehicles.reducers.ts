@@ -22,5 +22,5 @@ export const vehiclesReducer = createReducer(
   on(loadVehiclesFailure, (state) => ({
     ...state,
     loading: false,
-  }))
+  })),
 );

@@ -32,7 +32,10 @@ export class MapComponent implements OnDestroy {
   minZoomLevel: number = 15;
   mapIdleListener: google.maps.MapsEventListener | null = null;
 
-  constructor(private toastrService: ToastrService, private store: Store) {
+  constructor(
+    private toastrService: ToastrService,
+    private store: Store,
+  ) {
     this.stops$ = this.store.select(selectAllStops);
   }
 

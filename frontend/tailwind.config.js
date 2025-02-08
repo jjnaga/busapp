@@ -7,8 +7,7 @@ module.exports = {
         "nagahama-blue": "rgb(30, 64, 175)",
       },
       backgroundImage: {
-        "nagahama-gradient":
-          "linear-gradient(90deg, rgba(30, 64, 175, 0) 0%, rgba(30, 64, 175, 0.4) 100%)",
+        "nagahama-gradient": "linear-gradient(90deg, rgba(30, 64, 175, 0) 0%, rgba(30, 64, 175, 0.4) 100%)",
       },
     },
   },

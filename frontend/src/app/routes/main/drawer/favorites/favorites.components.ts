@@ -4,10 +4,7 @@ import { Store } from '@ngrx/store';
 import { selectDrawerExpanded } from '../../../../core/state/lib/user/user.selectors';
 import { Observable } from 'rxjs';
 import { Stop } from '../../../../core/utils/global.types';
-import {
-  selectAllStops,
-  selectStopsLoading,
-} from '../../../../core/state/lib/stops/stops.selectors';
+import { selectAllStops, selectStopsLoading } from '../../../../core/state/lib/stops/stops.selectors';
 
 @Component({
   selector: 'drawer-favorites',

@@ -14,15 +14,10 @@ export class RootEffects {
   appInit$ = createEffect(() =>
     this.actions$.pipe(
       ofType(appInit),
-      mergeMap(() => [VehiclesActions.loadVehicles(), StopsActions.loadStops()])
-    )
+      mergeMap(() => [VehiclesActions.loadVehicles(), StopsActions.loadStops()]),
+    ),
   );
   constructor(private actions$: Actions) {}
 }
 
-export const rootEffects = [
-  RootEffects,
-  VehiclesEffects,
-  StopsEffects,
-  UserEffects,
-];
+export const rootEffects = [RootEffects, VehiclesEffects, StopsEffects, UserEffects];

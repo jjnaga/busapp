@@ -11,7 +11,10 @@ import { getBaseUrl } from '../../../utils/utils';
 export class VehiclesEffects {
   private vehiclesLink = `${getBaseUrl()}/api/vehicles`;
 
-  constructor(private actions$: Actions, private http: HttpClient) {}
+  constructor(
+    private actions$: Actions,
+    private http: HttpClient,
+  ) {}
 
   loadVehicles$ = createEffect(() => {
     return this.actions$.pipe(
@@ -19,19 +22,15 @@ export class VehiclesEffects {
       mergeMap(() =>
         this.http.get<{ data: Vehicle[] }>(this.vehiclesLink).pipe(
           map((response) => {
-            const cleanedVehicles = response.data.map((vehicle: Vehicle) =>
-              this.cleanVehicle(vehicle)
-            );
+            const cleanedVehicles = response.data.map((vehicle: Vehicle) => this.cleanVehicle(vehicle));
 
             return VehiclesActions.loadVehiclesSuccess({
               vehicles: cleanedVehicles,
             });
           }),
-          catchError((error) =>
-            of(VehiclesActions.loadVehiclesFailure({ error: error.message }))
-          )
-        )
-      )
+          catchError((error) => of(VehiclesActions.loadVehiclesFailure({ error: error.message }))),
+        ),
+      ),
     );
   });
 

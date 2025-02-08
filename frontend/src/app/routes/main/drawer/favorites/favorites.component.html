@@ -1,6 +1,8 @@
 <!-- Full Content (Expands on click) -->
-<div [ngClass]="(drawerExpanded$ | async) ? 'overflow-scroll' : 'overflow-hidden'"
-  class="transition-all duration-300 h-[50vh]">
+<div
+  [ngClass]="(drawerExpanded$ | async) ? 'overflow-scroll' : 'overflow-hidden'"
+  class="transition-all duration-300 h-[50vh]"
+>
   <ul class="px-3 py-2">
     <li *ngFor="let stop of stops$ | async" class="py-2 border-b">
       <div class="flex">
