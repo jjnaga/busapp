@@ -1,12 +1,12 @@
 <!-- Full Content (Expands on click) -->
-<div [ngClass]="(drawerExpanded$ | async) ? 'overflow-scroll' : 'overflow-hidden'"
-  class="transition-all duration-300 h-[50vh]">
+<div
+  [ngClass]="(drawerExpanded$ | async) ? 'overflow-scroll' : 'overflow-hidden'"
+  class="transition-all duration-300 h-[50vh]"
+>
   <ng-container *ngIf="selectedStop$ | async as selectedStop; else stopsList">
     <div id="stop-details" class="px-3 py-2">
       <ng-container *ngIf="isDetailedStop(selectedStop)">
-        <p class="text-sm text-gray-500">
-          Last Updated: {{ selectedStop.lastUpdated | date: 'short' }}
-        </p>
+        <p class="text-sm text-gray-500">Last Updated: {{ selectedStop.lastUpdated | date: "short" }}</p>
         <ul class="px-3 py-2">
           <li *ngFor="let arrival of selectedStop.arrivals" class="py-3 border-b">
             <h3 class="text-xl font-bold">{{ arrival.headsign }}</h3>
@@ -23,7 +23,6 @@
             </ng-container>
           </li>
         </ul>
-
       </ng-container>
     </div>
   </ng-container>

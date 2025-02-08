@@ -114,9 +114,8 @@ const worker = async () => {
           const notification: Notification = JSON.parse(message);
 
           // Process Notification
-          const results: webPush.SendResult = await processNotification(
-            notification
-          );
+          const results: webPush.SendResult =
+            await processNotification(notification);
 
           // Check if notification posted OK
           if (results.statusCode !== 201)

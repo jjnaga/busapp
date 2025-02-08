@@ -1,17 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { combineLatest, map, Observable } from 'rxjs';
-import {
-  DrawerMode,
-  SelectedStop,
-  Stop,
-} from '../../../core/utils/global.types';
+import { DrawerMode, SelectedStop, Stop } from '../../../core/utils/global.types';
 import { select, Store } from '@ngrx/store';
 import { CommonModule } from '@angular/common';
 import { BottomMenuComponent } from '../bottom-menu/bottom-menu.component';
-import {
-  selectAllStops,
-  selectStopsLoading,
-} from '../../../core/state/lib/stops/stops.selectors';
+import { selectAllStops, selectStopsLoading } from '../../../core/state/lib/stops/stops.selectors';
 import {
   selectDrawerExpanded,
   selectDrawerMode,
@@ -25,12 +18,7 @@ import { FvoritesComponent } from './favorites/favorites.components';
   selector: 'drawer',
   templateUrl: './drawer.component.html',
   standalone: true,
-  imports: [
-    CommonModule,
-    BottomMenuComponent,
-    StopsComponent,
-    FvoritesComponent,
-  ],
+  imports: [CommonModule, BottomMenuComponent, StopsComponent, FvoritesComponent],
 })
 export class DrawerComponent implements OnInit {
   stops$: Observable<Stop[]>;
@@ -62,15 +50,10 @@ export class DrawerComponent implements OnInit {
       console.log(loading);
     });
 
-    this.headerTitle$ = combineLatest([
-      this.drawerMode$,
-      this.selectedStop$,
-    ]).pipe(
+    this.headerTitle$ = combineLatest([this.drawerMode$, this.selectedStop$]).pipe(
       map(([drawerMode, selectedStop]) =>
-        selectedStop && selectedStop.stopName
-          ? selectedStop.stopName
-          : this.headerTitles[drawerMode]
-      )
+        selectedStop && selectedStop.stopName ? selectedStop.stopName : this.headerTitles[drawerMode],
+      ),
     );
   }
 }

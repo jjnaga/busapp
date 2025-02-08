@@ -10,7 +10,10 @@ import { getBaseUrl } from '../../../utils/utils';
 export class StopsEffects {
   private stopsLink = `${getBaseUrl()}/api/stops`;
 
-  constructor(private actions$: Actions, private http: HttpClient) {}
+  constructor(
+    private actions$: Actions,
+    private http: HttpClient,
+  ) {}
 
   loadStops$ = createEffect(() => {
     return this.actions$.pipe(
@@ -18,17 +21,13 @@ export class StopsEffects {
       mergeMap(() =>
         this.http.get<{ data: Stop[] }>(this.stopsLink).pipe(
           map((response) => {
-            const cleanedStops = response.data.map((stop: Stop) =>
-              this.cleanStop(stop)
-            );
+            const cleanedStops = response.data.map((stop: Stop) => this.cleanStop(stop));
 
             return StopsActions.loadStopsSuccess({ stops: cleanedStops });
           }),
-          catchError((error) =>
-            of(StopsActions.loadStopsFailure({ error: error.message }))
-          )
-        )
-      )
+          catchError((error) => of(StopsActions.loadStopsFailure({ error: error.message }))),
+        ),
+      ),
     );
   });
 

@@ -88,16 +88,16 @@ services:
         condition: service_started
     restart: always
   redis:
-    image: 'redis:7.2.5'
+    image: "redis:7.2.5"
     volumes:
       - redis_data:/data
   postgres:
-    image: 'postgres:16.3'
+    image: "postgres:16.3"
     volumes:
       - ./init:/docker-entrypoint-initdb.d
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U admin -d thebus']
+      test: ["CMD-SHELL", "pg_isready -U admin -d thebus"]
       interval: 10s
       timeout: 5s
       retries: 5
