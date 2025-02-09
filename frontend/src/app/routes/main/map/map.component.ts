@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { ToastrService } from 'ngx-toastr';
 import { Subscription, Observable, Subject, BehaviorSubject, combineLatest } from 'rxjs';
 import { filter, startWith } from 'rxjs/operators';
-import { Stop, Vehicle } from '../../../core/utils/global.types';
+import { Stop, Vehicle, VehicleMap } from '../../../core/utils/global.types';
 import { MarkerService } from '../../../core/services/marker.service';
 import { Store } from '@ngrx/store';
 import { selectAllStops } from '../../../core/state/lib/stops/stops.selectors';
@@ -25,18 +25,14 @@ export class MapComponent implements OnInit, OnDestroy {
     zoom: 12,
   };
   stops$: Observable<Stop[]> = this.store.select(selectAllStops);
-  vehicles$: Observable<Vehicle[]> = this.store.select(selectAllVehicles);
+  vehicles$: Observable<VehicleMap> = this.store.select(selectAllVehicles);
 
   private mapEvents$ = new Subject<void>();
   private mapReady$ = new BehaviorSubject<google.maps.Map | null>(null);
   stopsAndMapEventsSubscription!: Subscription;
   vehiclesSubscription!: Subscription;
 
-  constructor(
-    private markerService: MarkerService,
-    private toastrService: ToastrService,
-    private store: Store,
-  ) {}
+  constructor(private markerService: MarkerService, private toastrService: ToastrService, private store: Store) {}
 
   ngOnInit() {
     // Stops subscription: updates on stops or map events.

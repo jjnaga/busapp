@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { Stop, Vehicle } from '../utils/global.types';
+import { Stop, Vehicle, VehicleMap } from '../utils/global.types';
 import { Store } from '@ngrx/store';
 import { setSelectedStop } from '../state/lib/user/user.actions';
+import { ToastrService } from 'ngx-toastr';
 
 @Injectable({
   providedIn: 'root',
@@ -10,10 +11,9 @@ export class MarkerService {
   private map: google.maps.Map | null = null;
   // key is stopId, value is the marker element.
   private stopMarkers: Map<string, google.maps.marker.AdvancedMarkerElement> = new Map();
-  // key is vehicleId, value is the marker element.
+  // key is busNumber, value is the marker element.
   private vehicleMarkers: Map<string, google.maps.marker.AdvancedMarkerElement> = new Map();
-
-  constructor(private store: Store) {}
+  constructor(private store: Store, private toastrService: ToastrService) {}
 
   init(map: google.maps.Map) {
     this.map = map;
@@ -84,58 +84,40 @@ export class MarkerService {
     this.stopMarkers.clear();
   }
 
-  updateVehicleMarkers(vehicles: Vehicle[], minZoomLevel: number) {
+  updateVehicleMarkers(vehicles: VehicleMap, minZoomLevel: number) {
     if (!this.map) {
       console.error('MarkerService: Map not initialized.');
+      this.toastrService.error('Map not initialized.');
       return;
     }
 
-    // Update existing vehicle markers.
-    this.vehicleMarkers.forEach((marker, vehicleId) => {
-      // Look for updated data for this vehicle.
-      const vehicle = vehicles.find((v) => v.tripId === vehicleId);
+    // Update existing markers and add new ones
+    Object.entries(vehicles).forEach(([busNumber, vehicle]) => {
+      const position = new google.maps.LatLng(vehicle.latitude, vehicle.longitude);
 
-      if (!vehicle) {
-        // Vehicle no longer in data: remove marker.
-        marker.remove();
-        this.vehicleMarkers.delete(vehicleId);
-        return;
+      let marker = this.vehicleMarkers.get(busNumber);
+
+      if (marker) {
+        // Update the marker's position directly
+        marker.position = position;
+      } else {
+        // this really shouldnt run IMO, there will not be new buses (true?)
+        // this will only run at the start
+        marker = new google.maps.marker.AdvancedMarkerElement({
+          map: this.map,
+          position: position,
+          title: vehicle.headsign || 'Vehicle',
+          content: this.createVehicleMarkerContent(vehicle),
+        });
+
+        // Example click listener
+        marker.addListener('click', () => {
+          console.log('Vehicle clicked:', vehicle);
+          // Dispatch actions or show info as needed
+        });
+
+        this.vehicleMarkers.set(busNumber, marker);
       }
-
-      const newPosition = { lat: vehicle.latitude, lng: vehicle.longitude };
-      // Update marker position only if changed.
-      if (!marker.position || marker.position.lat !== newPosition.lat || marker.position.lng !== newPosition.lng) {
-        marker.position = newPosition;
-      }
-      // // Optionally, remove marker if it’s moved outside the viewport.
-      // if (
-      //   !bounds.contains(
-      //     new google.maps.LatLng(newPosition.lat, newPosition.lng)
-      //   )
-      // ) {
-      //   marker.remove();
-      //   this.vehicleMarkers.delete(vehicleId);
-      // }
-    });
-
-    // Add new markers for vehicles that are visible and not already added.
-    vehicles.forEach((vehicle) => {
-      if (this.vehicleMarkers.has(vehicle.tripId)) return;
-
-      const marker = new google.maps.marker.AdvancedMarkerElement({
-        map: this.map,
-        position: { lat: vehicle.latitude, lng: vehicle.longitude },
-        title: `Vehicle ${vehicle.busNumber}`,
-        content: this.createVehicleMarkerContent(vehicle),
-      });
-
-      marker.addListener('click', () => {
-        console.log('Vehicle marker clicked:', vehicle);
-        // Handle vehicle marker click as needed.
-      });
-
-      console.log('this should be good?', vehicle, marker);
-      this.vehicleMarkers.set(vehicle.tripId, marker);
     });
   }
 
