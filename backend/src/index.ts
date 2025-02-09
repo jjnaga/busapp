@@ -83,35 +83,40 @@ import { VehicleSql } from '@utils/types';
   });
 
   const broadcast = (message: string) => {
-    const { data } = JSON.parse(message);
+    const messageJson = JSON.parse(message);
 
-    if (data.length > 0) {
-      // Data comes in in postgres snake case. Format to camel case.
-      const cleanedData = data.map((vehicle: VehicleSql) => ({
-        busNumber: vehicle.bus_number,
-        tripId: vehicle.trip_id,
-        driver: vehicle.driver,
-        latitude: vehicle.latitude,
-        longitude: vehicle.longitude,
-        adherence: vehicle.adherence,
-        heartbeat: vehicle.heartbeat,
-        routeName: vehicle.route_name,
-        headsign: vehicle.headsign,
-      }));
+    const { type, data } = messageJson;
 
-      const broadcastData = JSON.stringify({ message: cleanedData });
+    if (type === 'vehicleUpdate') {
+      if (data.length > 0) {
+        // Data comes in in postgres snake case. Format to camel case.
+        const cleanedData = data.map((vehicle: VehicleSql) => ({
+          busNumber: vehicle.bus_number,
+          tripId: vehicle.trip_id,
+          driver: vehicle.driver,
+          latitude: vehicle.latitude,
+          longitude: vehicle.longitude,
+          adherence: vehicle.adherence,
+          heartbeat: vehicle.heartbeat,
+          routeName: vehicle.route_name,
+          headsign: vehicle.headsign,
+        }));
 
-      console.log(
-        `Redis subscription ${redisVehiclesSubscribe}: ${data.length} message${
-          data.length > 1 && 's'
-        } received. Broadcasting to ${wss.clients.size} clients.`
-      );
+        const broadcastData = JSON.stringify({ ...messageJson, data: cleanedData });
+        console.log(broadcastData);
 
-      wss.clients.forEach((client) => {
-        if (client.readyState === client.OPEN) {
-          client.send(broadcastData);
-        }
-      });
+        console.log(
+          `Redis subscription ${redisVehiclesSubscribe}: ${data.length} message${
+            data.length > 1 && 's'
+          } received. Broadcasting to ${wss.clients.size} clients.`
+        );
+
+        wss.clients.forEach((client) => {
+          if (client.readyState === client.OPEN) {
+            client.send(broadcastData);
+          }
+        });
+      }
     }
   };
 

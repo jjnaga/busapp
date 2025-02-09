@@ -242,7 +242,11 @@ export const fetchAndEtlData = async (): Promise<JOB_RESULT> => {
 
     redisClient.publish(
       publishChannel,
-      JSON.stringify({ data: insertResult.raw })
+      JSON.stringify({
+        type: 'vehicleUpdate',
+        notes: 'return data from typeORM upsert on Vehicle table',
+        data: insertResult.raw,
+      })
     );
 
     response = {
