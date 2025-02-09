@@ -50,7 +50,6 @@ export class MapComponent implements OnInit, OnDestroy {
       this.vehicles$,
       this.mapReady$.pipe(filter((map) => map !== null)),
     ]).subscribe(([vehicles]) => {
-      console.log('RUN');
       // Map is guaranteed to be available here.
       this.markerService.updateVehicleMarkers(vehicles, this.minZoomLevel);
     });

@@ -32,12 +32,9 @@ export class WebsocketService {
   private isConnecting = false;
   private connectSubscription?: Subscription; // Add this
 
-  constructor(private toastr: ToastrService, private ngZone: NgZone, private store: Store) {
-    console.log('constructed?');
-  }
+  constructor(private toastr: ToastrService, private ngZone: NgZone, private store: Store) {}
 
   connect(): void {
-    console.log('connecting websocket');
     if (this.isSocketOpen() || this.isConnecting) {
       return;
     }
@@ -62,7 +59,6 @@ export class WebsocketService {
         url: url,
         openObserver: {
           next: () => {
-            console.log('connected socket websocket');
             this.store.dispatch(websocketConnected());
             this.isConnecting = false;
             this.reconnectAttempts = 0;
@@ -85,7 +81,6 @@ export class WebsocketService {
       });
 
       this.connectSubscription?.add(this.socket$);
-      console.log('done connect()');
     } catch (e) {
       console.error(e);
       this.toastr.error(`Error connecting to WS: ${JSON.stringify(e)}`);

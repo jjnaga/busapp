@@ -46,14 +46,10 @@ export class DrawerComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.loading$.subscribe((loading) => {
-      console.log(loading);
-    });
-
     this.headerTitle$ = combineLatest([this.drawerMode$, this.selectedStop$]).pipe(
       map(([drawerMode, selectedStop]) =>
-        selectedStop && selectedStop.stopName ? selectedStop.stopName : this.headerTitles[drawerMode],
-      ),
+        selectedStop && selectedStop.stopName ? selectedStop.stopName : this.headerTitles[drawerMode]
+      )
     );
   }
 }
