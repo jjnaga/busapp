@@ -1,12 +1,9 @@
 import { environment } from '../../../environments/environment';
 
 export function getBaseUrl(): string {
-  const protocol = window.location.protocol;
-  let host = window.location.host;
-
+  console.log(environment.production);
   if (!environment.production) {
-    host = 'localhost:3000';
+    return 'http://localhost:3000';
   }
-
-  return `${protocol}//${host}`;
+  return ''; // Relative to current origin in production
 }
