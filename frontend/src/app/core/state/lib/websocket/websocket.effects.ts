@@ -43,7 +43,6 @@ export class WebsocketEffects {
     this.actions$.pipe(
       ofType(WebsocketActions.websocketVehiclesUpdateMessageReceived),
       map(({ vehicles }) => {
-        console.log('this working', vehicles);
         return VehiclesActions.updateVehicles({ vehicles });
       })
     )
