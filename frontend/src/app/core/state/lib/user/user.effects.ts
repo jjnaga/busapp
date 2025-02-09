@@ -12,12 +12,9 @@ import { parse } from 'date-fns';
 export class UserEffects {
   private selectedStopLink = (stopNumber: string) => `${getBaseUrl()}/api/stops/${stopNumber}`;
 
-  constructor(
-    private actions$: Actions,
-    private http: HttpClient,
-  ) {}
+  constructor(private actions$: Actions, private http: HttpClient) {}
 
-  updateSelectedStop$ = createEffect(() =>
+  setSelectedStop$ = createEffect(() =>
     this.actions$.pipe(
       ofType(UserActions.setSelectedStop),
       mergeMap((action) =>
@@ -55,16 +52,16 @@ export class UserEffects {
                 } as DetailedStop,
               });
             }),
-            catchError((error) => of(UserActions.updateSelectedStopFailure({ error: error.message }))),
-          ),
-      ),
-    ),
+            catchError((error) => of(UserActions.updateSelectedStopFailure({ error: error.message })))
+          )
+      )
+    )
   );
 
   toggleDrawerOnSelectedStop$ = createEffect(() =>
     this.actions$.pipe(
       ofType(UserActions.setSelectedStop),
-      map(() => UserActions.toggleDrawerExpanded({ expanded: true })),
-    ),
+      map(() => UserActions.toggleDrawerExpanded({ expanded: true }))
+    )
   );
 }
