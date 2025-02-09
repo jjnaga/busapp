@@ -1,13 +1,17 @@
 // marker.service.spec.ts
 import { MarkerService } from './marker.service';
 import { Stop } from '../utils/global.types';
+import { Store } from '@ngrx/store';
+import { ToastrService } from 'ngx-toastr';
 
 describe('MarkerService', () => {
   let markerService: MarkerService;
   let fakeMap: any;
 
   beforeEach(() => {
-    markerService = new MarkerService();
+    const storeMock = {} as Store;
+    const toastrServiceMock = {} as ToastrService;
+    markerService = new MarkerService(storeMock, toastrServiceMock);
 
     fakeMap = {
       getZoom: jest.fn(() => 16),
