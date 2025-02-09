@@ -203,11 +203,13 @@ body {
 
 @layer utilities {
   .glow-neon-blue {
-    text-shadow:
-      0 0 8px #1e90ff,
-      0 0 16px #1e90ff,
-      0 0 24px #1e90ff;
+    text-shadow: 0 0 8px #1e90ff, 0 0 16px #1e90ff, 0 0 24px #1e90ff;
     --tw-text-opacity: 1;
     color: rgb(30 64 175 / var(--tw-text-opacity));
   }
+}
+
+.marker-icon-vehicle {
+  width: 24px;
+  height: auto;
 }
