@@ -1,22 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { Store } from '@ngrx/store';
-import {
-  selectDrawerExpanded,
-  selectSelectedStop,
-} from '../../../../core/state/lib/user/user.selectors';
+import { selectDrawerExpanded, selectSelectedStop } from '../../../../core/state/lib/user/user.selectors';
 import { Observable } from 'rxjs';
-import {
-  DetailedStop,
-  SelectedStop,
-  Stop,
-} from '../../../../core/utils/global.types';
-import {
-  selectAllStops,
-  selectStopsLoading,
-} from '../../../../core/state/lib/stops/stops.selectors';
+import { DetailedStop, SelectedStop, Stop } from '../../../../core/utils/global.types';
+import { selectAllStops, selectStopsLoading } from '../../../../core/state/lib/stops/stops.selectors';
 import { setSelectedStop } from '../../../../core/state/lib/user/user.actions';
-import { differenceInMinutes } from 'date-fns';
 import { DiffMinutesPipe } from '../../../../core/utils/pipes/diff-minutes.pipe';
 
 @Component({
@@ -30,7 +19,6 @@ export class StopsComponent {
   stops$: Observable<Stop[]>;
   stopsLoading$: Observable<boolean>;
   selectedStop$: Observable<SelectedStop>;
-  differenceInMinutes = differenceInMinutes;
 
   setSelectedStop(stop: Stop) {
     this.store.dispatch(setSelectedStop({ stop }));

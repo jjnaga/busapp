@@ -1,6 +1,10 @@
 import { z } from 'zod';
 import { parse } from 'date-fns';
 
+export type VehicleMap = {
+  [busNumber: string]: Vehicle;
+};
+
 export type Vehicle = {
   busNumber: string;
   tripId: string;
