@@ -12,6 +12,7 @@ import { selectAllStops } from '../../../core/state/lib/stops/stops.selectors';
 import { selectAllVehicles } from '../../../core/state/lib/vehicles/vehicles.selectors';
 import { selectUserLocation } from '../../../core/state/lib/user-location/user-location.selectors';
 import { MapLayoutService } from '../../../core/services/map-layout.service';
+import { selectSelectedStop } from '../../../core/state/lib/user/user.selectors';
 
 @Component({
   selector: 'map-component',
@@ -69,6 +70,20 @@ export class MapComponent implements OnInit, OnDestroy {
       this.markerService.updateVehicleMarkers(vehicles, this.minZoomLevel);
     });
 
+    // Subscribe to selected stop changes
+    this.store
+      .select(selectSelectedStop)
+      .pipe(filter((stop) => !!stop && stop.stopLat !== null && stop.stopLon !== null))
+      .subscribe((stop) => {
+        console.log('this works?', stop);
+        if (this.map && stop && stop.stopLat && stop.stopLon) {
+          console.log('this works?', stop);
+          const center = { lat: stop.stopLat, lng: stop.stopLon };
+          console.log('center', center);
+          this.panAndZoom(center, 17);
+        }
+      });
+
     this.userLocationSubscription = combineLatest([
       this.store
         .select(selectUserLocation)
@@ -77,7 +92,7 @@ export class MapComponent implements OnInit, OnDestroy {
     ]).subscribe(([loc]) => {
       const newCenter = { lat: loc.latitude!, lng: loc.longitude! };
 
-      if (this.map) {
+      if (this.map && !this.hasPanAndZoomed) {
         this.panAndZoom(newCenter, 17);
       } else {
         // If the map isn't ready yet, update mapOptions so it centers correctly upon initialization.
@@ -115,7 +130,7 @@ export class MapComponent implements OnInit, OnDestroy {
   }
 
   panAndZoom(newCenter: google.maps.LatLngLiteral, newZoom: number = 15): void {
-    if (!this.hasPanAndZoomed && this.map) {
+    if (this.map) {
       // Use panTo for a smooth transition; setZoom instantly changes the zoom level.
       this.map.panTo(newCenter);
       this.map.setZoom(newZoom);
