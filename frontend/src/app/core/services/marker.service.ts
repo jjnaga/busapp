@@ -13,6 +13,8 @@ export class MarkerService {
   private stopMarkers: Map<string, google.maps.marker.AdvancedMarkerElement> = new Map();
   // key is busNumber, value is the marker element.
   private vehicleMarkers: Map<string, google.maps.marker.AdvancedMarkerElement> = new Map();
+  private userMarker: google.maps.marker.AdvancedMarkerElement | null = null;
+
   constructor(private store: Store, private toastrService: ToastrService) {}
 
   init(map: google.maps.Map) {
@@ -139,11 +141,57 @@ export class MarkerService {
     this.vehicleMarkers.clear();
   }
 
-  /**
-   * Clear all markers (stops and vehicles) from the map.
-   */
+  updateUserMarker(latitude: number, longitude: number) {
+    if (!this.map) {
+      console.error('MarkerService: Map not initialized.');
+      return;
+    }
+
+    const position = new google.maps.LatLng(latitude, longitude);
+
+    if (this.userMarker) {
+      this.userMarker.position = position;
+    } else {
+      this.userMarker = new google.maps.marker.AdvancedMarkerElement({
+        map: this.map,
+        position: { lat: latitude, lng: longitude },
+        title: 'Your Location',
+        content: this.createUserMarkerContent(),
+      });
+    }
+  }
+
+  private createUserMarkerContent(): HTMLElement {
+    const div = document.createElement('div');
+
+    div.classList.add('custom-user-marker');
+    div.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="gradient" x1="32" y1="0" x2="32" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1e40af"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="rgba(30,64,175,0.2)"/>
+    </filter>
+  </defs>
+  
+  <g filter="url(#shadow)">
+    <circle cx="32" cy="32" r="24" fill="url(#gradient)"/>
+    <path fill="#fff" d="M32 22a6 6 0 1 0 0 12 6 6 0 0 0 0-12zm0 18c-6.6 0-12 4.2-12 9.4 0 2.6 2.7 4.6 6 4.6h12c3.3 0 6-2 6-4.6 0-5.2-5.4-9.4-12-9.4z"/>
+  </g>
+</svg>`;
+
+    return div;
+  }
+
   clearAllMarkers() {
     this.clearStopMarkers();
     this.clearVehicleMarkers();
+
+    if (this.userMarker) {
+      this.userMarker.remove();
+      this.userMarker = null;
+    }
   }
 }

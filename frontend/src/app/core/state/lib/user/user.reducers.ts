@@ -7,7 +7,7 @@ export interface UserState {
   drawerMode: DrawerMode;
   drawerExpanded: boolean;
   favorites: Stop[];
-  selectedStop: SelectedStop;
+  selectedStop: SelectedStop | null;
 }
 
 export const initialUserState: UserState = {
@@ -34,5 +34,5 @@ export const userReducer = createReducer(
   on(updateSelectedStop, (state, { stop }) => ({
     ...state,
     selectedStop: stop,
-  })),
+  }))
 );

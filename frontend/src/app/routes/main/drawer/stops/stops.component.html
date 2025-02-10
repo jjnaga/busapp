@@ -1,16 +1,34 @@
-<!-- Full Content (Expands on click) -->
-<div
-  [ngClass]="(drawerExpanded$ | async) ? 'overflow-scroll' : 'overflow-hidden'"
-  class="transition-all duration-300 h-[50vh]"
->
+<div [ngClass]="(drawerExpanded$ | async) ? 'overflow-scroll' : 'overflow-hidden'"
+  class="transition-all duration-300 h-[50vh]">
+
   <ng-container *ngIf="selectedStop$ | async as selectedStop; else stopsList">
+    <!-- Navigation and Close buttons -->
+    <div class="flex justify-between items-center px-4 py-2 bg-white">
+      <div class="flex space-x-2">
+        <button (click)="goToPreviousStop()" class="flex items-center justify-center px-6 py-2 text-sm font-medium
+            bg-blue-500 hover:bg-blue-600 active:bg-blue-700
+            text-white rounded-md transition-colors duration-150">
+          Previous
+        </button>
+        <button (click)="goToNextStop()" class="flex items-center justify-center px-6 py-2 text-sm font-medium
+            bg-blue-500 hover:bg-blue-600 active:bg-blue-700
+            text-white rounded-md transition-colors duration-150">
+          Next
+        </button>
+      </div>
+      <button (click)="setSelectedStop(null)" class="flex items-center justify-center w-8 h-8
+          hover:bg-gray-100 rounded-full transition-colors duration-150">
+        <span class="text-gray-600 text-xl">&times;</span>
+      </button>
+    </div>
+
     <div id="stop-details" class="px-3 py-2">
       <ng-container *ngIf="isDetailedStop(selectedStop)">
+        <!-- Rest of your existing selected stop template -->
         <p class="text-sm text-gray-500">Last Updated: {{ selectedStop.lastUpdated | date: "short" }}</p>
         <ul class="px-3 py-2">
           <li *ngFor="let arrival of selectedStop.arrivals" class="py-3 border-b">
             <h3 class="text-xl font-bold">{{ arrival.headsign }}</h3>
-
             <div class="flex items-center space-x-4">
               <span class="text-sm text-gray-700">Vehicle: {{ arrival.vehicle }}</span>
               <span class="text-sm text-gray-500">Stop Time: {{ arrival.stopTime }}</span>
@@ -18,7 +36,6 @@
             <ng-container *ngIf="arrival.arrivalDate">
               <p class="mt-1 text-md text-blue-600 font-semibold">
                 Arrives in: {{ arrival.arrivalDate | diffMinutes }} min
-                <!-- Arrives in: {{ arrival.estimated }} min -->
               </p>
             </ng-container>
           </li>
@@ -29,7 +46,7 @@
 
   <ng-template #stopsList>
     <ul class="px-3 py-2">
-      <li *ngFor="let stop of stops$ | async" class="py-2 border-b">
+      <li *ngFor="let stop of sortedStops$ | async" class="py-2 border-b">
         <button (click)="setSelectedStop(stop)" class="flex w-full text-left">
           <div class="flex-1 flex flex-col">
             <span class="text-lg">{{ stop.stopName }}</span>
