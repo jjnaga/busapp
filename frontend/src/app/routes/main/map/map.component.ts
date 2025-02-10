@@ -1,14 +1,16 @@
+// src/app/routes/main/map/map.component.ts
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { GoogleMap, GoogleMapsModule } from '@angular/google-maps';
 import { CommonModule } from '@angular/common';
 import { ToastrService } from 'ngx-toastr';
-import { Subscription, Observable, Subject, BehaviorSubject, combineLatest } from 'rxjs';
-import { filter, startWith } from 'rxjs/operators';
+import { Subscription, Subject, BehaviorSubject, combineLatest, Observable } from 'rxjs';
+import { filter, startWith, tap } from 'rxjs/operators';
 import { Stop, Vehicle, VehicleMap } from '../../../core/utils/global.types';
 import { MarkerService } from '../../../core/services/marker.service';
 import { Store } from '@ngrx/store';
 import { selectAllStops } from '../../../core/state/lib/stops/stops.selectors';
 import { selectAllVehicles } from '../../../core/state/lib/vehicles/vehicles.selectors';
+import { selectUserLocation } from '../../../core/state/lib/user-location/user-location.selectors';
 
 @Component({
   selector: 'map-component',
@@ -23,18 +25,21 @@ export class MapComponent implements OnInit, OnDestroy {
     mapId: '53da1ad002655c53',
     center: { lat: 21.3069, lng: -157.8583 },
     zoom: 12,
-    gestureHandling: 'greedy', // This forces one-finger pan
-    zoomControl: true, // Optional: show zoom controls
-    mapTypeControl: false, // Optional: hide map type control
-    streetViewControl: false, // Optional: hide street view control
+    gestureHandling: 'greedy',
+    zoomControl: true,
+    mapTypeControl: false,
+    streetViewControl: false,
   };
+
   stops$: Observable<Stop[]> = this.store.select(selectAllStops);
   vehicles$: Observable<VehicleMap> = this.store.select(selectAllVehicles);
 
+  private hasPanAndZoomed = false;
   private mapEvents$ = new Subject<void>();
   private mapReady$ = new BehaviorSubject<google.maps.Map | null>(null);
   stopsAndMapEventsSubscription!: Subscription;
   vehiclesSubscription!: Subscription;
+  userLocationSubscription!: Subscription;
 
   constructor(private markerService: MarkerService, private toastrService: ToastrService, private store: Store) {}
 
@@ -57,6 +62,25 @@ export class MapComponent implements OnInit, OnDestroy {
       // Map is guaranteed to be available here.
       this.markerService.updateVehicleMarkers(vehicles, this.minZoomLevel);
     });
+
+    this.userLocationSubscription = combineLatest([
+      this.store
+        .select(selectUserLocation)
+        .pipe(filter((loc) => loc && loc.latitude !== null && loc.longitude !== null)),
+      this.mapReady$.pipe(filter((map) => map !== null)),
+    ]).subscribe(([loc]) => {
+      const newCenter = { lat: loc.latitude!, lng: loc.longitude! };
+
+      if (this.map) {
+        this.panAndZoom(newCenter, 17);
+      } else {
+        // If the map isn't ready yet, update mapOptions so it centers correctly upon initialization.
+        this.mapOptions.center = newCenter;
+      }
+
+      // Update or create the user marker on the map.
+      this.markerService.updateUserMarker(loc.latitude!, loc.longitude!);
+    });
   }
 
   onMapReady(map: google.maps.Map) {
@@ -72,19 +96,24 @@ export class MapComponent implements OnInit, OnDestroy {
     map.addListener('zoom_changed', () => this.mapEvents$.next());
   }
 
-  // Dummy function to simulate fetching updated vehicle data.
-  fetchUpdatedVehicles(): Vehicle[] {
-    // Return your updated vehicle data here.
-    return [];
+  panAndZoom(newCenter: google.maps.LatLngLiteral, newZoom: number = 15): void {
+    if (!this.hasPanAndZoomed && this.map) {
+      // Use panTo for a smooth transition; setZoom instantly changes the zoom level.
+      this.map.panTo(newCenter);
+      this.map.setZoom(newZoom);
+      this.hasPanAndZoomed = true;
+    }
   }
 
   ngOnDestroy() {
     if (this.stopsAndMapEventsSubscription) {
       this.stopsAndMapEventsSubscription.unsubscribe();
     }
+
     if (this.vehiclesSubscription) {
       this.vehiclesSubscription.unsubscribe();
     }
+
     this.markerService.clearAllMarkers();
   }
 }
