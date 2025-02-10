@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { combineLatest, filter, Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, startWith } from 'rxjs/operators';
 import { DetailedStop, SelectedStop, Stop } from '../../../../core/utils/global.types';
 import { selectAllStops, selectStopsLoading } from '../../../../core/state/lib/stops/stops.selectors';
 import { selectDrawerExpanded, selectSelectedStop } from '../../../../core/state/lib/user/user.selectors';
@@ -36,11 +36,16 @@ export class StopsComponent implements OnInit {
   }
 
   ngOnInit() {
+    const defaultLocation = { latitude: 21.3069, longitude: -157.8583 };
+
     // Build the sortedStops$ observable by combining user location and stops
     this.sortedStops$ = combineLatest([
-      this.store
-        .select(selectUserLocation)
-        .pipe(filter((loc) => !!loc && loc.latitude !== null && loc.longitude !== null)),
+      this.store.select(selectUserLocation).pipe(
+        // Start with a default location so combineLatest always gets a value.
+        startWith(defaultLocation),
+        // Filter remains in case the default somehow becomes null (not likely)
+        filter((loc) => !!loc && loc.latitude !== null && loc.longitude !== null)
+      ),
       this.stops$,
     ]).pipe(
       map(([userLoc, stops]) => {
