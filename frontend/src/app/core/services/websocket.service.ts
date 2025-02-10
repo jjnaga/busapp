@@ -5,6 +5,7 @@ import { environment } from '../../../environments/environment';
 import { ToastrService } from 'ngx-toastr';
 import { websocketConnected, websocketDisconnected } from '../state/lib/websocket/websocket.actions';
 import { Store } from '@ngrx/store';
+import { getBaseUrl } from '../utils/utils';
 
 class CustomWebSocketSubject<T> extends WebSocketSubject<T> {
   public socket: WebSocket | null = null;
@@ -42,18 +43,10 @@ export class WebsocketService {
     this.isConnecting = true;
 
     try {
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      let host = window.location.host;
-
       // Reset connectSubscription if connect() is reran.
       this.connectSubscription?.unsubscribe();
 
-      // find me a better way
-      if (!environment.production) {
-        host = 'localhost:3000';
-      }
-
-      const url = `${protocol}//${host}/ws`;
+      const url = `${getBaseUrl(this.toastr, window.location.protocol === 'https:' ? 'wss:' : 'ws:')}/ws`;
 
       this.socket$ = new CustomWebSocketSubject({
         url: url,
