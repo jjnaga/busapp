@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { catchError, map, mergeMap, of } from 'rxjs';
+import { catchError, filter, map, mergeMap, of } from 'rxjs';
 import { DetailedStop, Stop, StopApiResponse, StopApiResponseSchema } from '../../../utils/global.types';
 import { HttpClient } from '@angular/common/http';
 import { getBaseUrl } from '../../../utils/utils';
@@ -17,11 +17,12 @@ export class UserEffects {
   setSelectedStop$ = createEffect(() =>
     this.actions$.pipe(
       ofType(UserActions.setSelectedStop),
+      filter((action) => action.stop !== null),
       mergeMap((action) =>
         this.http
           .get<{
             data: StopApiResponse;
-          }>(this.selectedStopLink(action.stop.stopCode))
+          }>(this.selectedStopLink(action.stop!.stopCode))
           .pipe(
             map((response) => {
               const parseResult = StopApiResponseSchema.safeParse(response.data);
@@ -42,7 +43,6 @@ export class UserEffects {
                 arrivals: parseResult.data.arrivals,
                 lastUpdated: parseResult.data.timestamp,
               } as DetailedStop;
-              console.log('huh??', stop);
 
               return UserActions.updateSelectedStop({
                 stop: {
@@ -61,7 +61,13 @@ export class UserEffects {
   toggleDrawerOnSelectedStop$ = createEffect(() =>
     this.actions$.pipe(
       ofType(UserActions.setSelectedStop),
-      map(() => UserActions.toggleDrawerExpanded({ expanded: true }))
+      map(({ stop }) => {
+        if (stop) {
+          return UserActions.toggleDrawerExpanded({ expanded: true });
+        } else {
+          return UserActions.toggleDrawerExpanded({ expanded: false });
+        }
+      })
     )
   );
 }
