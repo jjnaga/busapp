@@ -5,7 +5,7 @@ import { DrawerMode, Stop } from '../../../utils/global.types';
 export const setDrawerMode = createAction('[User] Set Drawer Mode', props<{ drawerMode: DrawerMode }>());
 
 // Set the selected stop
-export const setSelectedStop = createAction('[User] Set Selected Stop', props<{ stop: Stop }>());
+export const setSelectedStop = createAction('[User] Set Selected Stop', props<{ stop: Stop | null }>());
 
 // Update the selected stop
 export const updateSelectedStop = createAction('[User] Update Selected Stop', props<{ stop: Stop }>());
@@ -13,7 +13,7 @@ export const updateSelectedStop = createAction('[User] Update Selected Stop', pr
 // we're not using this tbh
 export const updateSelectedStopFailure = createAction(
   '[User] Update Selected Stop Failure',
-  props<{ error: string }>(),
+  props<{ error: string }>()
 );
 
 // can pick or just flip if no props are passed

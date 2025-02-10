@@ -1,7 +1,6 @@
-<div
+<div #drawerContainer
   class="absolute bottom-0 left-0 w-full bg-white border-t shadow-lg transition-transform duration-200"
-  [ngClass]="(drawerExpanded$ | async) ? 'translate-y-0' : 'translate-y-[60%]'"
->
+  [ngClass]="(drawerExpanded$ | async) ? 'translate-y-0' : 'translate-y-[60%]'">
   <!-- Peeking area (Collapsed State) -->
   <div class="p-3 flex justify-between items-center cursor-pointer" (click)="toggleDrawer()">
     <ng-container *ngIf="drawerMode$ | async as mode">

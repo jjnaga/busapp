@@ -213,3 +213,44 @@ body {
   width: 24px;
   height: auto;
 }
+
+.user-marker-icon {
+  width: 100px;
+  height: auto;
+}
+
+.full-height {
+  height: 100vh; /* Fallback for older browsers */
+}
+
+@supports (height: 100dvh) {
+  .full-height {
+    height: 100dvh; /* Dynamic viewport height for iOS */
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.custom-user-marker {
+  width: 75px;
+  height: auto;
+}
+
+.custom-user-marker svg {
+  animation: pulse 2s infinite;
+  transition: filter 0.3s ease;
+}
+
+.custom-user-marker:hover svg {
+  filter: brightness(1.1);
+}
