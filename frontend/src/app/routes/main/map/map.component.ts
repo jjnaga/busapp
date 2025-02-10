@@ -23,6 +23,10 @@ export class MapComponent implements OnInit, OnDestroy {
     mapId: '53da1ad002655c53',
     center: { lat: 21.3069, lng: -157.8583 },
     zoom: 12,
+    gestureHandling: 'greedy', // This forces one-finger pan
+    zoomControl: true, // Optional: show zoom controls
+    mapTypeControl: false, // Optional: hide map type control
+    streetViewControl: false, // Optional: hide street view control
   };
   stops$: Observable<Stop[]> = this.store.select(selectAllStops);
   vehicles$: Observable<VehicleMap> = this.store.select(selectAllVehicles);
