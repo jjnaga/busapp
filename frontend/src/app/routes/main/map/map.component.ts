@@ -11,6 +11,7 @@ import { Store } from '@ngrx/store';
 import { selectAllStops } from '../../../core/state/lib/stops/stops.selectors';
 import { selectAllVehicles } from '../../../core/state/lib/vehicles/vehicles.selectors';
 import { selectUserLocation } from '../../../core/state/lib/user-location/user-location.selectors';
+import { MapLayoutService } from '../../../core/services/map-layout.service';
 
 @Component({
   selector: 'map-component',
@@ -41,7 +42,12 @@ export class MapComponent implements OnInit, OnDestroy {
   vehiclesSubscription!: Subscription;
   userLocationSubscription!: Subscription;
 
-  constructor(private markerService: MarkerService, private toastrService: ToastrService, private store: Store) {}
+  constructor(
+    private markerService: MarkerService,
+    private toastrService: ToastrService,
+    private store: Store,
+    private mapLayoutService: MapLayoutService
+  ) {}
 
   ngOnInit() {
     // Stops subscription: updates on stops or map events.
@@ -81,6 +87,18 @@ export class MapComponent implements OnInit, OnDestroy {
       // Update or create the user marker on the map.
       this.markerService.updateUserMarker(loc.latitude!, loc.longitude!);
     });
+
+    this.mapLayoutService.visibleDrawerHeight$.subscribe((height) => {
+      this.adjustMapHeight(height);
+    });
+  }
+  private adjustMapHeight(drawerVisibleHeight: number) {
+    if (this.map) {
+      const viewportHeight = window.innerHeight;
+      const mapHeight = viewportHeight - drawerVisibleHeight;
+      const mapElement = this.map.getDiv();
+      mapElement.style.height = `${mapHeight}px`;
+    }
   }
 
   onMapReady(map: google.maps.Map) {
