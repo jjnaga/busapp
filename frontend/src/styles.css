@@ -213,3 +213,13 @@ body {
   width: 24px;
   height: auto;
 }
+
+.full-height {
+  height: 100vh; /* Fallback for older browsers */
+}
+
+@supports (height: 100dvh) {
+  .full-height {
+    height: 100dvh; /* Dynamic viewport height for iOS */
+  }
+}
