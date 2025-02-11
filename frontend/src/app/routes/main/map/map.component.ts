@@ -4,7 +4,7 @@ import { GoogleMap, GoogleMapsModule } from '@angular/google-maps';
 import { CommonModule } from '@angular/common';
 import { ToastrService } from 'ngx-toastr';
 import { Subscription, Subject, BehaviorSubject, combineLatest, Observable } from 'rxjs';
-import { filter, startWith, tap } from 'rxjs/operators';
+import { filter, startWith, take, tap } from 'rxjs/operators';
 import { Stop, Vehicle, VehicleMap } from '../../../core/utils/global.types';
 import { MarkerService } from '../../../core/services/marker.service';
 import { Store } from '@ngrx/store';
@@ -13,6 +13,7 @@ import { selectAllVehicles } from '../../../core/state/lib/vehicles/vehicles.sel
 import { selectUserLocation } from '../../../core/state/lib/user-location/user-location.selectors';
 import { MapLayoutService } from '../../../core/services/map-layout.service';
 import { selectSelectedStop } from '../../../core/state/lib/user/user.selectors';
+import { GoogleMapsLoaderService } from '../../../core/services/google-maps-loader.service';
 
 @Component({
   selector: 'map-component',
@@ -38,7 +39,10 @@ export class MapComponent implements OnInit, OnDestroy {
 
   private hasPanAndZoomed = false;
   private mapEvents$ = new Subject<void>();
-  private mapReady$ = new BehaviorSubject<google.maps.Map | null>(null);
+  private apiLoadedSubscription!: Subscription;
+
+  mapsLoaded$ = this.googleMapsLoader.mapsLoaded$;
+  mapReady$ = new BehaviorSubject<google.maps.Map | null>(null);
   stopsAndMapEventsSubscription!: Subscription;
   vehiclesSubscription!: Subscription;
   userLocationSubscription!: Subscription;
@@ -47,66 +51,78 @@ export class MapComponent implements OnInit, OnDestroy {
     private markerService: MarkerService,
     private toastrService: ToastrService,
     private store: Store,
-    private mapLayoutService: MapLayoutService
+    private mapLayoutService: MapLayoutService,
+    private googleMapsLoader: GoogleMapsLoaderService // Inject the loader service
   ) {}
 
-  ngOnInit() {
-    // Stops subscription: updates on stops or map events.
-    this.stopsAndMapEventsSubscription = combineLatest([
-      this.stops$,
-      this.mapEvents$.pipe(startWith(void 0)),
-    ]).subscribe(([stops]) => {
-      if (this.map) {
-        this.markerService.updateStopMarkers(stops, this.minZoomLevel);
-      }
-    });
+  ngOnInit(): void {
+    this.initMapSubscriptions();
+  }
 
-    // Vehicles subscription: only update when the map is ready.
-    this.vehiclesSubscription = combineLatest([
-      this.vehicles$,
-      this.mapReady$.pipe(filter((map) => map !== null)),
-    ]).subscribe(([vehicles]) => {
-      // Map is guaranteed to be available here.
-      this.markerService.updateVehicleMarkers(vehicles, this.minZoomLevel);
-    });
-
-    // Subscribe to selected stop changes
-    this.store
-      .select(selectSelectedStop)
-      .pipe(filter((stop) => !!stop && stop.stopLat !== null && stop.stopLon !== null))
-      .subscribe((stop) => {
-        console.log('this works?', stop);
-        if (this.map && stop && stop.stopLat && stop.stopLon) {
-          console.log('this works?', stop);
-          const center = { lat: stop.stopLat, lng: stop.stopLon };
-          console.log('center', center);
-          this.panAndZoom(center, 17);
+  private initMapSubscriptions() {
+    combineLatest([
+      this.mapsLoaded$.pipe(
+        filter((loaded) => loaded),
+        take(1)
+      ),
+      this.mapReady$.pipe(
+        filter((map) => map !== null),
+        take(1)
+      ),
+    ]).subscribe(() => {
+      // Stops subscription: updates on stops or map events.
+      this.stopsAndMapEventsSubscription = combineLatest([
+        this.stops$,
+        this.mapEvents$.pipe(startWith(void 0)),
+      ]).subscribe(([stops]) => {
+        if (this.map) {
+          this.markerService.updateStopMarkers(stops, this.minZoomLevel);
         }
       });
 
-    this.userLocationSubscription = combineLatest([
+      // Vehicles subscription: only update when the map is ready.
+      this.vehiclesSubscription = combineLatest([
+        this.vehicles$,
+        this.mapReady$.pipe(filter((map) => map !== null)),
+      ]).subscribe(([vehicles]) => {
+        this.markerService.updateVehicleMarkers(vehicles, this.minZoomLevel);
+      });
+
+      // Subscribe to selected stop changes
       this.store
-        .select(selectUserLocation)
-        .pipe(filter((loc) => loc && loc.latitude !== null && loc.longitude !== null)),
-      this.mapReady$.pipe(filter((map) => map !== null)),
-    ]).subscribe(([loc]) => {
-      const newCenter = { lat: loc.latitude!, lng: loc.longitude! };
+        .select(selectSelectedStop)
+        .pipe(filter((stop) => !!stop && stop.stopLat !== null && stop.stopLon !== null))
+        .subscribe((stop) => {
+          if (this.map && stop && stop.stopLat && stop.stopLon) {
+            const center = { lat: stop.stopLat, lng: stop.stopLon };
+            this.panAndZoom(center, 17);
+          }
+        });
 
-      if (this.map && !this.hasPanAndZoomed) {
-        this.panAndZoom(newCenter, 17);
-      } else {
-        // If the map isn't ready yet, update mapOptions so it centers correctly upon initialization.
-        this.mapOptions.center = newCenter;
-      }
+      // Handle user location
+      this.userLocationSubscription = combineLatest([
+        this.store
+          .select(selectUserLocation)
+          .pipe(filter((loc) => loc && loc.latitude !== null && loc.longitude !== null)),
+        this.mapReady$.pipe(filter((map) => map !== null)),
+      ]).subscribe(([loc]) => {
+        const newCenter = { lat: loc.latitude!, lng: loc.longitude! };
 
-      // Update or create the user marker on the map.
-      this.markerService.updateUserMarker(loc.latitude!, loc.longitude!);
-    });
+        if (this.map && !this.hasPanAndZoomed) {
+          this.panAndZoom(newCenter, 17);
+        } else {
+          this.mapOptions.center = newCenter;
+        }
 
-    this.mapLayoutService.visibleDrawerHeight$.subscribe((height) => {
-      this.adjustMapHeight(height);
+        this.markerService.updateUserMarker(loc.latitude!, loc.longitude!);
+      });
+
+      this.mapLayoutService.visibleDrawerHeight$.subscribe((height) => {
+        this.adjustMapHeight(height);
+      });
     });
   }
+
   private adjustMapHeight(drawerVisibleHeight: number) {
     if (this.map) {
       const viewportHeight = window.innerHeight;
@@ -116,22 +132,19 @@ export class MapComponent implements OnInit, OnDestroy {
     }
   }
 
-  onMapReady(map: google.maps.Map) {
+  onMapReady(event: google.maps.Map | Event) {
+    const map = event as google.maps.Map;
     this.map = map;
     this.map.setOptions(this.mapOptions);
     this.markerService.init(map);
-
-    // Emit the map once it's ready.
     this.mapReady$.next(map);
 
-    // When the map is idle or zoom changes, emit an event.
     map.addListener('idle', () => this.mapEvents$.next());
     map.addListener('zoom_changed', () => this.mapEvents$.next());
   }
 
   panAndZoom(newCenter: google.maps.LatLngLiteral, newZoom: number = 15): void {
     if (this.map) {
-      // Use panTo for a smooth transition; setZoom instantly changes the zoom level.
       this.map.panTo(newCenter);
       this.map.setZoom(newZoom);
       this.hasPanAndZoomed = true;
@@ -139,14 +152,10 @@ export class MapComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    if (this.stopsAndMapEventsSubscription) {
-      this.stopsAndMapEventsSubscription.unsubscribe();
-    }
-
-    if (this.vehiclesSubscription) {
-      this.vehiclesSubscription.unsubscribe();
-    }
-
+    this.apiLoadedSubscription?.unsubscribe();
+    this.stopsAndMapEventsSubscription?.unsubscribe();
+    this.vehiclesSubscription?.unsubscribe();
+    this.userLocationSubscription?.unsubscribe();
     this.markerService.clearAllMarkers();
   }
 }
