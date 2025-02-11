@@ -1,8 +1,6 @@
-import { inject } from '@angular/core';
 import { environment } from '../../../environments/environment';
-import { ToastrService } from 'ngx-toastr';
 
-export function getBaseUrl(toastr?: ToastrService, protocol?: string): string {
+export function getBaseUrl(protocol?: string): string {
   let domain = window.location.hostname;
   let url = '';
 
@@ -14,10 +12,6 @@ export function getBaseUrl(toastr?: ToastrService, protocol?: string): string {
 
   if (!environment.production) {
     url += `:3000`;
-  }
-
-  if (toastr) {
-    toastr.success(url);
   }
 
   return url;
