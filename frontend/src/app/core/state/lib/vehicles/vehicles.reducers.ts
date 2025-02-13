@@ -1,43 +1,28 @@
 import { createReducer, on } from '@ngrx/store';
-import { Vehicle, VehicleMap } from '../../../utils/global.types';
+import { Vehicle } from '../../../utils/global.types';
 import { loadVehiclesFailure, loadVehiclesSuccess, updateVehicles } from './vehicles.actions';
+import { createEntityAdapter, EntityState } from '@ngrx/entity';
 
-export interface VehiclesState {
-  vehicles: VehicleMap;
+// Create entity adapter
+export const vehicleAdapter = createEntityAdapter<Vehicle>({
+  selectId: (vehicle) => vehicle.busNumber,
+  sortComparer: false,
+});
+
+export interface VehiclesState extends EntityState<Vehicle> {
   loading: boolean;
 }
 
-export const initialVehicleState: VehiclesState = {
-  vehicles: {},
+export const initialVehicleState: VehiclesState = vehicleAdapter.getInitialState({
   loading: true,
-};
+});
 
 export const vehiclesReducer = createReducer(
   initialVehicleState,
-  on(loadVehiclesSuccess, (state, { vehicles }) => ({
-    ...state,
-    vehicles: vehicles.reduce((map, vehicle) => {
-      map[vehicle.busNumber] = vehicle;
-      return map;
-    }, {} as { [busNumber: string]: Vehicle }),
-    loading: false,
-  })),
+  on(loadVehiclesSuccess, (state, { vehicles }) => vehicleAdapter.setAll(vehicles, { ...state, loading: false })),
   on(loadVehiclesFailure, (state) => ({
     ...state,
     loading: false,
   })),
-  on(updateVehicles, (state, { vehicles }) => {
-    const updatedVehicles = vehicles.reduce(
-      (map, vehicle) => {
-        map[vehicle.busNumber] = vehicle;
-        return map;
-      },
-      { ...state.vehicles }
-    );
-
-    return {
-      ...state,
-      vehicles: updatedVehicles,
-    };
-  })
+  on(updateVehicles, (state, { vehicles }) => vehicleAdapter.upsertMany(vehicles, state))
 );
