@@ -1,3 +1,3 @@
-<div class="w-full h-full bg-gray-300">
-  <google-map width="100%" [options]="mapOptions" (mapInitialized)="onMapReady($event)"></google-map>
-</div>
+<ng-container *ngIf="(mapsLoaded$ | async)">
+  <google-map width="100dvw" [options]="mapOptions" (mapInitialized)="onMapReady($event)"></google-map>
+</ng-container>

@@ -1,5 +1,5 @@
-// vehicles.reducers.spec.ts (augmented)
-import { vehiclesReducer, initialVehicleState } from './vehicles.reducers';
+// vehicles.reducers.spec.ts (updated)
+import { vehiclesReducer, VehiclesState } from './vehicles.reducers';
 import { updateVehicles } from './vehicles.actions';
 import { Vehicle } from '../../../utils/global.types';
 
@@ -17,9 +17,10 @@ describe('Vehicles Reducer', () => {
   };
 
   test('should only update existing vehicles without removing others', () => {
-    // Initial state with two vehicles
-    const initialState = {
-      vehicles: {
+    // Create an initial state using the entity shape
+    const initialState: VehiclesState = {
+      ids: ['100', '200'],
+      entities: {
         '100': initialVehicle,
         '200': { ...initialVehicle, busNumber: '200' },
       },
@@ -37,19 +38,20 @@ describe('Vehicles Reducer', () => {
     const state = vehiclesReducer(initialState, action);
 
     // Assert that vehicle '100' is updated as expected
-    expect(state.vehicles['100'].latitude).toBe(20);
-    expect(state.vehicles['100'].longitude).toBe(20);
+    expect(state.entities['100']!.latitude).toBe(20);
+    expect(state.entities['100']!.longitude).toBe(20);
 
-    // Assert that vehicle '200' remains unchanged (i.e., no goofy accidental modifications)
-    expect(state.vehicles['200']).toEqual(initialState.vehicles['200']);
+    // Assert that vehicle '200' remains unchanged (no goofy accidental modifications)
+    expect(state.entities['200']).toEqual(initialState.entities['200']);
 
     // Also, confirm that no extra vehicles were removed or added
-    expect(Object.keys(state.vehicles)).toHaveLength(Object.keys(initialState.vehicles).length);
+    expect(state.ids).toHaveLength(initialState.ids.length);
   });
 
   test('should handle empty updates without modifying state', () => {
-    const initialState = {
-      vehicles: { '100': initialVehicle },
+    const initialState: VehiclesState = {
+      ids: ['100'],
+      entities: { '100': initialVehicle },
       loading: false,
     };
 

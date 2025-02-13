@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { combineLatest, map, Observable, timer } from 'rxjs';
 import { DrawerMode, SelectedStop, Stop } from '../../../core/utils/global.types';
 import { select, Store } from '@ngrx/store';
@@ -12,7 +12,7 @@ import {
 } from '../../../core/state/lib/user/user.selectors';
 import { toggleDrawerExpanded } from '../../../core/state/lib/user/user.actions';
 import { MapLayoutService } from '../../../core/services/map-layout.service';
-import { StopsComponent } from './stops/stops.components';
+import { StopsComponent } from './stops/stops.component';
 import { FvoritesComponent } from './favorites/favorites.components';
 import { getVisibleHeight } from '../../../core/utils/utils';
 

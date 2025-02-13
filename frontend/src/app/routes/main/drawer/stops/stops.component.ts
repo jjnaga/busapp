@@ -4,7 +4,11 @@ import { Store } from '@ngrx/store';
 import { combineLatest, filter, Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 import { DetailedStop, SelectedStop, Stop } from '../../../../core/utils/global.types';
-import { selectAllStops, selectStopsLoading } from '../../../../core/state/lib/stops/stops.selectors';
+import {
+  selectAllStops,
+  selectAllStopsSortedByDistance,
+  selectStopsLoading,
+} from '../../../../core/state/lib/stops/stops.selectors';
 import { selectDrawerExpanded, selectSelectedStop } from '../../../../core/state/lib/user/user.selectors';
 import { setSelectedStop } from '../../../../core/state/lib/user/user.actions';
 import { DiffMinutesPipe } from '../../../../core/utils/pipes/diff-minutes.pipe';
@@ -33,33 +37,10 @@ export class StopsComponent implements OnInit {
     this.stops$ = this.store.select(selectAllStops);
     this.stopsLoading$ = this.store.select(selectStopsLoading);
     this.selectedStop$ = this.store.select(selectSelectedStop);
+    this.sortedStops$ = this.store.select(selectAllStopsSortedByDistance);
   }
 
   ngOnInit() {
-    const defaultLocation = { latitude: 21.3069, longitude: -157.8583 };
-
-    // Build the sortedStops$ observable by combining user location and stops
-    this.sortedStops$ = combineLatest([
-      this.store.select(selectUserLocation).pipe(
-        // Start with a default location so combineLatest always gets a value.
-        startWith(defaultLocation),
-        // Filter remains in case the default somehow becomes null (not likely)
-        filter((loc) => !!loc && loc.latitude !== null && loc.longitude !== null)
-      ),
-      this.stops$,
-    ]).pipe(
-      map(([userLoc, stops]) => {
-        return stops
-          .filter((stop) => stop.stopLat !== null && stop.stopLon !== null)
-          .slice() // create a copy
-          .sort((a, b) => {
-            const distA = this.calcDistance(userLoc.latitude!, userLoc.longitude!, a.stopLat!, a.stopLon!);
-            const distB = this.calcDistance(userLoc.latitude!, userLoc.longitude!, b.stopLat!, b.stopLon!);
-            return distA - distB;
-          });
-      })
-    );
-
     // Subscribe to update stopsArray for navigation (if needed)
     this.sortedStops$.subscribe((sortedStops) => {
       this.stopsArray = sortedStops;
@@ -83,19 +64,6 @@ export class StopsComponent implements OnInit {
   // Type guard for DetailedStop
   isDetailedStop(stop: SelectedStop): stop is DetailedStop {
     return stop !== null && 'lastUpdated' in stop;
-  }
-
-  // Haversine formula to compute distance (in meters)
-  private calcDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-    const R = 6371e3; // Earth's radius in meters
-    const toRad = (deg: number) => (deg * Math.PI) / 180;
-    const dLat = toRad(lat2 - lat1);
-    const dLon = toRad(lon2 - lon1);
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
   }
 
   goToNextStop() {
