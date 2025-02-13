@@ -9,11 +9,12 @@ import { Stop, Vehicle, VehicleMap } from '../../../core/utils/global.types';
 import { MarkerService } from '../../../core/services/marker.service';
 import { Store } from '@ngrx/store';
 import { selectAllStops } from '../../../core/state/lib/stops/stops.selectors';
-import { selectAllVehicles } from '../../../core/state/lib/vehicles/vehicles.selectors';
+import { selectAllVehicles, selectVehicleEntities } from '../../../core/state/lib/vehicles/vehicles.selectors';
 import { selectUserLocation } from '../../../core/state/lib/user-location/user-location.selectors';
 import { MapLayoutService } from '../../../core/services/map-layout.service';
 import { selectSelectedStop } from '../../../core/state/lib/user/user.selectors';
 import { GoogleMapsLoaderService } from '../../../core/services/google-maps-loader.service';
+import { Dictionary } from '@ngrx/entity';
 
 @Component({
   selector: 'map-component',
@@ -35,7 +36,7 @@ export class MapComponent implements OnInit, OnDestroy {
   };
 
   stops$: Observable<Stop[]> = this.store.select(selectAllStops);
-  vehicles$: Observable<VehicleMap> = this.store.select(selectAllVehicles);
+  vehicles$: Observable<Dictionary<Vehicle>> = this.store.select(selectVehicleEntities);
 
   private hasPanAndZoomed = false;
   private mapEvents$ = new Subject<void>();

@@ -3,6 +3,7 @@ import { Stop, Vehicle, VehicleMap } from '../utils/global.types';
 import { Store } from '@ngrx/store';
 import { setSelectedStop } from '../state/lib/user/user.actions';
 import { ToastrService } from 'ngx-toastr';
+import { Dictionary } from '@ngrx/entity';
 
 @Injectable({
   providedIn: 'root',
@@ -86,7 +87,7 @@ export class MarkerService {
     this.stopMarkers.clear();
   }
 
-  updateVehicleMarkers(vehicles: VehicleMap, minZoomLevel: number) {
+  updateVehicleMarkers(vehicles: Dictionary<Vehicle>, minZoomLevel: number) {
     if (!this.map) {
       console.error('MarkerService: Map not initialized.');
       this.toastrService.error('Map not initialized.');
@@ -95,6 +96,8 @@ export class MarkerService {
 
     // Update existing markers and add new ones
     Object.entries(vehicles).forEach(([busNumber, vehicle]) => {
+      if (!vehicle) return;
+
       const position = new google.maps.LatLng(vehicle.latitude, vehicle.longitude);
 
       let marker = this.vehicleMarkers.get(busNumber);
