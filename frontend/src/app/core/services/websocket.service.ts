@@ -46,7 +46,7 @@ export class WebsocketService {
       // Reset connectSubscription if connect() is reran.
       this.connectSubscription?.unsubscribe();
 
-      const url = `${getBaseUrl(this.toastr, window.location.protocol === 'https:' ? 'wss:' : 'ws:')}/ws`;
+      const url = `${getBaseUrl(window.location.protocol === 'https:' ? 'wss:' : 'ws:')}/ws`;
 
       this.socket$ = new CustomWebSocketSubject({
         url: url,

@@ -1,10 +1,9 @@
-import { createFeatureSelector, createSelector } from '@ngrx/store';
-import { VehiclesState } from './vehicles.reducers';
+import { createFeatureSelector } from '@ngrx/store';
+import { vehicleAdapter, VehiclesState } from './vehicles.reducers';
 
 export const selectVehiclesState = createFeatureSelector<VehiclesState>('vehicles');
 
-export const selectAllVehicles = createSelector(selectVehiclesState, (state: VehiclesState) => state.vehicles);
+export const { selectAll: selectAllVehicles, selectEntities: selectVehicleEntities } =
+  vehicleAdapter.getSelectors(selectVehiclesState);
 
-export const selectVehiclesLoading = createSelector(selectVehiclesState, (state: VehiclesState) => {
-  return state.loading;
-});
+export const selectVehiclesLoading = (state: VehiclesState) => state.loading;
