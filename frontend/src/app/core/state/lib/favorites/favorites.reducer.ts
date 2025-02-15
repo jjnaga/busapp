@@ -13,8 +13,9 @@ export const initialState: FavoritesState = adapter.getInitialState();
 
 export const favoritesReducer = createReducer(
   initialState,
-  on(FavoritesActions.addFavorite, (state, { stop }) => adapter.addOne(stop, state)),
-  on(FavoritesActions.removeFavorite, (state, { stopId }) => adapter.removeOne(stopId, state))
+  on(FavoritesActions.toggleFavoriteAction, (state, { stop }) => {
+    return state.entities[stop.stopId] ? adapter.removeOne(stop.stopId, state) : adapter.addOne(stop, state);
+  })
 );
 
 // Export selectors from the adapter.

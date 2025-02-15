@@ -1,7 +1,7 @@
 // websocket.effects.spec.ts
 import { TestBed } from '@angular/core/testing';
 import { provideMockActions } from '@ngrx/effects/testing';
-import { Observable, of } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { WebsocketEffects } from './websocket.effects';
 import * as WebsocketActions from './websocket.actions';
 import * as VehiclesActions from '../vehicles/vehicles.actions';
@@ -84,6 +84,16 @@ describe('WebsocketEffects', () => {
       effects.vehiclesUpdateMessageReceived$.subscribe((action) => {
         expect(action).toEqual(VehiclesActions.updateVehicles({ vehicles: [mockVehicle] }));
       });
+    });
+  });
+
+  test('should handle websocket error', () => {
+    const error = new Error('Test error');
+    websocketService.getMessages.mockReturnValue(throwError(() => error));
+    actions$ = of(WebsocketActions.websocketConnected());
+
+    effects.listenForMessages$.subscribe((action) => {
+      expect(action).toEqual(WebsocketActions.websocketError({ error }));
     });
   });
 });
