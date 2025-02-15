@@ -13,6 +13,7 @@ import { setSelectedStop } from '../../../../core/state/lib/user/user.actions';
 import { DiffMinutesPipe } from '../../../../core/utils/pipes/diff-minutes.pipe';
 import { selectAllFavorites, selectIsFavorite } from '../../../../core/state/lib/favorites/favorites.selectors';
 import { toggleFavoriteAction } from '../../../../core/state/lib/favorites/favorites.actions';
+import { selectIsMobile } from '../../../../core/state/lib/layout/layout.selectors';
 
 @Component({
   selector: 'drawer-stops',
@@ -28,6 +29,9 @@ export class StopsComponent implements OnInit {
   selectedStop$: Observable<SelectedStop> = this.store.select(selectSelectedStop);
   favorites$: Observable<Stop[]> = this.store.select(selectAllFavorites);
   sortedStops$: Observable<Stop[]> = this.store.select(selectAllStopsSortedByDistance);
+  // New: track if we're on mobile
+  isMobile$ = this.store.select(selectIsMobile);
+
   // local variables
   isFavorite$?: Observable<boolean>;
   stopsArray: Stop[] = [];
@@ -59,7 +63,6 @@ export class StopsComponent implements OnInit {
       console.error('toggleFavorites: stop is undefined');
       return;
     }
-
     this.store.dispatch(toggleFavoriteAction({ stop }));
   }
 

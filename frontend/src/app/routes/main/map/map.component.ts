@@ -1,20 +1,19 @@
-// src/app/routes/main/map/map.component.ts
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { GoogleMap, GoogleMapsModule } from '@angular/google-maps';
 import { CommonModule } from '@angular/common';
-import { ToastrService } from 'ngx-toastr';
-import { Subscription, Subject, BehaviorSubject, combineLatest, Observable } from 'rxjs';
-import { filter, startWith, take, tap } from 'rxjs/operators';
-import { Stop, Vehicle, VehicleMap } from '../../../core/utils/global.types';
+import { Subscription, Subject, BehaviorSubject, combineLatest, Observable, fromEvent } from 'rxjs';
+import { debounceTime, filter, startWith, take } from 'rxjs/operators';
+import { Stop, Vehicle } from '../../../core/utils/global.types';
 import { MarkerService } from '../../../core/services/marker.service';
 import { Store } from '@ngrx/store';
 import { selectAllStops } from '../../../core/state/lib/stops/stops.selectors';
-import { selectAllVehicles, selectVehicleEntities } from '../../../core/state/lib/vehicles/vehicles.selectors';
+import { selectVehicleEntities } from '../../../core/state/lib/vehicles/vehicles.selectors';
 import { selectUserLocation } from '../../../core/state/lib/user-location/user-location.selectors';
 import { MapLayoutService } from '../../../core/services/map-layout.service';
 import { selectSelectedStop } from '../../../core/state/lib/user/user.selectors';
 import { GoogleMapsLoaderService } from '../../../core/services/google-maps-loader.service';
 import { Dictionary } from '@ngrx/entity';
+import { selectIsMobile } from '../../../core/state/lib/layout/layout.selectors';
 
 @Component({
   selector: 'map-component',
@@ -22,7 +21,7 @@ import { Dictionary } from '@ngrx/entity';
   standalone: true,
   imports: [GoogleMap, GoogleMapsModule, CommonModule],
 })
-export class MapComponent implements OnInit, OnDestroy {
+export class MapComponent implements OnInit {
   minZoomLevel: number = 15;
   map: google.maps.Map | null = null;
   mapOptions: google.maps.MapOptions = {
@@ -35,32 +34,32 @@ export class MapComponent implements OnInit, OnDestroy {
     streetViewControl: false,
   };
 
-  stops$: Observable<Stop[]> = this.store.select(selectAllStops);
-  vehicles$: Observable<Dictionary<Vehicle>> = this.store.select(selectVehicleEntities);
-
   private hasPanAndZoomed = false;
   private mapEvents$ = new Subject<void>();
-  private apiLoadedSubscription!: Subscription;
 
-  mapsLoaded$ = this.googleMapsLoader.mapsLoaded$;
   mapReady$ = new BehaviorSubject<google.maps.Map | null>(null);
   stopsAndMapEventsSubscription!: Subscription;
   vehiclesSubscription!: Subscription;
   userLocationSubscription!: Subscription;
 
-  constructor(
-    private markerService: MarkerService,
-    private toastrService: ToastrService,
-    private store: Store,
-    private mapLayoutService: MapLayoutService,
-    private googleMapsLoader: GoogleMapsLoaderService // Inject the loader service
-  ) {}
+  private markerService = inject(MarkerService);
+  private store = inject(Store);
+  private mapLayoutService = inject(MapLayoutService);
+  private googleMapsLoader = inject(GoogleMapsLoaderService);
+
+  mapsLoaded$ = this.googleMapsLoader.mapsLoaded$;
+  isMobile$ = this.store.select(selectIsMobile);
+  stops$: Observable<Stop[]> = this.store.select(selectAllStops);
+  vehicles$: Observable<Dictionary<Vehicle>> = this.store.select(selectVehicleEntities);
 
   ngOnInit(): void {
-    this.initMapSubscriptions();
-  }
+    // pan to center after resize
+    fromEvent(window, 'resize')
+      .pipe(debounceTime(100))
+      .subscribe(() => {
+        if (this.map) this.map.panTo(this.map.getCenter()!);
+      });
 
-  private initMapSubscriptions() {
     combineLatest([
       this.mapsLoaded$.pipe(
         filter((loaded) => loaded),
@@ -71,6 +70,17 @@ export class MapComponent implements OnInit, OnDestroy {
         take(1)
       ),
     ]).subscribe(() => {
+      // On mobile, edit viewport height on google-map based on drawer height.
+      combineLatest([this.store.select(selectIsMobile), this.mapLayoutService.visibleDrawerHeight$]).subscribe(
+        ([isMobile, drawerHeight]) => {
+          if (this.map) {
+            const viewportHeight = window.innerHeight;
+            console.log('wtf mobile', isMobile);
+            this.map.getDiv().style.height = isMobile ? `${viewportHeight - drawerHeight}px` : `${viewportHeight}px`;
+          }
+        }
+      );
+
       // Stops subscription: updates on stops or map events.
       this.stopsAndMapEventsSubscription = combineLatest([
         this.stops$,
@@ -117,20 +127,7 @@ export class MapComponent implements OnInit, OnDestroy {
 
         this.markerService.updateUserMarker(loc.latitude!, loc.longitude!);
       });
-
-      this.mapLayoutService.visibleDrawerHeight$.subscribe((height) => {
-        this.adjustMapHeight(height);
-      });
     });
-  }
-
-  private adjustMapHeight(drawerVisibleHeight: number) {
-    if (this.map) {
-      const viewportHeight = window.innerHeight;
-      const mapHeight = viewportHeight - drawerVisibleHeight;
-      const mapElement = this.map.getDiv();
-      mapElement.style.height = `${mapHeight}px`;
-    }
   }
 
   onMapReady(event: google.maps.Map | Event) {
@@ -150,13 +147,5 @@ export class MapComponent implements OnInit, OnDestroy {
       this.map.setZoom(newZoom);
       this.hasPanAndZoomed = true;
     }
-  }
-
-  ngOnDestroy() {
-    this.apiLoadedSubscription?.unsubscribe();
-    this.stopsAndMapEventsSubscription?.unsubscribe();
-    this.vehiclesSubscription?.unsubscribe();
-    this.userLocationSubscription?.unsubscribe();
-    this.markerService.clearAllMarkers();
   }
 }

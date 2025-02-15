@@ -1,27 +1,53 @@
-<div #drawerContainer
-  class="absolute bottom-0 left-0 w-full bg-white border-t shadow-lg transition-transform duration-200"
-  [ngClass]="(drawerExpanded$ | async) ? 'translate-y-0' : 'translate-y-[60%]'">
-  <!-- Peeking area (Collapsed State) -->
-  <div class="p-3 flex justify-between items-center cursor-pointer" (click)="toggleDrawer()">
-    <ng-container *ngIf="drawerMode$ | async as mode">
-      <h3 class="text-2xl font-bold">
-        {{ headerTitle$ | async }}
-      </h3>
-    </ng-container>
-    <button class="text-blue-500">
-      {{ (drawerExpanded$ | async) ? "Close" : "Expand" }}
-    </button>
-  </div>
-
-  <ng-container [ngSwitch]="drawerMode$ | async">
-    <ng-container *ngSwitchCase="DrawerMode.Favorites">
-      <drawer-favorites></drawer-favorites>
-    </ng-container>
-
-    <ng-container *ngSwitchCase="DrawerMode.Stops">
-      <drawer-stops></drawer-stops>
-    </ng-container>
+<div #drawerContainer [ngClass]="drawerContainerClasses$ | async">
+  <!-- Desktop Layout -->
+  <ng-container *ngIf="!(isMobile$ | async); else mobileLayout">
+    <div class="flex flex-col h-full">
+      <!-- Static Header -->
+      <div class="p-3">
+        <ng-container *ngIf="drawerMode$ | async as mode">
+          <h3 class="text-2xl font-bold">
+            {{ headerTitle$ | async }}
+          </h3>
+        </ng-container>
+      </div>
+      <!-- Content fills remaining space -->
+      <div class="flex-grow overflow-auto">
+        <ng-container [ngSwitch]="drawerMode$ | async">
+          <ng-container *ngSwitchCase="DrawerMode.Favorites">
+            <drawer-favorites></drawer-favorites>
+          </ng-container>
+          <ng-container *ngSwitchCase="DrawerMode.Stops">
+            <drawer-stops></drawer-stops>
+          </ng-container>
+        </ng-container>
+      </div>
+      <!-- Bottom Menu -->
+      <div>
+        <bottom-menu></bottom-menu>
+      </div>
+    </div>
   </ng-container>
 
-  <bottom-menu></bottom-menu>
+  <!-- Mobile Layout (unchanged) -->
+  <ng-template #mobileLayout>
+    <div class="p-3 flex justify-between items-center cursor-pointer" (click)="toggleDrawer()">
+      <ng-container *ngIf="drawerMode$ | async as mode">
+        <h3 class="text-2xl font-bold">
+          {{ headerTitle$ | async }}
+        </h3>
+      </ng-container>
+      <button class="text-blue-500">
+        {{ (drawerExpanded$ | async) ? "Close" : "Expand" }}
+      </button>
+    </div>
+    <ng-container [ngSwitch]="drawerMode$ | async">
+      <ng-container *ngSwitchCase="DrawerMode.Favorites">
+        <drawer-favorites></drawer-favorites>
+      </ng-container>
+      <ng-container *ngSwitchCase="DrawerMode.Stops">
+        <drawer-stops></drawer-stops>
+      </ng-container>
+    </ng-container>
+    <bottom-menu></bottom-menu>
+  </ng-template>
 </div>
