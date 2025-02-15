@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Stop, Vehicle, VehicleMap } from '../utils/global.types';
 import { Store } from '@ngrx/store';
 import { setSelectedStop } from '../state/lib/user/user.actions';
@@ -9,17 +9,19 @@ import { Dictionary } from '@ngrx/entity';
   providedIn: 'root',
 })
 export class MarkerService {
+  private store = inject(Store);
+  private toastrService = inject(ToastrService);
   private map: google.maps.Map | null = null;
-  // key is stopId, value is the marker element.
   private stopMarkers: Map<string, google.maps.marker.AdvancedMarkerElement> = new Map();
-  // key is busNumber, value is the marker element.
   private vehicleMarkers: Map<string, google.maps.marker.AdvancedMarkerElement> = new Map();
   private userMarker: google.maps.marker.AdvancedMarkerElement | null = null;
 
-  constructor(private store: Store, private toastrService: ToastrService) {}
-
   init(map: google.maps.Map) {
     this.map = map;
+  }
+
+  getUserMarker() {
+    return this.userMarker;
   }
 
   updateStopMarkers(stops: Stop[], minZoomLevel: number) {

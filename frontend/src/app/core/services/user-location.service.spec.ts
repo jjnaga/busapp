@@ -1,3 +1,4 @@
+import { initialUserLocationState, userLocationReducer } from '../state/lib/user-location/user-location.reducers';
 import { UserLocationService } from './user-location.service';
 
 describe('UserLocationService', () => {
@@ -76,5 +77,9 @@ describe('UserLocationService', () => {
         },
       });
     });
+  });
+
+  test('should handle initial state', () => {
+    expect(userLocationReducer(undefined, { type: 'unknown' })).toEqual(initialUserLocationState);
   });
 });

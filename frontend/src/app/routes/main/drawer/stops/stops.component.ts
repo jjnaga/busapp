@@ -1,8 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { combineLatest, filter, Observable } from 'rxjs';
-import { map, startWith } from 'rxjs/operators';
+import { filter, Observable, switchMap } from 'rxjs';
 import { DetailedStop, SelectedStop, Stop } from '../../../../core/utils/global.types';
 import {
   selectAllStops,
@@ -12,7 +11,8 @@ import {
 import { selectDrawerExpanded, selectSelectedStop } from '../../../../core/state/lib/user/user.selectors';
 import { setSelectedStop } from '../../../../core/state/lib/user/user.actions';
 import { DiffMinutesPipe } from '../../../../core/utils/pipes/diff-minutes.pipe';
-import { selectUserLocation } from '../../../../core/state/lib/user-location/user-location.selectors';
+import { selectAllFavorites, selectIsFavorite } from '../../../../core/state/lib/favorites/favorites.selectors';
+import { toggleFavoriteAction } from '../../../../core/state/lib/favorites/favorites.actions';
 
 @Component({
   selector: 'drawer-stops',
@@ -21,32 +21,23 @@ import { selectUserLocation } from '../../../../core/state/lib/user-location/use
   standalone: true,
 })
 export class StopsComponent implements OnInit {
+  constructor(private store: Store) {}
   drawerExpanded$ = this.store.select(selectDrawerExpanded);
-  stops$: Observable<Stop[]>; // original stops observable
-  stopsLoading$: Observable<boolean>;
-  selectedStop$: Observable<SelectedStop>;
-
-  // New sorted observable combining user location & stops
-  sortedStops$!: Observable<Stop[]>;
-
-  // For next/previous navigation
+  stops$: Observable<Stop[]> = this.store.select(selectAllStops);
+  stopsLoading$: Observable<boolean> = this.store.select(selectStopsLoading);
+  selectedStop$: Observable<SelectedStop> = this.store.select(selectSelectedStop);
+  favorites$: Observable<Stop[]> = this.store.select(selectAllFavorites);
+  sortedStops$: Observable<Stop[]> = this.store.select(selectAllStopsSortedByDistance);
+  // local variables
+  isFavorite$?: Observable<boolean>;
   stopsArray: Stop[] = [];
   currentStopIndex: number = 0;
 
-  constructor(private store: Store) {
-    this.stops$ = this.store.select(selectAllStops);
-    this.stopsLoading$ = this.store.select(selectStopsLoading);
-    this.selectedStop$ = this.store.select(selectSelectedStop);
-    this.sortedStops$ = this.store.select(selectAllStopsSortedByDistance);
-  }
-
   ngOnInit() {
-    // Subscribe to update stopsArray for navigation (if needed)
     this.sortedStops$.subscribe((sortedStops) => {
       this.stopsArray = sortedStops;
     });
 
-    // Update index if user clicks a stop directly
     this.selectedStop$.subscribe((selected) => {
       if (selected) {
         const idx = this.stopsArray.findIndex((stop) => stop.stopId === selected.stopId);
@@ -55,6 +46,21 @@ export class StopsComponent implements OnInit {
         }
       }
     });
+
+    // updates when either selected stop or favorites change
+    this.isFavorite$ = this.selectedStop$.pipe(
+      filter((stop): stop is Stop => !!stop),
+      switchMap((stop) => this.store.select(selectIsFavorite(stop.stopId)))
+    );
+  }
+
+  toggleFavorite(stop: Stop) {
+    if (!stop) {
+      console.error('toggleFavorites: stop is undefined');
+      return;
+    }
+
+    this.store.dispatch(toggleFavoriteAction({ stop }));
   }
 
   setSelectedStop(stop: Stop | null) {
