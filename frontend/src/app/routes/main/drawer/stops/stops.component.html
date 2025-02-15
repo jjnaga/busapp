@@ -1,37 +1,37 @@
-<div [ngClass]="(drawerExpanded$ | async) ? 'overflow-scroll' : 'overflow-hidden'"
-  class="transition-all duration-300 h-[50vh]">
+<div [ngClass]="(isMobile$ | async)
+    ? ((drawerExpanded$ | async) ? 'overflow-scroll' : 'overflow-hidden')
+    : ''" class="transition-all duration-300 h-[50vh]">
   <ng-container *ngIf="selectedStop$ | async as selectedStop; else stopsList">
     <div class="flex justify-between items-center px-4 py-2 bg-white">
       <div class="flex space-x-2">
-        <button (click)="goToPreviousStop()" class="flex items-center justify-center px-6 py-2 text-sm font-medium
-            bg-blue-500 hover:bg-blue-600 active:bg-blue-700
-            text-white rounded-md transition-colors duration-150">
+        <button (click)="goToPreviousStop()"
+          class="flex items-center justify-center px-6 py-2 text-sm font-medium bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white rounded-md transition-colors duration-150">
           Previous
         </button>
-        <button (click)="goToNextStop()" class="flex items-center justify-center px-6 py-2 text-sm font-medium
-            bg-blue-500 hover:bg-blue-600 active:bg-blue-700
-            text-white rounded-md transition-colors duration-150">
+        <button (click)="goToNextStop()"
+          class="flex items-center justify-center px-6 py-2 text-sm font-medium bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white rounded-md transition-colors duration-150">
           Next
         </button>
       </div>
       <div class="flex items-center space-x-4">
-        <button aria-label="toggle-favorite" (click)="toggleFavorite(selectedStop)" class="flex items-center justify-center px-4 py-2 text-sm font-medium
-               transition-colors duration-150 rounded-md" [ngClass]="{
-          'bg-blue-500 text-white hover:bg-blue-600': !(isFavorite$ | async),
-          'bg-red-500 text-white hover:bg-red-600': isFavorite$ | async
-        }">
+        <button aria-label="toggle-favorite" (click)="toggleFavorite(selectedStop)"
+          class="flex items-center justify-center px-4 py-2 text-sm font-medium transition-colors duration-150 rounded-md"
+          [ngClass]="{
+            'bg-blue-500 text-white hover:bg-blue-600': !(isFavorite$ | async),
+            'bg-red-500 text-white hover:bg-red-600': isFavorite$ | async
+          }">
           {{ (isFavorite$ | async) ? 'Remove Favorite' : 'Add Favorite' }}
         </button>
       </div>
-      <button (click)="setSelectedStop(null)" class="flex items-center justify-center w-8 h-8
-          hover:bg-gray-100 rounded-full transition-colors duration-150">
+      <button (click)="setSelectedStop(null)"
+        class="flex items-center justify-center w-8 h-8 hover:bg-gray-100 rounded-full transition-colors duration-150">
         <span class="text-gray-600 text-xl">&times;</span>
       </button>
     </div>
 
     <div id="stop-details" class="px-3 py-2">
       <ng-container *ngIf="isDetailedStop(selectedStop)">
-        <p class="text-sm text-gray-500">Last Updated: {{ selectedStop.lastUpdated | date: "short" }}</p>
+        <p class="text-sm text-gray-500">Last Updated: {{ selectedStop.lastUpdated | date: 'short' }}</p>
         <ul class="px-3 py-2">
           <li *ngFor="let arrival of selectedStop.arrivals" class="py-3 border-b">
             <h3 class="text-xl font-bold">{{ arrival.headsign }}</h3>

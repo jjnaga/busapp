@@ -7,6 +7,7 @@ import { stopsReducer } from './lib/stops/stops.reducers';
 import { userReducer } from './lib/user/user.reducers';
 import { userLocationReducer } from './lib/user-location/user-location.reducers';
 import { favoritesReducer } from './lib/favorites/favorites.reducer';
+import { layoutReducer } from './lib/layout/layout.reducer';
 
 @NgModule({
   imports: [
@@ -15,6 +16,8 @@ import { favoritesReducer } from './lib/favorites/favorites.reducer';
     StoreModule.forFeature('user', userReducer),
     StoreModule.forFeature('user-location', userLocationReducer),
     StoreModule.forFeature('favorites', favoritesReducer),
+    StoreModule.forFeature('layout', layoutReducer),
+
     EffectsModule.forFeature(rootEffects),
   ],
 })

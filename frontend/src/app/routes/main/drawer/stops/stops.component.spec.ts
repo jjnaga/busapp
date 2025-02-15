@@ -8,6 +8,7 @@ import { provideMockStore } from '@ngrx/store/testing';
 import { selectSelectedStop } from '../../../../core/state/lib/user/user.selectors';
 import { selectIsFavorite } from '../../../../core/state/lib/favorites/favorites.selectors';
 import { selectAllStopsSortedByDistance } from '../../../../core/state/lib/stops/stops.selectors';
+import { setSelectedStop } from '../../../../core/state/lib/user/user.actions';
 
 // Mock a complete Stop object
 const mockStop: Stop = {
@@ -19,6 +20,36 @@ const mockStop: Stop = {
   stopUrl: null,
   stopSerialNumber: 1,
 };
+
+const mockStopsArray: Stop[] = [
+  {
+    stopId: '1',
+    stopCode: '001',
+    stopName: 'Stop 1',
+    stopLat: 21.3069,
+    stopLon: -157.8583,
+    stopUrl: null,
+    stopSerialNumber: 1,
+  },
+  {
+    stopId: '2',
+    stopCode: '002',
+    stopName: 'Stop 2',
+    stopLat: 21.307,
+    stopLon: -157.8584,
+    stopUrl: null,
+    stopSerialNumber: 2,
+  },
+  {
+    stopId: '3',
+    stopCode: '003',
+    stopName: 'Stop 3',
+    stopLat: 21.3071,
+    stopLon: -157.8585,
+    stopUrl: null,
+    stopSerialNumber: 3,
+  },
+];
 
 describe('StopsComponent', () => {
   let component: StopsComponent;
@@ -33,7 +64,8 @@ describe('StopsComponent', () => {
           selectors: [
             { selector: selectSelectedStop, value: mockStop },
             { selector: selectIsFavorite(mockStop.stopId), value: false },
-            { selector: selectAllStopsSortedByDistance, value: [] },
+            // <-- Provide our mockStopsArray so the component’s stopsArray gets set correctly
+            { selector: selectAllStopsSortedByDistance, value: mockStopsArray },
           ],
         }),
       ],
@@ -49,11 +81,23 @@ describe('StopsComponent', () => {
 
   it('should dispatch toggleFavoriteAction with complete Stop object', () => {
     const favoriteBtn = fixture.nativeElement.querySelector('button[aria-label="toggle-favorite"]');
-    console.log('huh??', favoriteBtn);
 
     favoriteBtn.click();
     fixture.detectChanges();
 
     expect(storeMock.dispatch).toHaveBeenCalledWith(toggleFavoriteAction({ stop: mockStop }));
+  });
+
+  it('should cycle to the next stop', () => {
+    component.goToNextStop();
+    expect(component.currentStopIndex).toBe(1);
+    expect(storeMock.dispatch).toHaveBeenCalledWith(setSelectedStop({ stop: mockStopsArray[1] }));
+  });
+
+  it('should cycle to the previous stop (wrapping around)', () => {
+    component.currentStopIndex = 0;
+    component.goToPreviousStop();
+    expect(component.currentStopIndex).toBe(2);
+    expect(storeMock.dispatch).toHaveBeenCalledWith(setSelectedStop({ stop: mockStopsArray[2] }));
   });
 });

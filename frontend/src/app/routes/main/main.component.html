@@ -1,4 +1,6 @@
-<div class="relative flex flex-col w-screen full-height overflow-hidden">
-  <map-component class="flex-grow w-full"></map-component>
-  <drawer></drawer>
+<div class="relative h-dvh overflow-hidden">
+  <map-component class="full-screen-map"></map-component>
+  <div [ngClass]="{'mobile-drawer-container': (isMobile$ | async), 'desktop-drawer-view': !(isMobile$ | async)}">
+    <drawer></drawer>
+  </div>
 </div>
