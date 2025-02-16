@@ -40,7 +40,7 @@
         {{ (drawerExpanded$ | async) ? "Close" : "Expand" }}
       </button>
     </div>
-    <div class="h-[50vh]" [ngClass]="(isMobile$ | async)
+    <div class="h-[50vh] transition-all duration-300" [ngClass]="(isMobile$ | async)
     ? ((drawerExpanded$ | async) ? 'overflow-scroll' : 'overflow-hidden')
     : ''">
       <ng-container [ngSwitch]="drawerMode$ | async">

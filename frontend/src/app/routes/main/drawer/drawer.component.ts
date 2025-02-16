@@ -38,7 +38,7 @@ export class DrawerComponent implements OnInit, AfterViewInit, OnDestroy {
 
   DrawerMode = DrawerMode;
   headerTitles = {
-    [DrawerMode.Stops]: 'Stops',
+    [DrawerMode.Stops]: 'Nearby Stops',
     [DrawerMode.Favorites]: 'Favorites',
   };
   headerTitle$: Observable<string> | undefined;
@@ -90,7 +90,9 @@ export class DrawerComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit(): void {
     this.headerTitle$ = combineLatest([this.drawerMode$, this.selectedStop$]).pipe(
       map(([drawerMode, selectedStop]) =>
-        selectedStop && selectedStop.stopName ? selectedStop.stopName : this.headerTitles[drawerMode]
+        drawerMode && drawerMode === DrawerMode.Stops && selectedStop && selectedStop.stopName
+          ? selectedStop.stopName
+          : this.headerTitles[drawerMode]
       )
     );
   }
