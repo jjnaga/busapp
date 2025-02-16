@@ -6,7 +6,6 @@ export interface UserState {
   // start abstracting drawer into its own object?
   drawerMode: DrawerMode;
   drawerExpanded: boolean;
-  favorites: Stop[];
   selectedStop: SelectedStop | null;
 }
 
@@ -14,7 +13,6 @@ export const initialUserState: UserState = {
   drawerMode: DrawerMode.Stops,
   drawerExpanded: false,
   selectedStop: null,
-  favorites: [],
 };
 
 export const userReducer = createReducer(
