@@ -28,19 +28,33 @@
 
   <div id="stop-details" class="px-3 py-2">
     <ng-container *ngIf="isDetailedStop(selectedStop)">
-      <p class="text-sm text-gray-500">Last Updated: {{ selectedStop.lastUpdated | date: 'short' }}</p>
+      <p class="text-sm text-gray-500">
+        Last Updated: {{ selectedStop.lastUpdated | date: 'short' }}
+      </p>
       <ul class="px-3 py-2">
         <li *ngFor="let arrival of selectedStop.arrivals" class="py-3 border-b">
-          <h3 class="text-xl font-bold">{{ arrival.headsign }}</h3>
-          <div class="flex items-center space-x-4">
-            <span class="text-sm text-gray-700">Vehicle: {{ arrival.vehicle }}</span>
-            <span class="text-sm text-gray-500">Stop Time: {{ arrival.stopTime }}</span>
+          <div class="flex">
+            <!-- Bus Number Container -->
+            <div class="flex-shrink-0 pr-3 flex items-center">
+              <span class="bg-nagahama-blue text-white font-bold rounded-lg px-3 py-2 text-lg shadow-md">
+                {{ arrival.route }}
+              </span>
+            </div>
+
+            <!-- Details Container -->
+            <div class="selected-stop-details flex-grow">
+              <h3 class="text-xl font-bold">{{ arrival.headsign }}</h3>
+              <div class="flex items-center space-x-4">
+                <span class="text-sm text-gray-700">Vehicle: {{ arrival.vehicle }}</span>
+                <span class="text-sm text-gray-500">Stop Time: {{ arrival.stopTime }}</span>
+              </div>
+              <ng-container *ngIf="arrival.arrivalDate">
+                <p class="mt-1 text-md text-blue-600 font-semibold">
+                  Arrives in: {{ arrival.arrivalDate | diffMinutes }} min
+                </p>
+              </ng-container>
+            </div>
           </div>
-          <ng-container *ngIf="arrival.arrivalDate">
-            <p class="mt-1 text-md text-blue-600 font-semibold">
-              Arrives in: {{ arrival.arrivalDate | diffMinutes }} min
-            </p>
-          </ng-container>
         </li>
       </ul>
     </ng-container>
