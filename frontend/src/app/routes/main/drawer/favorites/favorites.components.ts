@@ -6,17 +6,20 @@ import { selectAllFavorites } from '../../../../core/state/lib/favorites/favorit
 import { Stop } from '../../../../core/utils/global.types';
 import { toggleFavoriteAction } from '../../../../core/state/lib/favorites/favorites.actions';
 import { setSelectedStop } from '../../../../core/state/lib/user/user.actions';
+import { faX } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
 @Component({
   selector: 'drawer-favorites',
   templateUrl: './favorites.component.html',
-  imports: [CommonModule],
+  imports: [CommonModule, FontAwesomeModule],
   standalone: true,
 })
 export class FvoritesComponent {
   private store = inject(Store);
 
   drawerExpanded$ = this.store.select(selectDrawerExpanded);
+  faX = faX;
   favorites$ = this.store.select(selectAllFavorites);
 
   toggleFavorite(stop: Stop) {
