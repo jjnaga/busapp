@@ -1,6 +1,4 @@
-<div [ngClass]="(isMobile$ | async)
-    ? ((drawerExpanded$ | async) ? 'overflow-scroll' : 'overflow-hidden')
-    : ''" class="transition-all duration-300 h-[50vh]">
+<div class="transition-all duration-300">
   <ng-container *ngIf="selectedStop$ | async as selectedStop; else stopsList">
     <div class="flex justify-between items-center px-4 py-2 bg-white">
       <div class="flex space-x-2">
