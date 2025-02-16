@@ -18,9 +18,3 @@ export const updateSelectedStopFailure = createAction(
 
 // can pick or just flip if no props are passed
 export const toggleDrawerExpanded = createAction('[User] Toggle Drawer Expanded', props<{ expanded?: boolean }>());
-
-// TODO
-export const addFavorite = createAction('[User] Add Favorite', props<{ stop: Stop }>());
-
-// TODO
-export const removeFavorite = createAction('[User] Remove Favorite', props<{ stopId: string }>());

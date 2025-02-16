@@ -10,11 +10,12 @@ import { StateModule } from './core/state/state.module';
 import { StoreModule } from '@ngrx/store';
 import { EffectsModule } from '@ngrx/effects';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
+import { metaReducers } from './core/state/persist-state.meta-reducer';
 
 @NgModule({
   declarations: [AppComponent],
   imports: [
-    StoreModule.forRoot({}),
+    StoreModule.forRoot({}, { metaReducers }),
     EffectsModule.forRoot([]),
     StateModule,
     BrowserModule,
