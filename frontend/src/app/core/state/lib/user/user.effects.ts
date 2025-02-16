@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { catchError, filter, map, mergeMap, of } from 'rxjs';
-import { DetailedStop, Stop, StopApiResponse, StopApiResponseSchema } from '../../../utils/global.types';
+import { DetailedStop, DrawerMode, Stop, StopApiResponse, StopApiResponseSchema } from '../../../utils/global.types';
 import { HttpClient } from '@angular/common/http';
 import { getBaseUrl } from '../../../utils/utils';
 import * as UserActions from './user.actions';
@@ -61,11 +61,14 @@ export class UserEffects {
   toggleDrawerOnSelectedStop$ = createEffect(() =>
     this.actions$.pipe(
       ofType(UserActions.setSelectedStop),
-      map(({ stop }) => {
+      mergeMap(({ stop }) => {
         if (stop) {
-          return UserActions.toggleDrawerExpanded({ expanded: true });
+          return [
+            UserActions.toggleDrawerExpanded({ expanded: true }),
+            UserActions.setDrawerMode({ drawerMode: DrawerMode.Stops }),
+          ];
         } else {
-          return UserActions.toggleDrawerExpanded({ expanded: false });
+          return [UserActions.toggleDrawerExpanded({ expanded: false })];
         }
       })
     )
