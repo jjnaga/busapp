@@ -1,12 +1,12 @@
 import { createReducer, on } from '@ngrx/store';
-import { DetailedStop, DrawerMode, SelectedStop, Stop } from '../../../utils/global.types';
-import { setDrawerMode, setSelectedStop, toggleDrawerExpanded, updateSelectedStop } from './user.actions';
+import { DrawerMode, Stop } from '../../../utils/global.types';
+import { setDrawerMode, toggleDrawerExpanded } from './user.actions';
 
 export interface UserState {
   // start abstracting drawer into its own object?
   drawerMode: DrawerMode;
   drawerExpanded: boolean;
-  selectedStop: SelectedStop | null;
+  selectedStop: Stop | null;
 }
 
 export const initialUserState: UserState = {
@@ -24,13 +24,5 @@ export const userReducer = createReducer(
   on(toggleDrawerExpanded, (state, { expanded }) => ({
     ...state,
     drawerExpanded: expanded === undefined ? !state.drawerExpanded : expanded,
-  })),
-  on(setSelectedStop, (state, { stop }) => ({
-    ...state,
-    selectedStop: stop,
-  })),
-  on(updateSelectedStop, (state, { stop }) => ({
-    ...state,
-    selectedStop: stop,
   }))
 );
