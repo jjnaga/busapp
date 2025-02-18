@@ -15,7 +15,7 @@ export const stopsAdapter = createEntityAdapter<Stop>({
 });
 
 export interface StopsState extends EntityState<Stop> {
-  // stops that is getting polled via API
+  // stops that are getting polled via API
   stopsTracking: { [stopId: string]: boolean };
   loading: boolean;
 }
@@ -39,16 +39,23 @@ export const stopsReducer = createReducer(
         ...tracking,
         [stop.stopId]: true,
       }),
-      { ...state.stopsTracking }
+      {} // Clear previous tracking and set new tracking only
     ),
   })),
-  on(loadDetailedStopsSuccess, (state, { stopIds: stops }) => {
-    return stopsAdapter.updateMany(
-      stops.map((stop) => ({
+  on(stopTrackingStops, (state, { stopIds }) => {
+    const newTracking = { ...state.stopsTracking };
+    stopIds.forEach((id) => {
+      delete newTracking[id];
+    });
+    return { ...state, stopsTracking: newTracking };
+  }),
+  on(loadDetailedStopsSuccess, (state, { stopIds: updatedStops }) =>
+    stopsAdapter.updateMany(
+      updatedStops.map((stop) => ({
         id: stop.stopId,
         changes: stop,
       })),
       state
-    );
-  })
+    )
+  )
 );

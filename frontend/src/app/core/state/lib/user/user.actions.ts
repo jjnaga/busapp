@@ -1,4 +1,4 @@
-import { createAction, createSelector, props } from '@ngrx/store';
+import { createAction, props } from '@ngrx/store';
 import { DrawerMode, Stop } from '../../../utils/global.types';
 
 // Toggle the icons in the bottom menu
@@ -6,9 +6,6 @@ export const setDrawerMode = createAction('[User] Set Drawer Mode', props<{ draw
 
 // Set the selected stop
 export const setSelectedStop = createAction('[User] Set Selected Stop', props<{ stop: Stop | null }>());
-
-// Update the selected stop
-export const updateSelectedStop = createAction('[User] Update Selected Stop', props<{ stop: Stop }>());
 
 // we're not using this tbh
 export const updateSelectedStopFailure = createAction(

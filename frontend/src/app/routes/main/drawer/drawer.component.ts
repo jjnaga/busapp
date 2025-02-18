@@ -1,6 +1,6 @@
 import { Component, ElementRef, inject, OnInit, AfterViewInit, OnDestroy, ViewChild } from '@angular/core';
 import { combineLatest, map, Observable, timer } from 'rxjs';
-import { DrawerMode, SelectedStop, Stop } from '../../../core/utils/global.types';
+import { DrawerMode } from '../../../core/utils/global.types';
 import { Store } from '@ngrx/store';
 import { CommonModule } from '@angular/common';
 import { BottomMenuComponent } from '../bottom-menu/bottom-menu.component';
