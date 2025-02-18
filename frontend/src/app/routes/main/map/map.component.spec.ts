@@ -1,4 +1,3 @@
-// src/app/routes/main/map/map.component.spec.ts
 import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { MapComponent } from './map.component';
 import { MarkerService } from '../../../core/services/marker.service';
@@ -9,7 +8,7 @@ import { provideMockStore } from '@ngrx/store/testing';
 
 class MockGoogleMap {
   setOptions = jest.fn();
-  addListener = jest.fn((event, callback) => callback());
+  addListener = jest.fn((_event, callback) => callback());
   getZoom = jest.fn(() => 16);
   getBounds = jest.fn(() => ({ contains: jest.fn(() => true) }));
   panTo = jest.fn();
@@ -21,7 +20,7 @@ class MockGoogleMap {
   maps: {
     Map: jest.fn().mockImplementation(() => ({
       setOptions: jest.fn(),
-      addListener: jest.fn((event, callback) => callback()),
+      addListener: jest.fn((_event, callback) => callback()),
       getZoom: jest.fn(() => 16),
       getBounds: jest.fn(() => ({ contains: jest.fn(() => true) })),
       panTo: jest.fn(),

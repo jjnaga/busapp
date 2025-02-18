@@ -1,10 +1,11 @@
 // stops.reducer.spec.ts
 import { stopsReducer, initialStopsState } from './stops.reducers';
 import { loadStopsSuccess, loadStopsFailure } from './stops.actions';
+import { Stop } from '../../../utils/global.types';
 
 describe('Stops Reducer', () => {
   test('should update stops and set loading to false on success', () => {
-    const stops = [
+    const stops: Stop[] = [
       {
         stopId: '1',
         stopCode: '1',
@@ -17,7 +18,7 @@ describe('Stops Reducer', () => {
     ];
     const action = loadStopsSuccess({ stops });
     const state = stopsReducer(initialStopsState, action);
-    expect(state.stops).toEqual(stops);
+    expect(state.entities['1']).toEqual(stops[0]);
     expect(state.loading).toBe(false);
   });
 

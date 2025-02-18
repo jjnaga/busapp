@@ -18,7 +18,7 @@ describe('persistState Meta Reducer', () => {
     };
 
     // Use the same replacer function as in the meta reducer for Date serialization
-    function replacer(key: string, value: any): any {
+    function replacer(_key: string, value: any): any {
       if (value && value.constructor === Date) {
         return { __type__: 'Date', value: value.toISOString() };
       }

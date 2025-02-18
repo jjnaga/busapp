@@ -5,13 +5,13 @@ import * as VehiclesActions from './lib/vehicles/vehicles.actions';
 import * as StopsActions from './lib/stops/stops.actions';
 import * as WebSocketActions from './lib/websocket/websocket.actions';
 import * as UserLocationActions from './lib/user-location/user-location.actions';
-
 import { appInit } from './root.actions';
 import { mergeMap } from 'rxjs';
 import { StopsEffects } from './lib/stops/stops.effects';
 import { UserEffects } from './lib/user/user.effects';
 import { WebsocketEffects } from './lib/websocket/websocket.effects';
 import { UserLocationEffects } from './lib/user-location/user-location.effects';
+import { FavoritesEffects } from './lib/favorites/favorites.effects';
 
 @Injectable()
 export class RootEffects {
@@ -36,4 +36,5 @@ export const rootEffects = [
   UserEffects,
   WebsocketEffects,
   UserLocationEffects,
+  FavoritesEffects,
 ];

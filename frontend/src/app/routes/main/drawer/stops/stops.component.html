@@ -1,20 +1,23 @@
-<div [ngClass]="(isMobile$ | async)
-    ? ((drawerExpanded$ | async) ? 'overflow-scroll' : 'overflow-hidden')
-    : ''" class="transition-all duration-300 h-[50vh]">
-  <ng-container *ngIf="selectedStop$ | async as selectedStop; else stopsList">
+<ng-container *ngTemplateOutlet="(selectedStop$ | async) ? selectedStopTemplate : stopsListTemplate">
+</ng-container>
+
+<ng-template #selectedStopTemplate>
+  <ng-container *ngIf="selectedStop$ | async as selectedStop">
     <div class="flex justify-between items-center px-4 py-2 bg-white">
       <div class="flex space-x-2">
-        <button (click)="goToPreviousStop()"
+        <button (click)="store.dispatch(StopsActions.previousStop())"
           class="flex items-center justify-center px-6 py-2 text-sm font-medium bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white rounded-md transition-colors duration-150">
           Previous
         </button>
-        <button (click)="goToNextStop()"
+        <button (click)="store.dispatch(StopsActions.nextStop())"
           class="flex items-center justify-center px-6 py-2 text-sm font-medium bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white rounded-md transition-colors duration-150">
           Next
         </button>
       </div>
       <div class="flex items-center space-x-4">
-        <button aria-label="toggle-favorite" (click)="toggleFavorite(selectedStop)"
+        <!-- Toggle Favorite Button -->
+        <button aria-label="toggle-favorite"
+          (click)="store.dispatch(FavoritesActions.toggleFavoriteAction({ stop: selectedStop }))"
           class="flex items-center justify-center px-4 py-2 text-sm font-medium transition-colors duration-150 rounded-md"
           [ngClass]="{
             'bg-blue-500 text-white hover:bg-blue-600': !(isFavorite$ | async),
@@ -23,42 +26,61 @@
           {{ (isFavorite$ | async) ? 'Remove Favorite' : 'Add Favorite' }}
         </button>
       </div>
-      <button (click)="setSelectedStop(null)"
+      <button (click)="store.dispatch(UserActions.setSelectedStop({ stop: null }))"
         class="flex items-center justify-center w-8 h-8 hover:bg-gray-100 rounded-full transition-colors duration-150">
         <span class="text-gray-600 text-xl">&times;</span>
       </button>
     </div>
 
     <div id="stop-details" class="px-3 py-2">
-      <ng-container *ngIf="isDetailedStop(selectedStop)">
-        <p class="text-sm text-gray-500">Last Updated: {{ selectedStop.lastUpdated | date: 'short' }}</p>
-        <ul class="px-3 py-2">
-          <li *ngFor="let arrival of selectedStop.arrivals" class="py-3 border-b">
-            <h3 class="text-xl font-bold">{{ arrival.headsign }}</h3>
-            <div class="flex items-center space-x-4">
-              <span class="text-sm text-gray-700">Vehicle: {{ arrival.vehicle }}</span>
-              <span class="text-sm text-gray-500">Stop Time: {{ arrival.stopTime }}</span>
+      <div class="text-sm text-gray-500">
+        <span>
+          Stop: {{ selectedStop.stopId }}
+        </span>
+        <span class="text-black">•</span>
+        <span>
+          Last Updated: {{ selectedStop.lastUpdated | date: 'short' }}
+        </span>
+      </div>
+      <ul class="px-3 py-2">
+        <li *ngFor="let arrival of selectedStop.arrivals" class="py-3 border-b">
+          <div class="flex">
+            <!-- Bus Number Container -->
+            <div class="flex-shrink-0 pr-3 flex items-center">
+              <span class="bg-nagahama-blue text-white font-bold rounded-lg px-3 py-2 text-lg shadow-md">
+                {{ arrival.route }}
+              </span>
             </div>
-            <ng-container *ngIf="arrival.arrivalDate">
-              <p class="mt-1 text-md text-blue-600 font-semibold">
-                Arrives in: {{ arrival.arrivalDate | diffMinutes }} min
-              </p>
-            </ng-container>
-          </li>
-        </ul>
-      </ng-container>
+            <!-- Details Container -->
+            <div class="selected-stop-details flex-grow">
+              <h3 class="text-xl font-bold">{{ arrival.headsign }}</h3>
+              <div class="flex items-center space-x-4">
+                <span class="text-sm text-gray-700">Vehicle: {{ arrival.vehicle }}</span>
+                <span class="text-sm text-gray-500">Stop Time: {{ arrival.stopTime }}</span>
+              </div>
+              <ng-container *ngIf="arrival.arrivalDate">
+                <div class="mt-1 text-md text-blue-600 font-semibold">
+                  <span>
+                    Arrives in: {{ arrival.arrivalDate | diffMinutes }} min
+                  </span>
+                </div>
+              </ng-container>
+            </div>
+          </div>
+        </li>
+      </ul>
     </div>
   </ng-container>
+</ng-template>
 
-  <ng-template #stopsList>
-    <ul class="px-3 py-2">
-      <li *ngFor="let stop of sortedStops$ | async" class="py-2 border-b">
-        <button (click)="setSelectedStop(stop)" class="flex w-full text-left">
-          <div class="flex-1 flex flex-col">
-            <span class="text-lg">{{ stop.stopName }}</span>
-          </div>
-        </button>
-      </li>
-    </ul>
-  </ng-template>
-</div>
+<ng-template #stopsListTemplate>
+  <ul class="px-3 py-2">
+    <li *ngFor="let stop of stopsSortedByDistance$ | async" class="py-2 border-b">
+      <button (click)="store.dispatch(UserActions.setSelectedStop({ stop }))" class="flex w-full text-left">
+        <div class="flex-1 flex flex-col">
+          <span class="text-lg">{{ stop.stopName }}</span>
+        </div>
+      </button>
+    </li>
+  </ul>
+</ng-template>

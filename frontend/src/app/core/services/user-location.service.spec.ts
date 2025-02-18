@@ -27,7 +27,7 @@ describe('UserLocationService', () => {
       const coords = { latitude: 10, longitude: 20 };
       const mockWatchId = 1;
       const fakeGeolocation = {
-        watchPosition: jest.fn((success, error, options) => {
+        watchPosition: jest.fn((success, _error, _options) => {
           // Immediately invoke success callback with fake coordinates
           success({ coords: { latitude: coords.latitude, longitude: coords.longitude } });
           return mockWatchId;
@@ -54,7 +54,7 @@ describe('UserLocationService', () => {
       const errorMessage = 'Test error';
       const mockWatchId = 1;
       const fakeGeolocation = {
-        watchPosition: jest.fn((success, error, options) => {
+        watchPosition: jest.fn((_success, error, _options) => {
           // Immediately invoke error callback with a fake error object
           error({ message: errorMessage });
           return mockWatchId;

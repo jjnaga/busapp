@@ -1,6 +1,5 @@
-// user.reducers.spec.ts
 import { userReducer, initialUserState } from './user.reducers';
-import { setDrawerMode, toggleDrawerExpanded, setSelectedStop, updateSelectedStop } from './user.actions';
+import { setDrawerMode, toggleDrawerExpanded, setSelectedStop } from './user.actions';
 import { DrawerMode, Stop } from '../../../utils/global.types';
 
 describe('User Reducer', () => {
@@ -11,14 +10,12 @@ describe('User Reducer', () => {
   });
 
   test('should toggle drawerExpanded when no explicit value is provided', () => {
-    // initial state: drawerExpanded is false, so it should toggle to true.
     const action = toggleDrawerExpanded({});
     const state = userReducer(initialUserState, action);
     expect(state.drawerExpanded).toBe(true);
   });
 
   test('should set drawerExpanded to the provided value', () => {
-    // Let's start with drawerExpanded true, then explicitly set it to false.
     const action = toggleDrawerExpanded({ expanded: false });
     const currentState = { ...initialUserState, drawerExpanded: true };
     const state = userReducer(currentState, action);
@@ -37,10 +34,10 @@ describe('User Reducer', () => {
     };
     const action = setSelectedStop({ stop: dummyStop });
     const state = userReducer(initialUserState, action);
-    expect(state.selectedStop).toEqual(dummyStop);
+    expect(state.selectedStop).toEqual(dummyStop.stopId);
   });
 
-  test('should update selectedStop on updateSelectedStop', () => {
+  test('should update selectedStop on setSelectedStop when changing the selected stop', () => {
     const initialStop: Stop = {
       stopId: '1',
       stopCode: '001',
@@ -59,9 +56,16 @@ describe('User Reducer', () => {
       stopUrl: null,
       stopSerialNumber: 2,
     };
-    const currentState = { ...initialUserState, selectedStop: initialStop };
-    const action = updateSelectedStop({ stop: newStop });
+    const currentState = { ...initialUserState, selectedStop: initialStop.stopId };
+    const action = setSelectedStop({ stop: newStop });
     const state = userReducer(currentState, action);
-    expect(state.selectedStop).toEqual(newStop);
+    expect(state.selectedStop).toEqual(newStop.stopId);
+  });
+
+  test('should clear selectedStop when setSelectedStop is called with null', () => {
+    const currentState = { ...initialUserState, selectedStop: '1' };
+    const action = setSelectedStop({ stop: null });
+    const state = userReducer(currentState, action);
+    expect(state.selectedStop).toBeUndefined();
   });
 });

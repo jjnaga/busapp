@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { Stop, Vehicle, VehicleMap } from '../utils/global.types';
+import { Stop, Vehicle } from '../utils/global.types';
 import { Store } from '@ngrx/store';
 import { setSelectedStop } from '../state/lib/user/user.actions';
 import { ToastrService } from 'ngx-toastr';
@@ -71,7 +71,7 @@ export class MarkerService {
     });
   }
 
-  private createStopMarkerContent(stop: Stop): HTMLElement {
+  private createStopMarkerContent(_stop: Stop): HTMLElement {
     const div = document.createElement('div');
     div.classList.add('custom-marker');
     div.innerHTML = `
@@ -89,7 +89,7 @@ export class MarkerService {
     this.stopMarkers.clear();
   }
 
-  updateVehicleMarkers(vehicles: Dictionary<Vehicle>, minZoomLevel: number) {
+  updateVehicleMarkers(vehicles: Dictionary<Vehicle>, _minZoomLevel: number) {
     if (!this.map) {
       console.error('MarkerService: Map not initialized.');
       this.toastrService.error('Map not initialized.');
@@ -128,7 +128,7 @@ export class MarkerService {
     });
   }
 
-  private createVehicleMarkerContent(vehicle: Vehicle): HTMLElement {
+  private createVehicleMarkerContent(_vehicle: Vehicle): HTMLElement {
     const div = document.createElement('div');
     div.classList.add('custom-marker');
     div.innerHTML = `

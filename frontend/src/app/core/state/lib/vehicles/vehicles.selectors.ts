@@ -5,5 +5,3 @@ export const selectVehiclesState = createFeatureSelector<VehiclesState>('vehicle
 
 export const { selectAll: selectAllVehicles, selectEntities: selectVehicleEntities } =
   vehicleAdapter.getSelectors(selectVehiclesState);
-
-export const selectVehiclesLoading = (state: VehiclesState) => state.loading;

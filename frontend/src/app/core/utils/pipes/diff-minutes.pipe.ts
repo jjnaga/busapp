@@ -7,7 +7,9 @@ import { differenceInMinutes } from 'date-fns';
   standalone: true,
 })
 export class DiffMinutesPipe implements PipeTransform {
-  transform(date: Date): number {
+  transform(date: Date | undefined): number | undefined {
+    if (!date) return undefined;
+    console.log('huhhhhhhhhhh', date);
     return differenceInMinutes(date, new Date());
   }
 }

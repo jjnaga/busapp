@@ -1,6 +1,6 @@
 import { ActionReducer, MetaReducer } from '@ngrx/store';
 
-function replacer(key: string, value: any): any {
+function replacer(_key: string, value: any): any {
   if (value && value.constructor === Date) {
     return { __type__: 'Date', value: value.toISOString() };
   }
