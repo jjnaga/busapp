@@ -1,29 +1,30 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
 import { StopsState } from './stops.reducers';
 import { selectUserLocation } from '../user-location/user-location.selectors';
+import { isValidLocation, isValidStop } from '../../../utils/type-guards';
 
 export const selectStopsState = createFeatureSelector<StopsState>('stops');
 
-export const selectAllStops = createSelector(selectStopsState, (state: StopsState) => state.stops);
+export const selectAllStops = createSelector(selectStopsState, (state: StopsState) => state.entities);
 
-export const selectStopsLoading = createSelector(selectStopsState, (state: StopsState) => {
-  return state.loading;
-});
+export const selectStopsLoading = createSelector(selectStopsState, (state: StopsState) => state.loading);
 
 export const selectAllStopsSortedByDistance = createSelector(selectUserLocation, selectAllStops, (userLoc, stops) => {
-  const defaultLocation = { latitude: 21.3069, longitude: -157.8583 };
+  if (!isValidLocation(userLoc) || !stops) return [];
 
-  if (!userLoc || userLoc.longitude === null || userLoc.latitude === null || !stops) return [];
-
-  // Sort stops by distance from user
-  return stops
-    .filter((stop) => stop && stop.stopLat !== null && stop.stopLon !== null)
+  return Object.values(stops)
+    .filter(isValidStop)
     .map((stop) => ({
       ...stop,
-      distance: calcDistance(userLoc.latitude!, userLoc.longitude!, stop.stopLat!, stop.stopLon!),
+      distance: calcDistance(userLoc.latitude, userLoc.longitude, stop.stopLat, stop.stopLon),
     }))
     .sort((a, b) => a.distance - b.distance);
 });
+
+// New selector to get array of tracked stop IDs
+export const selectStopsTrackingIds = createSelector(selectStopsState, (state: StopsState) =>
+  Object.keys(state.stopsTracking)
+);
 
 // Haversine formula to compute distance (in meters)
 const calcDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {

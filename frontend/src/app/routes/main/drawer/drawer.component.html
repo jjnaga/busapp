@@ -40,14 +40,18 @@
         {{ (drawerExpanded$ | async) ? "Close" : "Expand" }}
       </button>
     </div>
-    <ng-container [ngSwitch]="drawerMode$ | async">
-      <ng-container *ngSwitchCase="DrawerMode.Favorites">
-        <drawer-favorites></drawer-favorites>
+    <div class="h-[50vh] transition-all duration-300" [ngClass]="(isMobile$ | async)
+    ? ((drawerExpanded$ | async) ? 'overflow-scroll' : 'overflow-hidden')
+    : ''">
+      <ng-container [ngSwitch]="drawerMode$ | async">
+        <ng-container *ngSwitchCase="DrawerMode.Favorites">
+          <drawer-favorites></drawer-favorites>
+        </ng-container>
+        <ng-container *ngSwitchCase="DrawerMode.Stops">
+          <drawer-stops></drawer-stops>
+        </ng-container>
       </ng-container>
-      <ng-container *ngSwitchCase="DrawerMode.Stops">
-        <drawer-stops></drawer-stops>
-      </ng-container>
-    </ng-container>
+    </div>
     <bottom-menu></bottom-menu>
   </ng-template>
 </div>

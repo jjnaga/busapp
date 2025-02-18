@@ -1,16 +1,13 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { StopsComponent } from './stops.component';
-import { Store } from '@ngrx/store';
 import { toggleFavoriteAction } from '../../../../core/state/lib/favorites/favorites.actions';
 import { Stop } from '../../../../core/utils/global.types';
-import { of } from 'rxjs';
-import { provideMockStore } from '@ngrx/store/testing';
+import { provideMockStore, MockStore } from '@ngrx/store/testing';
 import { selectSelectedStop } from '../../../../core/state/lib/user/user.selectors';
-import { selectIsFavorite } from '../../../../core/state/lib/favorites/favorites.selectors';
 import { selectAllStopsSortedByDistance } from '../../../../core/state/lib/stops/stops.selectors';
-import { setSelectedStop } from '../../../../core/state/lib/user/user.actions';
+import * as StopsActions from '../../../../core/state/lib/stops/stops.actions';
+import { selectIsFavorite } from '../../../../core/state/lib/favorites/favorites.selectors';
 
-// Mock a complete Stop object
 const mockStop: Stop = {
   stopId: '1',
   stopCode: '001',
@@ -54,7 +51,7 @@ const mockStopsArray: Stop[] = [
 describe('StopsComponent', () => {
   let component: StopsComponent;
   let fixture: ComponentFixture<StopsComponent>;
-  let storeMock: jest.Mocked<Store>;
+  let storeMock: MockStore;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -63,15 +60,14 @@ describe('StopsComponent', () => {
         provideMockStore({
           selectors: [
             { selector: selectSelectedStop, value: mockStop },
-            { selector: selectIsFavorite(mockStop.stopId), value: false },
-            // <-- Provide our mockStopsArray so the component’s stopsArray gets set correctly
+            // Provide the sorted stops array for the component’s stopsSortedByDistance$
             { selector: selectAllStopsSortedByDistance, value: mockStopsArray },
           ],
         }),
       ],
     }).compileComponents();
 
-    storeMock = TestBed.inject(Store) as jest.Mocked<Store>;
+    storeMock = TestBed.inject(MockStore);
     storeMock.dispatch = jest.fn();
 
     fixture = TestBed.createComponent(StopsComponent);
@@ -79,25 +75,62 @@ describe('StopsComponent', () => {
     fixture.detectChanges();
   });
 
-  it('should dispatch toggleFavoriteAction with complete Stop object', () => {
-    const favoriteBtn = fixture.nativeElement.querySelector('button[aria-label="toggle-favorite"]');
-
+  it('should dispatch toggleFavoriteAction when toggle favorite button is clicked', () => {
+    const favoriteBtn: HTMLElement = fixture.nativeElement.querySelector('button[aria-label="toggle-favorite"]');
     favoriteBtn.click();
     fixture.detectChanges();
-
     expect(storeMock.dispatch).toHaveBeenCalledWith(toggleFavoriteAction({ stop: mockStop }));
   });
 
-  it('should cycle to the next stop', () => {
-    component.goToNextStop();
-    expect(component.currentStopIndex).toBe(1);
-    expect(storeMock.dispatch).toHaveBeenCalledWith(setSelectedStop({ stop: mockStopsArray[1] }));
+  it('should dispatch nextStop action when Next button is clicked', () => {
+    // Find the button with text 'Next'
+    const buttons: NodeListOf<HTMLButtonElement> = fixture.nativeElement.querySelectorAll('button');
+    let nextButton: HTMLButtonElement | null = null;
+    buttons.forEach((btn) => {
+      if (btn.textContent?.trim() === 'Next') {
+        nextButton = btn;
+      }
+    });
+    expect(nextButton).toBeTruthy();
+    nextButton!.click();
+    fixture.detectChanges();
+    expect(storeMock.dispatch).toHaveBeenCalledWith(StopsActions.nextStop());
   });
 
-  it('should cycle to the previous stop (wrapping around)', () => {
-    component.currentStopIndex = 0;
-    component.goToPreviousStop();
-    expect(component.currentStopIndex).toBe(2);
-    expect(storeMock.dispatch).toHaveBeenCalledWith(setSelectedStop({ stop: mockStopsArray[2] }));
+  it('should dispatch previousStop action when Previous button is clicked', () => {
+    // Find the button with text 'Previous'
+    const buttons: NodeListOf<HTMLButtonElement> = fixture.nativeElement.querySelectorAll('button');
+    let prevButton: HTMLButtonElement | null = null;
+    buttons.forEach((btn) => {
+      if (btn.textContent?.trim() === 'Previous') {
+        prevButton = btn;
+      }
+    });
+    expect(prevButton).toBeTruthy();
+    prevButton!.click();
+    fixture.detectChanges();
+    expect(storeMock.dispatch).toHaveBeenCalledWith(StopsActions.previousStop());
+  });
+
+  it('should set isFavorite$ to true if selected stop is a favorite', () => {
+    storeMock.overrideSelector(selectSelectedStop, mockStop);
+    storeMock.overrideSelector(selectIsFavorite(mockStop.stopId), true); // Mock the isFavorite selector
+
+    fixture.detectChanges();
+
+    component.isFavorite$?.subscribe((isFavorite) => {
+      expect(isFavorite).toBe(true);
+    });
+  });
+
+  it('should set isFavorite$ to false if selected stop is not a favorite', () => {
+    storeMock.overrideSelector(selectSelectedStop, mockStop);
+    storeMock.overrideSelector(selectIsFavorite(mockStop.stopId), false); // Mock the isFavorite selector
+
+    fixture.detectChanges();
+
+    component.isFavorite$?.subscribe((isFavorite) => {
+      expect(isFavorite).toBe(false);
+    });
   });
 });

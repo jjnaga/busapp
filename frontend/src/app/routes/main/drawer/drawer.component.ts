@@ -1,6 +1,6 @@
 import { Component, ElementRef, inject, OnInit, AfterViewInit, OnDestroy, ViewChild } from '@angular/core';
 import { combineLatest, map, Observable, timer } from 'rxjs';
-import { DrawerMode, SelectedStop, Stop } from '../../../core/utils/global.types';
+import { DrawerMode } from '../../../core/utils/global.types';
 import { Store } from '@ngrx/store';
 import { CommonModule } from '@angular/common';
 import { BottomMenuComponent } from '../bottom-menu/bottom-menu.component';
@@ -38,7 +38,7 @@ export class DrawerComponent implements OnInit, AfterViewInit, OnDestroy {
 
   DrawerMode = DrawerMode;
   headerTitles = {
-    [DrawerMode.Stops]: 'Stops',
+    [DrawerMode.Stops]: 'Nearby Stops',
     [DrawerMode.Favorites]: 'Favorites',
   };
   headerTitle$: Observable<string> | undefined;
@@ -90,7 +90,9 @@ export class DrawerComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit(): void {
     this.headerTitle$ = combineLatest([this.drawerMode$, this.selectedStop$]).pipe(
       map(([drawerMode, selectedStop]) =>
-        selectedStop && selectedStop.stopName ? selectedStop.stopName : this.headerTitles[drawerMode]
+        drawerMode && drawerMode === DrawerMode.Stops && selectedStop && selectedStop.stopName
+          ? selectedStop.stopName
+          : this.headerTitles[drawerMode]
       )
     );
   }

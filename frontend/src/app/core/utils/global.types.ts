@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import { parse } from 'date-fns';
 
+// Create a type alias for StopId
+
 export type VehicleMap = {
   [busNumber: string]: Vehicle;
 };
@@ -18,9 +20,8 @@ export type Vehicle = {
   headsign: string;
 };
 
-export type SelectedStop = Stop | DetailedStop | null;
-
-export interface Stop {
+// StopBase is from our internal DB
+export interface StopBase {
   stopId: string;
   stopCode: string;
   stopName: string | null;
@@ -30,9 +31,12 @@ export interface Stop {
   stopSerialNumber: number | null;
 }
 
-export interface DetailedStop extends Stop {
-  arrivals: Arrival[];
-  lastUpdated: Date;
+// data from bus API
+export interface Stop extends StopBase {
+  arrivals?: Arrival[];
+  loading?: boolean;
+  errors?: String;
+  lastUpdated?: Date;
 }
 
 export type Vehicles = Map<string, Vehicle>;
@@ -51,12 +55,6 @@ export interface Marker {
 }
 
 export type sideBarModes = 'favorites' | 'stop' | 'subscriptions' | null;
-
-export interface StopApiResponse {
-  stop: string;
-  timestamp: Date;
-  arrivals: Arrival[];
-}
 
 export const ArrivalSchema = z.object({
   canceled: z.string(),
@@ -91,6 +89,7 @@ export const StopApiResponseSchema = z.object({
   arrivals: z.array(ArrivalSchema),
 });
 
+export type StopApiResponse = z.infer<typeof StopApiResponseSchema>;
 export type Arrival = z.infer<typeof ArrivalSchema>;
 
 export interface BusSubscription {
@@ -132,3 +131,9 @@ export enum DrawerMode {
   Favorites = 'favorites',
   Stops = 'stops',
 }
+
+export type StopDataState = {
+  entities: { [stopId: string]: Stop };
+  loading: string[];
+  errors: { [stopId: string]: string };
+};

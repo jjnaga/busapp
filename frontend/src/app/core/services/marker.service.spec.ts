@@ -3,7 +3,6 @@ import { Stop } from '../utils/global.types';
 import { MarkerService } from './marker.service';
 import { TestBed } from '@angular/core/testing';
 import { provideMockStore } from '@ngrx/store/testing';
-import { GoogleMap } from '@angular/google-maps';
 
 const mockGoogleMaps = {
   LatLng: jest.fn((lat, lng) => ({ lat, lng })),
