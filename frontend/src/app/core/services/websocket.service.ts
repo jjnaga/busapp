@@ -1,7 +1,6 @@
-import { Injectable, NgZone, OnInit } from '@angular/core';
-import { Observable, Subscription, timer } from 'rxjs';
+import { Injectable } from '@angular/core';
+import { Observable, Subscription } from 'rxjs';
 import { WebSocketSubject, WebSocketSubjectConfig } from 'rxjs/webSocket';
-import { environment } from '../../../environments/environment';
 import { ToastrService } from 'ngx-toastr';
 import { websocketConnected, websocketDisconnected } from '../state/lib/websocket/websocket.actions';
 import { Store } from '@ngrx/store';
@@ -27,13 +26,11 @@ class CustomWebSocketSubject<T> extends WebSocketSubject<T> {
 export class WebsocketService {
   private socket$!: CustomWebSocketSubject<any>;
   private reconnectAttempts = 0;
-  private readonly RECONNECT_INTERVAL = 5000;
   private readonly MAX_RECONNECT_ATTEMPTS = 5;
-  private readonly HEALTH_CHECK_INTERVAL = 5000;
   private isConnecting = false;
   private connectSubscription?: Subscription; // Add this
 
-  constructor(private toastr: ToastrService, private ngZone: NgZone, private store: Store) {}
+  constructor(private toastr: ToastrService, private store: Store) {}
 
   connect(): void {
     if (this.isSocketOpen() || this.isConnecting) {
@@ -100,15 +97,6 @@ export class WebsocketService {
     }
 
     this.connect();
-  }
-
-  private setupHealthCheck(): void {
-    timer(this.HEALTH_CHECK_INTERVAL, this.HEALTH_CHECK_INTERVAL).subscribe(() => {
-      if (!this.isSocketOpen() && !this.isConnecting) {
-        this.toastr.info('Disconnected. Attempting to reconnect.');
-        this.attemptReconnect();
-      }
-    });
   }
 
   private isSocketOpen(): boolean {

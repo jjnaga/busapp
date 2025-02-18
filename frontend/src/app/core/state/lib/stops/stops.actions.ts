@@ -17,3 +17,6 @@ export const loadDetailedStopsFailure = createAction(
 
 export const startTrackingStops = createAction('[Stops] Start Tracking Stops', props<{ stops: Stop[] }>());
 export const stopTrackingStops = createAction('[Stops] Stop Tracking Stops', props<{ stopIds: string[] }>());
+
+export const nextStop = createAction('[Stops] Next Stop');
+export const previousStop = createAction('[Stops] Previous Stop');

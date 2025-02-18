@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import { parse } from 'date-fns';
 
+// Create a type alias for StopId
+
 export type VehicleMap = {
   [busNumber: string]: Vehicle;
 };

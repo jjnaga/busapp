@@ -6,7 +6,6 @@ import { debounceTime, filter, startWith, take } from 'rxjs/operators';
 import { Stop, Vehicle } from '../../../core/utils/global.types';
 import { MarkerService } from '../../../core/services/marker.service';
 import { Store } from '@ngrx/store';
-import { selectAllStops } from '../../../core/state/lib/stops/stops.selectors';
 import { selectVehicleEntities } from '../../../core/state/lib/vehicles/vehicles.selectors';
 import { selectUserLocation } from '../../../core/state/lib/user-location/user-location.selectors';
 import { MapLayoutService } from '../../../core/services/map-layout.service';
@@ -14,6 +13,7 @@ import { selectSelectedStop } from '../../../core/state/lib/user/user.selectors'
 import { GoogleMapsLoaderService } from '../../../core/services/google-maps-loader.service';
 import { Dictionary } from '@ngrx/entity';
 import { selectIsMobile } from '../../../core/state/lib/layout/layout.selectors';
+import { selectAllStopsSortedByDistance } from '../../../core/state/lib/stops/stops.selectors';
 
 @Component({
   selector: 'map-component',
@@ -49,7 +49,7 @@ export class MapComponent implements OnInit {
 
   mapsLoaded$ = this.googleMapsLoader.mapsLoaded$;
   isMobile$ = this.store.select(selectIsMobile);
-  stops$: Observable<Stop[]> = this.store.select(selectAllStops);
+  stopsSortedByDistance$: Observable<Stop[]> = this.store.select(selectAllStopsSortedByDistance);
   vehicles$: Observable<Dictionary<Vehicle>> = this.store.select(selectVehicleEntities);
 
   ngOnInit(): void {
@@ -83,7 +83,7 @@ export class MapComponent implements OnInit {
 
       // Stops subscription: updates on stops or map events.
       this.stopsAndMapEventsSubscription = combineLatest([
-        this.stops$,
+        this.stopsSortedByDistance$,
         this.mapEvents$.pipe(startWith(void 0)),
       ]).subscribe(([stops]) => {
         if (this.map) {

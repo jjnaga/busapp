@@ -7,9 +7,7 @@ export const selectStopsState = createFeatureSelector<StopsState>('stops');
 
 export const selectAllStops = createSelector(selectStopsState, (state: StopsState) => state.entities);
 
-export const selectStopsLoading = createSelector(selectStopsState, (state: StopsState) => {
-  return state.loading;
-});
+export const selectStopsLoading = createSelector(selectStopsState, (state: StopsState) => state.loading);
 
 export const selectAllStopsSortedByDistance = createSelector(selectUserLocation, selectAllStops, (userLoc, stops) => {
   if (!isValidLocation(userLoc) || !stops) return [];
@@ -22,6 +20,11 @@ export const selectAllStopsSortedByDistance = createSelector(selectUserLocation,
     }))
     .sort((a, b) => a.distance - b.distance);
 });
+
+// New selector to get array of tracked stop IDs
+export const selectStopsTrackingIds = createSelector(selectStopsState, (state: StopsState) =>
+  Object.keys(state.stopsTracking)
+);
 
 // Haversine formula to compute distance (in meters)
 const calcDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
