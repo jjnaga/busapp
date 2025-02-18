@@ -7,4 +7,5 @@ export const selectDrawerMode = createSelector(selectUserState, (state: UserStat
 
 export const selectDrawerExpanded = createSelector(selectUserState, (state: UserState) => state.drawerExpanded);
 
+// TODO: interesting question -- who should own this. stops or user. either way, we have to join them, no?
 export const selectSelectedStop = createSelector(selectUserState, (state: UserState) => state.selectedStop);
