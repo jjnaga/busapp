@@ -7,11 +7,22 @@
         <h4 class="text-lg font-semibold text-gray-900 truncate">
           {{ stop.stopName }}
         </h4>
-        <p class="mt-1 text-sm text-gray-600 flex items-center space-x-2">
-          <span class="font-medium">{{ stop.stopCode }}</span>
-          <span class="text-gray-400">•</span>
-          <span>{{ stop.stopLat }}:{{ stop.stopLon }}</span>
-        </p>
+        <div class="flex space-around items-center text-sm text-gray-500">
+          <div
+            class="flex items-center space-x-2 bg-nagahama-blue text-white font-bold rounded-lg px-1 py-1 text-sm shadow-md mt-1 ">
+            <span>
+              {{ stop?.arrivals?.[0]?.route}}
+              <span>-</span>
+              <span>
+                {{ stop?.arrivals?.[0]?.stopTime}}
+              </span>
+            </span>
+          </div>
+          <span class="text-white">•</span>
+          <span>
+            Arrives in: {{ stop.arrivals?.[0]?.arrivalDate | diffMinutes }} min
+          </span>
+        </div>
       </div>
       <button type="button" (click)="toggleFavorite(stop); $event.stopPropagation()"
         class="p-2 text-red-500 hover:text-red-700 rounded-full">

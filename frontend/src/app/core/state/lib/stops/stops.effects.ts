@@ -85,6 +85,7 @@ export class StopsEffects {
               chunk.map((stopId) =>
                 this.http.get<{ data: StopApiResponse }>(this.detailedStopLink(stopId)).pipe(
                   map((response) => {
+                    console.log('wtf is stopid', stopId);
                     const parseResult = StopApiResponseSchema.safeParse(response.data);
                     if (!parseResult.success) {
                       return { error: 'Zod: Invalid API response', stopId };
