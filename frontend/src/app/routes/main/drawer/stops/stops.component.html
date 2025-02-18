@@ -33,9 +33,15 @@
     </div>
 
     <div id="stop-details" class="px-3 py-2">
-      <p class="text-sm text-gray-500">
-        Last Updated: {{ selectedStop.lastUpdated | date: 'short' }}
-      </p>
+      <div class="text-sm text-gray-500">
+        <span>
+          Stop: {{ selectedStop.stopId }}
+        </span>
+        <span class="text-black">•</span>
+        <span>
+          Last Updated: {{ selectedStop.lastUpdated | date: 'short' }}
+        </span>
+      </div>
       <ul class="px-3 py-2">
         <li *ngFor="let arrival of selectedStop.arrivals" class="py-3 border-b">
           <div class="flex">
@@ -53,9 +59,11 @@
                 <span class="text-sm text-gray-500">Stop Time: {{ arrival.stopTime }}</span>
               </div>
               <ng-container *ngIf="arrival.arrivalDate">
-                <p class="mt-1 text-md text-blue-600 font-semibold">
-                  Arrives in: {{ arrival.arrivalDate | diffMinutes }} min
-                </p>
+                <div class="mt-1 text-md text-blue-600 font-semibold">
+                  <span>
+                    Arrives in: {{ arrival.arrivalDate | diffMinutes }} min
+                  </span>
+                </div>
               </ng-container>
             </div>
           </div>
