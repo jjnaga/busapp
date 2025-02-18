@@ -39,7 +39,7 @@ export const stopsReducer = createReducer(
         ...tracking,
         [stop.stopId]: true,
       }),
-      {} // Clear previous tracking and set new tracking only
+      { ...state.stopsTracking }
     ),
   })),
   on(stopTrackingStops, (state, { stopIds }) => {

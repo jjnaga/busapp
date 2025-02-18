@@ -75,7 +75,6 @@ export class MapComponent implements OnInit {
         ([isMobile, drawerHeight]) => {
           if (this.map) {
             const viewportHeight = window.innerHeight;
-            console.log('wtf mobile', isMobile);
             this.map.getDiv().style.height = isMobile ? `${viewportHeight - drawerHeight}px` : `${viewportHeight}px`;
           }
         }

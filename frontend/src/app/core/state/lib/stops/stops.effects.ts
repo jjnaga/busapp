@@ -4,13 +4,28 @@ import { Actions, createEffect, ofType } from '@ngrx/effects';
 import * as StopsActions from './stops.actions';
 import * as UserActions from '../user/user.actions';
 import { Stop, StopApiResponse, StopApiResponseSchema } from '../../../utils/global.types';
-import { catchError, from, map, mergeMap, of, forkJoin, withLatestFrom, switchMap, distinctUntilChanged } from 'rxjs';
+import {
+  catchError,
+  from,
+  map,
+  mergeMap,
+  of,
+  forkJoin,
+  switchMap,
+  distinctUntilChanged,
+  filter,
+  take,
+  concatMap,
+  withLatestFrom,
+  tap,
+} from 'rxjs';
 import { getBaseUrl } from '../../../utils/utils';
 import { parse } from 'date-fns';
-import { selectAllStopsSortedByDistance, selectStopsState, selectStopsTrackingIds } from './stops.selectors';
+import { selectAllStopsSortedByDistance, selectStopsTrackingIds, selectAllStops } from './stops.selectors';
 import { Store } from '@ngrx/store';
 import { selectSelectedStop } from '../user/user.selectors';
 import { timer, EMPTY } from 'rxjs';
+import { appInit } from '../../root.actions';
 
 @Injectable()
 export class StopsEffects {
@@ -20,27 +35,50 @@ export class StopsEffects {
   private actions$ = inject(Actions);
   private http = inject(HttpClient);
 
+  // When the app initializes, if there's a stored selectedStop, add it to trackingStops.
+  loadSelectedStopToTracking$ = createEffect(() => {
+    const selectedStop$ = this.store.select(selectSelectedStop).pipe(
+      filter((stop): stop is Stop => stop !== undefined),
+      take(1)
+    );
+
+    return this.actions$.pipe(
+      ofType(appInit),
+      mergeMap(() =>
+        selectedStop$.pipe(map((selectedStop) => StopsActions.startTrackingStops({ stops: [selectedStop] })))
+      )
+    );
+  });
+
   loadStops$ = createEffect(() =>
     this.actions$.pipe(
       ofType(StopsActions.loadStops),
       mergeMap(() =>
         this.http.get<{ data: Stop[] }>(this.stopsLink).pipe(
           map((response) => {
-            const cleanedStops = response.data.map((stop: Stop) => this.cleanStop(stop));
-            return StopsActions.loadStopsSuccess({ stops: cleanedStops });
+            return [StopsActions.loadStopsSuccess({ stops: response.data })];
           }),
+          mergeMap((actions) => from(actions)),
           catchError((error) => of(StopsActions.loadStopsFailure({ error: error.message })))
         )
       )
     )
   );
 
-  loadDetailedStop$ = createEffect(() =>
+  loadDetailedStops$ = createEffect(() =>
     this.actions$.pipe(
       ofType(StopsActions.loadDetailedStops),
-      withLatestFrom(this.store.select(selectStopsState)),
-      mergeMap(([{ stopIds }, stopsState]) => {
-        const chunks = this.chunkArray(stopIds, 5);
+      // Wait until stops data is loaded
+      concatMap((action) =>
+        this.store.select(selectAllStops).pipe(
+          filter((stops) => Object.keys(stops).length > 0),
+          take(1),
+          map((stopsDict) => ({ action, stopsDict }))
+        )
+      ),
+      mergeMap(({ action, stopsDict }) => {
+        const filteredStops = action.stopIds.filter((id) => !!stopsDict[id]);
+        const chunks = this.chunkArray(filteredStops, 5);
         return from(chunks).pipe(
           mergeMap((chunk) =>
             forkJoin(
@@ -51,26 +89,29 @@ export class StopsEffects {
                     if (!parseResult.success) {
                       return { error: 'Zod: Invalid API response', stopId };
                     }
-                    const stop = stopsState.entities[stopId];
-                    if (!stop) {
+                    const stopEntity = stopsDict[stopId];
+                    if (!stopEntity) {
                       return { error: 'Stop not found', stopId };
                     }
-                    return {
-                      ...stop,
+                    const stop: Stop = {
+                      ...stopEntity,
                       arrivals: parseResult.data.arrivals.map((arrival) => ({
                         ...arrival,
                         arrivalDate: parse(`${arrival.date} ${arrival.stopTime}`, 'M/d/yyyy h:mm a', new Date()),
                       })),
                       lastUpdated: new Date(),
                     };
+                    return stop;
                   }),
                   catchError((error) => of({ error: error.message, stopId }))
                 )
               )
             ).pipe(
               map((results) => {
-                const errors = results.filter((result) => 'error' in result);
-                const successfulStops = results.filter((result) => !('error' in result)) as Stop[];
+                const errors = results.filter(
+                  (result): result is { error: string; stopId: string } => 'error' in result
+                );
+                const successfulStops = results.filter((result): result is Stop => !('error' in result));
                 if (errors.length > 0) {
                   return StopsActions.loadDetailedStopsFailure({ error: errors });
                 }
@@ -140,9 +181,5 @@ export class StopsEffects {
       chunks.push(array.slice(i, i + size));
     }
     return chunks;
-  }
-
-  private cleanStop(stop: Stop): Stop {
-    return stop;
   }
 }
