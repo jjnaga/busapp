@@ -16,7 +16,6 @@ export const selectSelectedStop = createSelector(
     if (!state.selectedStop || !stops) {
       return undefined;
     }
-    console.log('new stop btw?', stops[state.selectedStop]);
     return stops[state.selectedStop];
   }
 );
