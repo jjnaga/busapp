@@ -1,8 +1,8 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Store } from '@ngrx/store';
-import { Observable } from 'rxjs';
-import { filter, switchMap } from 'rxjs/operators';
+import { Observable, BehaviorSubject, combineLatest } from 'rxjs';
+import { filter, switchMap, map } from 'rxjs/operators';
 import { Stop } from '../../../../core/utils/global.types';
 import { selectAllStopsSortedByDistance, selectStopsLoading } from '../../../../core/state/lib/stops/stops.selectors';
 import { selectDrawerExpanded, selectSelectedStop } from '../../../../core/state/lib/user/user.selectors';
@@ -12,14 +12,15 @@ import * as StopsActions from '../../../../core/state/lib/stops/stops.actions';
 import * as UserActions from '../../../../core/state/lib/user/user.actions';
 import * as FavoritesActions from '../../../../core/state/lib/favorites/favorites.actions';
 import { selectIsMobile } from '../../../../core/state/lib/layout/layout.selectors';
+import { ReadableDistancePipe } from '../../../../core/utils/pipes/distance.pipe';
 
 @Component({
   selector: 'drawer-stops',
   templateUrl: './stops.component.html',
   standalone: true,
-  imports: [CommonModule, DiffMinutesPipe],
+  imports: [CommonModule, DiffMinutesPipe, ReadableDistancePipe],
 })
-export class StopsComponent implements OnInit {
+export class StopsComponent implements OnInit, AfterViewInit {
   StopsActions = StopsActions;
   UserActions = UserActions;
   FavoritesActions = FavoritesActions;
@@ -32,8 +33,15 @@ export class StopsComponent implements OnInit {
   stopsSortedByDistance$: Observable<Stop[]> = this.store.select(selectAllStopsSortedByDistance);
   isMobile$ = this.store.select(selectIsMobile);
 
-  // This observable will emit whether the current selected stop is a favorite.
   isFavorite$!: Observable<boolean>;
+
+  // Pagination: start by displaying 20 stops.
+  private displayLimit$ = new BehaviorSubject<number>(20);
+  paginatedStops$: Observable<Stop[]> = combineLatest([this.stopsSortedByDistance$, this.displayLimit$]).pipe(
+    map(([stops, limit]) => stops.slice(0, limit))
+  );
+
+  @ViewChild('loadMore') loadMore!: ElementRef;
 
   ngOnInit(): void {
     // Whenever the selected stop changes, update the isFavorite$ observable.
@@ -41,5 +49,26 @@ export class StopsComponent implements OnInit {
       filter((stop): stop is Stop => !!stop),
       switchMap((stop) => this.store.select(selectIsFavorite(stop.stopId)))
     );
+  }
+
+  ngAfterViewInit() {
+    const options = {
+      root: null,
+      rootMargin: '0px',
+      threshold: 1.0,
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        this.loadMoreStops();
+      }
+    }, options);
+
+    observer.observe(this.loadMore.nativeElement);
+  }
+
+  loadMoreStops() {
+    const currentLimit = this.displayLimit$.getValue();
+    this.displayLimit$.next(currentLimit + 20);
   }
 }

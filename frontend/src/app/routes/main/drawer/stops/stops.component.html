@@ -1,4 +1,4 @@
-<ng-container *ngTemplateOutlet="(selectedStop$ | async) ? selectedStopTemplate : stopsListTemplate">
+<ng-container *ngTemplateOutlet="(selectedStop$ | async) ? selectedStopTemplate : stopsListTemplate" class="">
 </ng-container>
 
 <ng-template #selectedStopTemplate>
@@ -34,13 +34,9 @@
 
     <div id="stop-details" class="px-3 py-2">
       <div class="text-sm text-gray-500">
-        <span>
-          Stop: {{ selectedStop.stopId }}
-        </span>
+        <span>Stop: {{ selectedStop.stopId }}</span>
         <span class="text-black">•</span>
-        <span>
-          Last Updated: {{ selectedStop.lastUpdated | date: 'short' }}
-        </span>
+        <span>Last Updated: {{ selectedStop.lastUpdated | date: 'short' }}</span>
       </div>
       <ul class="px-3 py-2">
         <li *ngFor="let arrival of selectedStop.arrivals" class="py-3 border-b">
@@ -60,9 +56,7 @@
               </div>
               <ng-container *ngIf="arrival.arrivalDate">
                 <div class="mt-1 text-md text-blue-600 font-semibold">
-                  <span>
-                    Arrives in: {{ arrival.arrivalDate | diffMinutes }} min
-                  </span>
+                  <span>Arrives in: {{ arrival.arrivalDate | diffMinutes }} min</span>
                 </div>
               </ng-container>
             </div>
@@ -75,12 +69,14 @@
 
 <ng-template #stopsListTemplate>
   <ul class="px-3 py-2">
-    <li *ngFor="let stop of stopsSortedByDistance$ | async" class="py-2 border-b">
+    <li *ngFor="let stop of paginatedStops$ | async; let last = last" class="py-2 border-b">
       <button (click)="store.dispatch(UserActions.setSelectedStop({ stop }))" class="flex w-full text-left">
         <div class="flex-1 flex flex-col">
           <span class="text-lg">{{ stop.stopName }}</span>
+          <span class="text-sm text-slate-600">{{ stop.distance | readableDistance }}</span>
         </div>
       </button>
+      <div *ngIf="last" #loadMore></div>
     </li>
   </ul>
 </ng-template>
