@@ -17,11 +17,10 @@ import {
   take,
   concatMap,
   withLatestFrom,
-  tap,
 } from 'rxjs';
 import { getBaseUrl } from '../../../utils/utils';
 import { parse } from 'date-fns';
-import { selectAllStopsSortedByDistance, selectStopsTrackingIds, selectAllStops } from './stops.selectors';
+import { selectAllStopsSortedByDistance, selectAllStops, selectStopsTrackingValues } from './stops.selectors';
 import { Store } from '@ngrx/store';
 import { selectSelectedStop } from '../user/user.selectors';
 import { timer, EMPTY } from 'rxjs';
@@ -45,7 +44,7 @@ export class StopsEffects {
     return this.actions$.pipe(
       ofType(appInit),
       mergeMap(() =>
-        selectedStop$.pipe(map((selectedStop) => StopsActions.startTrackingStops({ stops: [selectedStop] })))
+        selectedStop$.pipe(map((selectedStop) => StopsActions.startTrackingStops({ stopIds: [selectedStop.stopId] })))
       )
     );
   });
@@ -85,7 +84,6 @@ export class StopsEffects {
               chunk.map((stopId) =>
                 this.http.get<{ data: StopApiResponse }>(this.detailedStopLink(stopId)).pipe(
                   map((response) => {
-                    console.log('wtf is stopid', stopId);
                     const parseResult = StopApiResponseSchema.safeParse(response.data);
                     if (!parseResult.success) {
                       return { error: 'Zod: Invalid API response', stopId };
@@ -144,25 +142,20 @@ export class StopsEffects {
   updateStopsTrackingOnSelectedStop$ = createEffect(() =>
     this.actions$.pipe(
       ofType(UserActions.setSelectedStop),
-      withLatestFrom(this.store.select(selectStopsTrackingIds)),
-      mergeMap(([action, trackedIds]) => {
-        const actionsArray = [];
-        if (trackedIds.length > 0) {
-          // Remove any currently tracked stops.
-          actionsArray.push(StopsActions.stopTrackingStops({ stopIds: trackedIds }));
+      switchMap((action) => {
+        if (action.stop === null) {
+          // If stop is null, return an empty observable
+          return EMPTY;
         }
-        if (action.stop) {
-          // Add the newly selected stop to tracking.
-          actionsArray.push(StopsActions.startTrackingStops({ stops: [action.stop] }));
-        }
-        return actionsArray;
+
+        return of(StopsActions.startTrackingStops({ stopIds: [action.stop.stopId] }));
       })
     )
   );
 
   // Effect: When stopsTracking changes, load detailed stops immediately and every 15 seconds.
   loadTrackedStops$ = createEffect(() =>
-    this.store.select(selectStopsTrackingIds).pipe(
+    this.store.select(selectStopsTrackingValues).pipe(
       distinctUntilChanged((prev, curr) => {
         return prev.length === curr.length && prev.every((id, index) => id === curr[index]);
       }),

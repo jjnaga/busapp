@@ -32,16 +32,16 @@ export const stopsReducer = createReducer(
     ...state,
     loading: false,
   })),
-  on(startTrackingStops, (state, { stops }) => ({
-    ...state,
-    stopsTracking: stops.reduce(
-      (tracking, stop) => ({
-        ...tracking,
-        [stop.stopId]: true,
-      }),
-      { ...state.stopsTracking }
-    ),
-  })),
+  on(startTrackingStops, (state, { stopIds }) => {
+    const updatedTracking = { ...state.stopsTracking };
+    stopIds.forEach((stopId) => {
+      updatedTracking[stopId] = true;
+    });
+    return {
+      ...state,
+      stopsTracking: updatedTracking,
+    };
+  }),
   on(stopTrackingStops, (state, { stopIds }) => {
     const newTracking = { ...state.stopsTracking };
     stopIds.forEach((id) => {

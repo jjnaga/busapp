@@ -1,11 +1,11 @@
-<ng-container *ngIf="(favorites$ | async)?.length; else noFavorites">
+<ng-container *ngIf="(selectFavoritesWithLiveData$ | async)?.length; else noFavorites">
   <div class="space-y-1 p-1">
-    <div *ngFor="let stop of favorites$ | async" role="button" tabindex="0" (click)="setSelectedStop(stop)"
-      (keydown.enter)="setSelectedStop(stop)"
+    <div *ngFor="let stop of selectFavoritesWithLiveData$ | async" role="button" tabindex="0"
+      (click)="setSelectedStop(stop)" (keydown.enter)="setSelectedStop(stop)"
       class="group relative flex items-center px-4 py-2 rounded-xl bg-white hover:bg-blue-50 shadow-sm transition-all duration-200 border border-gray-200 hover:border-blue-200">
       <div class="flex-1 min-w-0">
         <h4 class="text-lg font-semibold text-gray-900 truncate">
-          {{ stop.stopName }}
+          {{ stop?.stopName }}
         </h4>
         <div class="flex space-around items-center text-sm text-gray-500">
           <div
@@ -20,7 +20,7 @@
           </div>
           <span class="text-white">•</span>
           <span>
-            Arrives in: {{ stop.arrivals?.[0]?.arrivalDate | diffMinutes }} min
+            Arrives in: {{ stop?.arrivals?.[0]?.arrivalDate | diffMinutes }} min
           </span>
         </div>
       </div>
