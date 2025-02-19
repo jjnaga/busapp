@@ -1,34 +1,36 @@
 <ng-container *ngIf="(selectFavoritesWithLiveData$ | async)?.length; else noFavorites">
-  <div class="space-y-1 p-1">
+  <div class="space-y-2 p-2">
     <div *ngFor="let stop of selectFavoritesWithLiveData$ | async" role="button" tabindex="0"
       (click)="setSelectedStop(stop)" (keydown.enter)="setSelectedStop(stop)"
-      class="group relative flex items-center px-4 py-2 rounded-xl bg-white hover:bg-blue-50 shadow-sm transition-all duration-200 border border-gray-200 hover:border-blue-200">
-      <div class="flex-1 min-w-0">
-        <h4 class="text-lg font-semibold text-gray-900 truncate">
+      class="bg-white rounded-lg border border-gray-100 hover:border-gray-200 transition-all duration-200">
+
+      <!-- Header -->
+      <div class="flex items-center justify-between p-3 border-b border-gray-50">
+        <h4 class="font-medium text-lg text-gray-900 truncate">
           {{ stop?.stopName }}
         </h4>
-        <div class="flex space-around items-center text-sm text-gray-500">
-          <div
-            class="flex items-center space-x-2 bg-nagahama-blue text-white font-bold rounded-lg px-1 py-1 text-sm shadow-md mt-1 ">
-            <span>
-              {{ stop?.arrivals?.[0]?.route}}
-              <span>-</span>
-              <span>
-                {{ stop?.arrivals?.[0]?.stopTime}}
-              </span>
-            </span>
-          </div>
-          <span class="text-white">•</span>
-          <span>
-            Arrives in: {{ stop?.arrivals?.[0]?.arrivalDate | diffMinutes }} min
+        <div class="flex items-center space-x-2">
+          <button type="button" (click)="toggleFavorite(stop); $event.stopPropagation()"
+            class="p-1.5 text-gray-400 hover:text-red-500 rounded-full transition-colors">
+            <fa-icon class="text-xs" [icon]="faX"></fa-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="py-2">
+        <div *ngFor="let arrival of stop?.arrivals?.slice(0,3); let last = last"
+          class="flex items-center space-x-4 px-4 py-2" [class.border-b]="!last" [class.border-gray-100]="!last">
+          <span class="font-medium text-gray-700">{{ arrival?.route }}</span>
+          <span class="text-gray-300">•</span>
+          <span class="text-gray-600">{{ arrival?.stopTime }}</span>
+          <span class="text-gray-400 text-xs">
+            {{ arrival?.arrivalDate | diffMinutes }}min
           </span>
         </div>
       </div>
-      <button type="button" (click)="toggleFavorite(stop); $event.stopPropagation()"
-        class="p-2 text-red-500 hover:text-red-700 rounded-full">
-        <fa-icon class="text-sm" [icon]="faX"></fa-icon>
-      </button>
     </div>
+
   </div>
 </ng-container>
 
