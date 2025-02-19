@@ -29,7 +29,7 @@ export const selectStopsTrackingValues = createSelector(selectStopsState, (state
 export const selectStopIsTracked = (stopId: string) =>
   createSelector(selectStopsTracking, (stopsTracking) => !!stopsTracking[stopId]);
 
-// Haversine formula to compute distance (in meters)
+// Haversine formula to compute distance (in feet)
 const calcDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
   const R = 6371e3; // Earth's radius in meters
   const toRad = (deg: number) => (deg * Math.PI) / 180;
@@ -39,5 +39,7 @@ const calcDistance = (lat1: number, lon1: number, lat2: number, lon2: number): n
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
+  const meters = R * c;
+  const feet = meters * 3.28084; // Convert meters to feet
+  return feet;
 };
