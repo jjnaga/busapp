@@ -7,6 +7,15 @@ import { selectSelectedStop } from '../../../../core/state/lib/user/user.selecto
 import { selectAllStopsSortedByDistance } from '../../../../core/state/lib/stops/stops.selectors';
 import * as StopsActions from '../../../../core/state/lib/stops/stops.actions';
 import { selectIsFavorite } from '../../../../core/state/lib/favorites/favorites.selectors';
+import { By } from '@angular/platform-browser';
+import { of } from 'rxjs';
+
+(window as any).IntersectionObserver = class {
+  constructor(callback: IntersectionObserverCallback, options?: IntersectionObserverInit) {}
+  observe(target: Element) {}
+  unobserve(target: Element) {}
+  disconnect() {}
+};
 
 const mockStop: Stop = {
   stopId: '1',
@@ -59,8 +68,7 @@ describe('StopsComponent', () => {
       providers: [
         provideMockStore({
           selectors: [
-            { selector: selectSelectedStop, value: mockStop },
-            // Provide the sorted stops array for the component’s stopsSortedByDistance$
+            { selector: selectSelectedStop, value: null }, // Set to null to show stops list
             { selector: selectAllStopsSortedByDistance, value: mockStopsArray },
           ],
         }),
@@ -72,49 +80,58 @@ describe('StopsComponent', () => {
 
     fixture = TestBed.createComponent(StopsComponent);
     component = fixture.componentInstance;
+
+    // Set initial values
+    component.paginatedStops$ = of(mockStopsArray);
+    component.selectedStop$ = of(undefined); // Force stopsListTemplate to be shown
+
     fixture.detectChanges();
   });
 
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+
   it('should dispatch toggleFavoriteAction when toggle favorite button is clicked', () => {
+    // Force the selectedStop template to be shown
+    component.selectedStop$ = of(mockStop);
+    fixture.detectChanges();
+
     const favoriteBtn: HTMLElement = fixture.nativeElement.querySelector('button[aria-label="toggle-favorite"]');
+    expect(favoriteBtn).toBeTruthy();
     favoriteBtn.click();
     fixture.detectChanges();
     expect(storeMock.dispatch).toHaveBeenCalledWith(toggleFavoriteAction({ stop: mockStop }));
   });
 
   it('should dispatch nextStop action when Next button is clicked', () => {
-    // Find the button with text 'Next'
-    const buttons: NodeListOf<HTMLButtonElement> = fixture.nativeElement.querySelectorAll('button');
-    let nextButton: HTMLButtonElement | null = null;
-    buttons.forEach((btn) => {
-      if (btn.textContent?.trim() === 'Next') {
-        nextButton = btn;
-      }
-    });
+    // Force the selectedStop template to be shown
+    component.selectedStop$ = of(mockStop);
+    fixture.detectChanges();
+
+    // Query using an aria-label selector (make sure template text is "Next")
+    const nextButton = fixture.debugElement.query(By.css('button[aria-label="next-stop"]'));
     expect(nextButton).toBeTruthy();
-    nextButton!.click();
+    nextButton.nativeElement.click();
     fixture.detectChanges();
     expect(storeMock.dispatch).toHaveBeenCalledWith(StopsActions.nextStop());
   });
 
   it('should dispatch previousStop action when Previous button is clicked', () => {
-    // Find the button with text 'Previous'
-    const buttons: NodeListOf<HTMLButtonElement> = fixture.nativeElement.querySelectorAll('button');
-    let prevButton: HTMLButtonElement | null = null;
-    buttons.forEach((btn) => {
-      if (btn.textContent?.trim() === 'Previous') {
-        prevButton = btn;
-      }
-    });
+    // Force the selectedStop template to be shown
+    component.selectedStop$ = of(mockStop);
+    fixture.detectChanges();
+
+    const prevButton = fixture.debugElement.query(By.css('button[aria-label="previous-stop"]'));
     expect(prevButton).toBeTruthy();
-    prevButton!.click();
+    prevButton.nativeElement.click();
     fixture.detectChanges();
     expect(storeMock.dispatch).toHaveBeenCalledWith(StopsActions.previousStop());
   });
 
   it('should set isFavorite$ to true if selected stop is a favorite', () => {
     storeMock.overrideSelector(selectSelectedStop, mockStop);
-    storeMock.overrideSelector(selectIsFavorite(mockStop.stopId), true); // Mock the isFavorite selector
+    storeMock.overrideSelector(selectIsFavorite(mockStop.stopId), true);
 
     fixture.detectChanges();
 
@@ -125,12 +142,26 @@ describe('StopsComponent', () => {
 
   it('should set isFavorite$ to false if selected stop is not a favorite', () => {
     storeMock.overrideSelector(selectSelectedStop, mockStop);
-    storeMock.overrideSelector(selectIsFavorite(mockStop.stopId), false); // Mock the isFavorite selector
+    storeMock.overrideSelector(selectIsFavorite(mockStop.stopId), false);
 
     fixture.detectChanges();
 
     component.isFavorite$?.subscribe((isFavorite) => {
       expect(isFavorite).toBe(false);
     });
+  });
+
+  it('should set up IntersectionObserver for loadMore element', async () => {
+    // Force the stopsListTemplate to be shown
+    component.selectedStop$ = of(undefined);
+    component.paginatedStops$ = of(mockStopsArray);
+
+    // Force template to update
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    // Now the loadMore element should be available
+    const loadMoreElement = fixture.debugElement.query(By.css('[data-testid="load-more"]'));
+    expect(loadMoreElement).toBeTruthy();
   });
 });

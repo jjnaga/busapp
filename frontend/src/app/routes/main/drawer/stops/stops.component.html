@@ -3,40 +3,40 @@
 
 <ng-template #selectedStopTemplate>
   <ng-container *ngIf="selectedStop$ | async as selectedStop">
-    <div class="flex justify-between items-center px-4 py-2 bg-white">
-      <div class="flex space-x-2">
-        <button (click)="store.dispatch(StopsActions.previousStop())"
-          class="flex items-center justify-center px-6 py-2 text-sm font-medium bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white rounded-md transition-colors duration-150">
-          Previous
+    <div class="flex flex-col space-y-4 p-4">
+      <!-- Button Row: container takes up half the width -->
+      <div class="w-1/2 flex flex-row items-center justify-between space-x-2">
+        <!-- Previous Button -->
+        <button aria-label="previous-stop" (click)="store.dispatch(StopsActions.previousStop())"
+          class="flex items-center justify-center w-full px-3 py-1 bg-gray-100 text-gray-800 rounded-md hover:bg-gray-200 focus:outline-none text-sm">
+          <fa-icon [icon]="faArrowLeft" class="w-3 h-3 mr-1"></fa-icon>
+          <span>Prev</span>
         </button>
-        <button (click)="store.dispatch(StopsActions.nextStop())"
-          class="flex items-center justify-center px-6 py-2 text-sm font-medium bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white rounded-md transition-colors duration-150">
-          Next
-        </button>
-      </div>
-      <div class="flex items-center space-x-4">
         <!-- Toggle Favorite Button -->
         <button aria-label="toggle-favorite"
           (click)="store.dispatch(FavoritesActions.toggleFavoriteAction({ stop: selectedStop }))"
-          class="flex items-center justify-center px-4 py-2 text-sm font-medium transition-colors duration-150 rounded-md"
+          class="flex items-center justify-center w-full px-3 py-1 rounded-md focus:outline-none transition-colors text-sm"
           [ngClass]="{
-            'bg-blue-500 text-white hover:bg-blue-600': !(isFavorite$ | async),
-            'bg-red-500 text-white hover:bg-red-600': isFavorite$ | async
+            'bg-blue-100 text-blue-800 hover:bg-blue-200': !(isFavorite$ | async),
+            'bg-red-100 text-red-800 hover:bg-red-200': (isFavorite$ | async)
           }">
-          {{ (isFavorite$ | async) ? 'Remove Favorite' : 'Add Favorite' }}
+          <fa-icon [icon]="faHeart" class="w-3 h-3 mr-1"></fa-icon>
+          <span>{{ (isFavorite$ | async) ? 'Unfav' : 'Fav' }}</span>
+        </button>
+        <!-- Next Button -->
+        <button aria-label="next-stop" (click)="store.dispatch(StopsActions.nextStop())"
+          class="flex items-center justify-center w-full px-3 py-1 bg-gray-100 text-gray-800 rounded-md hover:bg-gray-200 focus:outline-none text-sm">
+          <fa-icon [icon]="faArrowRight" class="w-3 h-3 mr-1"></fa-icon>
+          <span>Next</span>
         </button>
       </div>
-      <button (click)="store.dispatch(UserActions.setSelectedStop({ stop: null }))"
-        class="flex items-center justify-center w-8 h-8 hover:bg-gray-100 rounded-full transition-colors duration-150">
-        <span class="text-gray-600 text-xl">&times;</span>
-      </button>
-    </div>
-
-    <div id="stop-details" class="px-3 py-2">
-      <div class="text-sm text-gray-500">
-        <span>Stop: {{ selectedStop.stopId }}</span>
-        <span class="text-black">•</span>
-        <span>Last Updated: {{ selectedStop.lastUpdated | date: 'short' }}</span>
+      <!-- Stop Details -->
+      <div id="stop-details" class="px-3 py-2 overflow-hidden whitespace-nowrap">
+        <div class="inline-block">
+          <span>
+            Stop: {{ selectedStop.stopId }} • Last Updated: {{ selectedStop.lastUpdated | date: 'short' }}
+          </span>
+        </div>
       </div>
       <ul class="px-3 py-2">
         <li *ngFor="let arrival of selectedStop.arrivals" class="py-3 border-b">
@@ -76,7 +76,7 @@
           <span class="text-sm text-slate-600">{{ stop.distance | readableDistance }}</span>
         </div>
       </button>
-      <div *ngIf="last" #loadMore></div>
     </li>
   </ul>
+  <div #loadMore data-testid="load-more"></div>
 </ng-template>

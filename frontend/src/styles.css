@@ -270,3 +270,17 @@ body {
   overflow: hidden;
   background-color: #fff;
 }
+
+@keyframes marquee {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.scrolling-text {
+  animation: marquee 10s linear infinite;
+  /* Optionally, adjust the duration (10s) for a faster/slower scroll */
+}

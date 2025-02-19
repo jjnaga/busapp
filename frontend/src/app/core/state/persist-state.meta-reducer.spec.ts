@@ -1,6 +1,13 @@
 import { ActionReducer } from '@ngrx/store';
 import { persistState } from './persist-state.meta-reducer';
 
+(window as any).IntersectionObserver = class {
+  constructor(callback: IntersectionObserverCallback, options?: IntersectionObserverInit) {}
+  observe(target: Element) {}
+  unobserve(target: Element) {}
+  disconnect() {}
+};
+
 describe('persistState Meta Reducer', () => {
   let dummyReducer: ActionReducer<any>;
 
@@ -8,6 +15,12 @@ describe('persistState Meta Reducer', () => {
     localStorage.clear();
     dummyReducer = (state: any, action: any) => {
       return { ...state, actionType: action.type };
+    };
+
+    (window as any).IntersectionObserver = class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
     };
   });
 
