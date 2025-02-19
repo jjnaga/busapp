@@ -37,6 +37,7 @@ export interface Stop extends StopBase {
   loading?: boolean;
   errors?: String;
   lastUpdated?: Date;
+  distance?: number; // Add this line
 }
 
 export type Vehicles = Map<string, Vehicle>;
