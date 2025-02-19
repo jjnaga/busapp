@@ -5,18 +5,19 @@ import { appInit } from '../../root.actions';
 import * as FavoritesActions from './favorites.actions';
 import * as StopsActions from '../stops/stops.actions';
 import { withLatestFrom, map } from 'rxjs/operators';
-import { selectAllFavorites } from './favorites.selectors';
+import { selectAllFavoriteEntities, selectAllFavoriteIds } from './favorites.selectors';
 
 @Injectable()
 export class FavoritesEffects {
   // When the app initializes, grab any stored favorites and add them to trackingStops.
-  loadFavoritesToTracking$ = createEffect(() =>
+  onInitLoadFavoritesToTracking$ = createEffect(() =>
     this.actions$.pipe(
       ofType(appInit),
-      withLatestFrom(this.store.select(selectAllFavorites)),
-      map(([_, favorites]) => {
-        if (favorites && favorites.length > 0) {
-          return StopsActions.startTrackingStops({ stops: favorites });
+      withLatestFrom(this.store.select(selectAllFavoriteIds)),
+      map(([_, favoritesIds]) => {
+        if (favoritesIds && favoritesIds.length > 0) {
+          console.log('wtf', favoritesIds);
+          return StopsActions.startTrackingStops({ stopIds: favoritesIds });
         } else {
           return { type: 'NO_ACTION' };
         }
@@ -24,17 +25,15 @@ export class FavoritesEffects {
     )
   );
 
-  // When a favorite is toggled, update stops tracking accordingly.
-  updateFavoritesTracking$ = createEffect(() =>
+  toggleFavorite$ = createEffect(() =>
     this.actions$.pipe(
       ofType(FavoritesActions.toggleFavoriteAction),
-      withLatestFrom(this.store.select(selectAllFavorites)),
-      map(([action, favorites]) => {
-        const isNowFavorite = favorites.some((fav) => fav.stopId === action.stop.stopId);
-        if (isNowFavorite) {
-          return StopsActions.startTrackingStops({ stops: [action.stop] });
+      withLatestFrom(this.store.select(selectAllFavoriteEntities)),
+      map(([toggledStop, favorites]) => {
+        if (toggledStop.stop.stopId in favorites) {
+          return StopsActions.stopTrackingStops({ stopIds: [toggledStop.stop.stopId] });
         } else {
-          return StopsActions.stopTrackingStops({ stopIds: [action.stop.stopId] });
+          return StopsActions.startTrackingStops({ stopIds: [toggledStop.stop.stopId] });
         }
       })
     )

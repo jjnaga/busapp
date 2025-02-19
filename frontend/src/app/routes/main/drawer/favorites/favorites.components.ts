@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { selectDrawerExpanded } from '../../../../core/state/lib/user/user.selectors';
-import { selectAllFavorites } from '../../../../core/state/lib/favorites/favorites.selectors';
+import { selectFavoritesWithLiveData } from '../../../../core/state/lib/favorites/favorites.selectors';
 import { Stop } from '../../../../core/utils/global.types';
 import { toggleFavoriteAction } from '../../../../core/state/lib/favorites/favorites.actions';
 import { setSelectedStop } from '../../../../core/state/lib/user/user.actions';
@@ -23,18 +23,23 @@ export class FvoritesComponent {
 
   drawerExpanded$ = this.store.select(selectDrawerExpanded);
   faX = faX;
-  favorites$ = this.store.select(selectAllFavorites).pipe(tap((favs) => console.log('favs', favs)));
+  selectFavoritesWithLiveData$ = this.store
+    .select(selectFavoritesWithLiveData)
+    .pipe(tap((data) => console.log('this aint working', data)));
 
-  toggleFavorite(stop: Stop) {
-    if (!stop) {
-      console.error('toggleFavorites: stop is undefined');
+  toggleFavorite(stop?: Stop) {
+    if (stop === undefined) {
       return;
     }
 
     this.store.dispatch(toggleFavoriteAction({ stop }));
   }
 
-  setSelectedStop(stop: Stop) {
+  setSelectedStop(stop?: Stop) {
+    if (stop === undefined) {
+      return;
+    }
+
     this.store.dispatch(setSelectedStop({ stop }));
   }
 }

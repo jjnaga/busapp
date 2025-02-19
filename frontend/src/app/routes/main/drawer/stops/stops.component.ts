@@ -7,7 +7,7 @@ import { Stop } from '../../../../core/utils/global.types';
 import { selectAllStopsSortedByDistance, selectStopsLoading } from '../../../../core/state/lib/stops/stops.selectors';
 import { selectDrawerExpanded, selectSelectedStop } from '../../../../core/state/lib/user/user.selectors';
 import { DiffMinutesPipe } from '../../../../core/utils/pipes/diff-minutes.pipe';
-import { selectAllFavorites, selectIsFavorite } from '../../../../core/state/lib/favorites/favorites.selectors';
+import { selectIsFavorite } from '../../../../core/state/lib/favorites/favorites.selectors';
 import * as StopsActions from '../../../../core/state/lib/stops/stops.actions';
 import * as UserActions from '../../../../core/state/lib/user/user.actions';
 import * as FavoritesActions from '../../../../core/state/lib/favorites/favorites.actions';
@@ -29,7 +29,6 @@ export class StopsComponent implements OnInit {
   drawerExpanded$: Observable<boolean> = this.store.select(selectDrawerExpanded);
   stopsLoading$: Observable<boolean> = this.store.select(selectStopsLoading);
   selectedStop$: Observable<Stop | undefined> = this.store.select(selectSelectedStop);
-  favorites$: Observable<Stop[]> = this.store.select(selectAllFavorites);
   stopsSortedByDistance$: Observable<Stop[]> = this.store.select(selectAllStopsSortedByDistance);
   isMobile$ = this.store.select(selectIsMobile);
 

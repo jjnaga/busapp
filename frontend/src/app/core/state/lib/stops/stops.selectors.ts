@@ -21,10 +21,13 @@ export const selectAllStopsSortedByDistance = createSelector(selectUserLocation,
     .sort((a, b) => a.distance - b.distance);
 });
 
-// New selector to get array of tracked stop IDs
-export const selectStopsTrackingIds = createSelector(selectStopsState, (state: StopsState) =>
+export const selectStopsTracking = createSelector(selectStopsState, (state: StopsState) => state.stopsTracking);
+export const selectStopsTrackingValues = createSelector(selectStopsState, (state: StopsState) =>
   Object.keys(state.stopsTracking)
 );
+
+export const selectStopIsTracked = (stopId: string) =>
+  createSelector(selectStopsTracking, (stopsTracking) => !!stopsTracking[stopId]);
 
 // Haversine formula to compute distance (in meters)
 const calcDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {

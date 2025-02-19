@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { mergeMap } from 'rxjs';
+import { mergeMap, of } from 'rxjs';
 import { DrawerMode } from '../../../utils/global.types';
 import { HttpClient } from '@angular/common/http';
 import { getBaseUrl } from '../../../utils/utils';
@@ -20,9 +20,15 @@ export class UserEffects {
             UserActions.toggleDrawerExpanded({ expanded: true }),
             UserActions.setDrawerMode({ drawerMode: DrawerMode.Stops }),
           ];
-        } else {
-          return [UserActions.toggleDrawerExpanded({ expanded: false })];
         }
+
+        return of({
+          type: 'NOOP',
+        });
+        // let the user close it out
+        // } else {
+        //   return [UserActions.toggleDrawerExpanded({ expanded: false })];
+        // }
       })
     )
   );
