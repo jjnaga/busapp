@@ -13,17 +13,22 @@ import * as UserActions from '../../../../core/state/lib/user/user.actions';
 import * as FavoritesActions from '../../../../core/state/lib/favorites/favorites.actions';
 import { selectIsMobile } from '../../../../core/state/lib/layout/layout.selectors';
 import { ReadableDistancePipe } from '../../../../core/utils/pipes/distance.pipe';
+import { faArrowLeft, faArrowRight, faHeart } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
 @Component({
   selector: 'drawer-stops',
   templateUrl: './stops.component.html',
   standalone: true,
-  imports: [CommonModule, DiffMinutesPipe, ReadableDistancePipe],
+  imports: [CommonModule, DiffMinutesPipe, ReadableDistancePipe, FontAwesomeModule],
 })
 export class StopsComponent implements OnInit, AfterViewInit {
   StopsActions = StopsActions;
   UserActions = UserActions;
+  faHeart = faHeart;
   FavoritesActions = FavoritesActions;
+  faArrowLeft = faArrowLeft;
+  faArrowRight = faArrowRight;
 
   store = inject(Store);
 
@@ -52,6 +57,8 @@ export class StopsComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit() {
+    if (!this.loadMore) return;
+
     const options = {
       root: null,
       rootMargin: '0px',

@@ -16,7 +16,6 @@ export class FavoritesEffects {
       withLatestFrom(this.store.select(selectAllFavoriteIds)),
       map(([_, favoritesIds]) => {
         if (favoritesIds && favoritesIds.length > 0) {
-          console.log('wtf', favoritesIds);
           return StopsActions.startTrackingStops({ stopIds: favoritesIds });
         } else {
           return { type: 'NO_ACTION' };

@@ -16,12 +16,13 @@ import { StopsComponent } from './stops/stops.component';
 import { FvoritesComponent } from './favorites/favorites.components';
 import { getVisibleHeight } from '../../../core/utils/utils';
 import { selectIsMobile } from '../../../core/state/lib/layout/layout.selectors';
+import { MarqueeIfOverflowDirective } from '../../../core/utils/directives/marquee-if-overflow.directive';
 
 @Component({
   selector: 'drawer',
   templateUrl: './drawer.component.html',
   standalone: true,
-  imports: [CommonModule, BottomMenuComponent, StopsComponent, FvoritesComponent],
+  imports: [CommonModule, BottomMenuComponent, StopsComponent, FvoritesComponent, MarqueeIfOverflowDirective],
 })
 export class DrawerComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('drawerContainer') drawerContainer!: ElementRef;
@@ -98,10 +99,6 @@ export class DrawerComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    try {
-      this.resizeObserver.disconnect();
-    } catch (e) {
-      console.info(e);
-    }
+    this.resizeObserver.disconnect();
   }
 }
