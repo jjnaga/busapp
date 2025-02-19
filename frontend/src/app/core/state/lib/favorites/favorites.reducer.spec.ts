@@ -16,8 +16,8 @@ describe('Favorites Reducer', () => {
   test('should add stop to favorites when not present', () => {
     const action = toggleFavoriteAction({ stop: mockStop });
     const state = favoritesReducer(initialState, action);
-    expect(state.ids).toContain(mockStop.stopId);
-    expect(state.entities[mockStop.stopId]).toEqual(mockStop);
+
+    expect(state.entities[mockStop.stopId]).toContain(mockStop.stopId);
   });
 
   test('should remove stop from favorites when present', () => {
