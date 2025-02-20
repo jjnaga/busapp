@@ -16,6 +16,15 @@ export const selectSelectedStop = createSelector(
     if (!state.selectedStop || !stops) {
       return undefined;
     }
-    return stops[state.selectedStop];
+
+    const selectedStop = stops[state.selectedStop];
+
+    if (!selectedStop) return undefined;
+
+    return {
+      ...selectedStop,
+      stopLat: selectedStop.stopLat,
+      stopLon: selectedStop.stopLon,
+    };
   }
 );

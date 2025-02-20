@@ -1,8 +1,8 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { GoogleMap, GoogleMapsModule } from '@angular/google-maps';
 import { CommonModule } from '@angular/common';
-import { Subscription, Subject, BehaviorSubject, combineLatest, Observable, fromEvent } from 'rxjs';
-import { debounceTime, filter, startWith, take } from 'rxjs/operators';
+import { Subscription, Subject, BehaviorSubject, combineLatest, Observable, fromEvent, EMPTY, of } from 'rxjs';
+import { debounceTime, filter, startWith, take, switchMap, tap } from 'rxjs/operators';
 import { Stop, Vehicle } from '../../../core/utils/global.types';
 import { MarkerService } from '../../../core/services/marker.service';
 import { Store } from '@ngrx/store';
@@ -14,6 +14,7 @@ import { GoogleMapsLoaderService } from '../../../core/services/google-maps-load
 import { Dictionary } from '@ngrx/entity';
 import { selectIsMobile } from '../../../core/state/lib/layout/layout.selectors';
 import { selectAllStopsSortedByDistance } from '../../../core/state/lib/stops/stops.selectors';
+import { MapViewportService } from '../../../core/services/map-viewport.service';
 
 @Component({
   selector: 'map-component',
@@ -43,6 +44,7 @@ export class MapComponent implements OnInit {
   userLocationSubscription!: Subscription;
 
   private markerService = inject(MarkerService);
+  private mapViewportService = inject(MapViewportService);
   private store = inject(Store);
   private mapLayoutService = inject(MapLayoutService);
   private googleMapsLoader = inject(GoogleMapsLoaderService);
@@ -99,15 +101,6 @@ export class MapComponent implements OnInit {
       });
 
       // Subscribe to selected stop changes
-      this.store
-        .select(selectSelectedStop)
-        .pipe(filter((stop) => !!stop && stop.stopLat !== null && stop.stopLon !== null))
-        .subscribe((stop) => {
-          if (this.map && stop && stop.stopLat && stop.stopLon) {
-            const center = { lat: stop.stopLat, lng: stop.stopLon };
-            this.panAndZoom(center, 17);
-          }
-        });
 
       // Handle user location
       this.userLocationSubscription = combineLatest([
@@ -127,6 +120,41 @@ export class MapComponent implements OnInit {
         this.markerService.updateUserMarker(loc.latitude!, loc.longitude!);
       });
     });
+
+    this.store
+      .select(selectSelectedStop)
+      .pipe(
+        tap((stop) => console.log('selected stop', stop)),
+        // Only continue if the stop has valid coordinates.
+        filter((stop) => !!stop && stop.stopLat !== null && stop.stopLon !== null),
+        switchMap((selectedStop) => {
+          if (!selectedStop) return EMPTY;
+
+          const stopCoords: google.maps.LatLngLiteral = { lat: selectedStop.stopLat!, lng: selectedStop.stopLon! };
+          const busCoords$ = this.mapViewportService.getFirstBusCoordinates(selectedStop);
+          if (busCoords$) {
+            // Combine stop and bus coordinates; debounce to smooth out rapid bus updates.
+            return combineLatest([of(stopCoords), busCoords$]).pipe(debounceTime(500));
+          } else {
+            // Cancel the operation if bus coordinates are not available.
+            return EMPTY;
+          }
+        })
+      )
+      .subscribe(([stopCoords, busCoords]) => {
+        if (this.map) {
+          // Compute bounds to include both points.
+          const bounds = new google.maps.LatLngBounds();
+          bounds.extend(new google.maps.LatLng(stopCoords.lat, stopCoords.lng));
+          bounds.extend(new google.maps.LatLng(busCoords.lat, busCoords.lng));
+          this.map.fitBounds(this.mapViewportService.computeBounds(stopCoords, busCoords), {
+            top: 50,
+            bottom: 50,
+            left: 50,
+            right: 50,
+          });
+        }
+      });
   }
 
   onMapReady(event: google.maps.Map | Event) {
