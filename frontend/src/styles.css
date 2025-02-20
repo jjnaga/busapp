@@ -209,16 +209,6 @@ body {
   }
 }
 
-.marker-icon-vehicle {
-  width: 24px;
-  height: auto;
-}
-
-.user-marker-icon {
-  width: 100px;
-  height: auto;
-}
-
 .full-height {
   height: 100vh; /* Fallback for older browsers */
 }
@@ -239,6 +229,59 @@ body {
   100% {
     transform: scale(1);
   }
+}
+
+.custom-stop-marker {
+  width: 25px;
+  height: auto;
+}
+
+.custom-stop-marker-selected {
+  width: 35px !important;
+  color: yellow !important;
+  height: auto !important;
+  animation: pulse 2s infinite !important;
+  transition: filter 0.3s ease !important;
+}
+
+/* styles.css */
+.stop-marker {
+  transition: all 0.2s ease;
+  cursor: pointer;
+  text-align: center;
+}
+
+.stop-marker.selected {
+  transform: scale(1.3);
+  filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.5));
+}
+
+.stop-marker.favorite circle {
+  fill: #ffd700;
+}
+
+.stop-label {
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 12px;
+  background: white;
+  padding: 2px 5px;
+  border-radius: 3px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.stop-marker:hover .stop-label {
+  opacity: 1;
+}
+
+.custom-vehicle-marker {
+  width: 35px;
+  height: auto;
 }
 
 .custom-user-marker {
