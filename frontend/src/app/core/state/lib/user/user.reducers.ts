@@ -10,8 +10,8 @@ export interface UserState {
 }
 
 export const initialUserState: UserState = {
-  drawerMode: DrawerMode.Stops,
-  drawerExpanded: false,
+  drawerMode: DrawerMode.Favorites,
+  drawerExpanded: true,
   selectedStop: undefined,
 };
 
