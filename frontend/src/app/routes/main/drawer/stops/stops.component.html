@@ -31,6 +31,11 @@
             <fa-icon [icon]="faArrowRight" class="w-3 h-3 mr-1"></fa-icon>
             <span>Next</span>
           </button>
+          <button aria-label="close-stop" (click)="store.dispatch(UserActions.setSelectedStop({ stop: null }))"
+            class="flex items-center justify-center w-full px-3 py-1 bg-rose-50 text-rose-700 rounded-md hover:bg-gray-200 focus:outline-none text-sm">
+            <fa-icon [icon]="faClose" class="w-3 h-3 mr-1"></fa-icon>
+            <span>Close</span>
+          </button>
         </div>
 
         <!-- Stop Details with subtle background to separate from content -->

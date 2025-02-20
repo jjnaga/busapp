@@ -13,7 +13,7 @@ import * as UserActions from '../../../../core/state/lib/user/user.actions';
 import * as FavoritesActions from '../../../../core/state/lib/favorites/favorites.actions';
 import { selectIsMobile } from '../../../../core/state/lib/layout/layout.selectors';
 import { ReadableDistancePipe } from '../../../../core/utils/pipes/distance.pipe';
-import { faArrowLeft, faArrowRight, faHeart } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faArrowRight, faClose, faHeart } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
 @Component({
@@ -29,6 +29,7 @@ export class StopsComponent implements OnInit, AfterViewInit {
   FavoritesActions = FavoritesActions;
   faArrowLeft = faArrowLeft;
   faArrowRight = faArrowRight;
+  faClose = faClose;
 
   store = inject(Store);
 
