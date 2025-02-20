@@ -124,7 +124,6 @@ export class MapComponent implements OnInit {
     this.store
       .select(selectSelectedStop)
       .pipe(
-        tap((stop) => console.log('selected stop', stop)),
         // Only continue if the stop has valid coordinates.
         filter((stop) => !!stop && stop.stopLat !== null && stop.stopLon !== null),
         switchMap((selectedStop) => {
