@@ -27,22 +27,60 @@ export class WebsocketService {
   private readonly MAX_RECONNECT_ATTEMPTS = 5;
   private isConnecting = false;
   private connectSubscription?: Subscription;
+  private pageVisibilitySubscription?: Subscription;
+  private readonly VISIBILITY_RECONNECT_DELAY = 1000; // 1 second
 
-  constructor(private toastr: ToastrService, private store: Store) {}
+  constructor(private toastr: ToastrService, private store: Store) {
+    this.handleVisibilityChange();
+  }
+
+  private handleVisibilityChange(): void {
+    this.pageVisibilitySubscription?.unsubscribe();
+
+    this.pageVisibilitySubscription = new Observable<boolean>((observer) => {
+      const visibilityHandler = () => {
+        observer.next(!document.hidden);
+      };
+
+      document.addEventListener('visibilitychange', visibilityHandler);
+      window.addEventListener('focus', visibilityHandler);
+      window.addEventListener('resume', visibilityHandler);
+
+      return () => {
+        document.removeEventListener('visibilitychange', visibilityHandler);
+        window.removeEventListener('focus', visibilityHandler);
+        window.removeEventListener('resume', visibilityHandler);
+      };
+    }).subscribe((isVisible) => {
+      if (isVisible) {
+        if (this.socket$ && (!this.socket$.socket || this.socket$.socket.readyState !== WebSocket.OPEN)) {
+          this.toastr.info('Page visible, checking connection...');
+          this.close();
+          timer(this.VISIBILITY_RECONNECT_DELAY).subscribe(() => this.connect());
+        }
+      } else {
+        this.toastr.info('Page hidden, connection may be suspended');
+      }
+    });
+  }
 
   connect(): void {
-    // If there's an open socket or we're already trying, bail out
     if (
       (this.socket$ && this.socket$.socket && this.socket$.socket.readyState === WebSocket.OPEN) ||
       this.isConnecting
     ) {
+      this.toastr.info('WebSocket connection already exists');
       return;
     }
+
+    this.close();
+
     this.isConnecting = true;
     this.connectSubscription?.unsubscribe();
 
     const url = `${getBaseUrl(window.location.protocol === 'https:' ? 'wss:' : 'ws:')}/ws`;
     try {
+      this.toastr.info('Attempting to connect to WebSocket...');
       this.socket$ = new CustomWebSocketSubject({
         url: url,
         openObserver: {
@@ -50,13 +88,15 @@ export class WebsocketService {
             this.store.dispatch(websocketConnected());
             this.isConnecting = false;
             this.reconnectAttempts = 0;
+            this.toastr.success('WebSocket connected successfully');
           },
         },
         closeObserver: {
           next: () => {
             this.store.dispatch(websocketDisconnected());
             this.isConnecting = false;
-            this.socket$ = null; // reset socket reference
+            this.socket$ = null;
+            this.toastr.warning('WebSocket connection closed');
             this.attemptReconnect();
           },
         },
@@ -64,37 +104,37 @@ export class WebsocketService {
 
       this.connectSubscription = this.socket$.subscribe({
         error: (err) => {
-          this.toastr.error(`Socket Error: ${JSON.stringify(err)}`);
+          this.toastr.error(`WebSocket Error: ${JSON.stringify(err)}`, 'Connection Error');
           this.isConnecting = false;
           this.socket$ = null;
           this.attemptReconnect();
         },
       });
     } catch (e) {
-      console.error(e);
-      this.toastr.error(`Error connecting to WS: ${JSON.stringify(e)}`);
+      console.error('WebSocket connection error:', e);
+      this.toastr.error('Failed to establish WebSocket connection', 'Connection Error');
       this.isConnecting = false;
       this.socket$ = null;
+      this.attemptReconnect();
     }
   }
 
   private attemptReconnect(): void {
     if (this.reconnectAttempts >= this.MAX_RECONNECT_ATTEMPTS) {
-      this.toastr.error('Max reconnect attempts reached.');
+      this.toastr.error('Maximum reconnection attempts reached', 'Connection Failed');
       return;
     }
     if (this.isConnecting) {
       return;
     }
     this.reconnectAttempts++;
-    // Wait 2 seconds before trying to reconnect
+    this.toastr.info(`Attempting to reconnect (${this.reconnectAttempts}/${this.MAX_RECONNECT_ATTEMPTS})...`);
     timer(2000).subscribe(() => this.connect());
   }
 
   public getMessages(): Observable<any> {
     if (!this.socket$) {
       this.connect();
-      // Return an empty observable until the connection is ready
       return new Observable();
     }
     return this.socket$.asObservable();
@@ -102,8 +142,21 @@ export class WebsocketService {
 
   public close(): void {
     if (this.socket$) {
-      this.socket$.complete();
+      try {
+        this.socket$.complete();
+        this.toastr.info('WebSocket connection closed');
+      } catch (e) {
+        console.warn('Error while closing socket:', e);
+        this.toastr.error('Error while closing WebSocket connection');
+      }
       this.socket$ = null;
     }
+    this.isConnecting = false;
+  }
+
+  ngOnDestroy(): void {
+    this.pageVisibilitySubscription?.unsubscribe();
+    this.connectSubscription?.unsubscribe();
+    this.close();
   }
 }
