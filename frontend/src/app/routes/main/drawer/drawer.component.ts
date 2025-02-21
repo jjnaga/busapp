@@ -4,12 +4,8 @@ import { DrawerMode } from '../../../core/utils/global.types';
 import { Store } from '@ngrx/store';
 import { CommonModule } from '@angular/common';
 import { BottomMenuComponent } from '../bottom-menu/bottom-menu.component';
-import { selectAllStops, selectStopsLoading } from '../../../core/state/lib/stops/stops.selectors';
-import {
-  selectDrawerExpanded,
-  selectDrawerMode,
-  selectSelectedStop,
-} from '../../../core/state/lib/user/user.selectors';
+import { selectAllStops, selectSelectedStop, selectStopsLoading } from '../../../core/state/lib/stops/stops.selectors';
+import { selectDrawerExpanded, selectDrawerMode } from '../../../core/state/lib/user/user.selectors';
 import { toggleDrawerExpanded } from '../../../core/state/lib/user/user.actions';
 import { MapLayoutService } from '../../../core/services/map-layout.service';
 import { StopsComponent } from './stops/stops.component';

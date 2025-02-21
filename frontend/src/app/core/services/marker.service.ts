@@ -4,8 +4,8 @@ import { Store } from '@ngrx/store';
 import { setSelectedStop } from '../state/lib/user/user.actions';
 import { ToastrService } from 'ngx-toastr';
 import { Dictionary } from '@ngrx/entity';
-import { selectSelectedStop } from '../state/lib/user/user.selectors';
 import { selectAllFavoriteIds, selectIsFavorite } from '../state/lib/favorites/favorites.selectors';
+import { selectSelectedStop } from '../state/lib/stops/stops.selectors';
 
 @Injectable({
   providedIn: 'root',

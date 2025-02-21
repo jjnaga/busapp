@@ -15,3 +15,8 @@ export const updateSelectedStopFailure = createAction(
 
 // can pick or just flip if no props are passed
 export const toggleDrawerExpanded = createAction('[User] Toggle Drawer Expanded', props<{ expanded?: boolean }>());
+
+export const setStopCustomName = createAction(
+  '[User] Set Stop Custom Name',
+  props<{ stopId: string; customName: string | null }>()
+);

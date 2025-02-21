@@ -3,12 +3,9 @@ import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testin
 import { DrawerComponent } from './drawer.component';
 import { provideMockStore, MockStore } from '@ngrx/store/testing';
 import { selectIsMobile } from '../../../core/state/lib/layout/layout.selectors';
-import {
-  selectDrawerExpanded,
-  selectDrawerMode,
-  selectSelectedStop,
-} from '../../../core/state/lib/user/user.selectors';
+import { selectDrawerExpanded, selectDrawerMode } from '../../../core/state/lib/user/user.selectors';
 import { DrawerMode } from '../../../core/utils/global.types';
+import { selectSelectedStop } from '../../../core/state/lib/stops/stops.selectors';
 
 class MockResizeObserver {
   observe = jest.fn();

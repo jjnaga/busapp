@@ -12,7 +12,7 @@ describe('User Reducer', () => {
   test('should toggle drawerExpanded when no explicit value is provided', () => {
     const action = toggleDrawerExpanded({});
     const state = userReducer(initialUserState, action);
-    expect(state.drawerExpanded).toBe(true);
+    expect(state.drawerExpanded).toBe(false);
   });
 
   test('should set drawerExpanded to the provided value', () => {

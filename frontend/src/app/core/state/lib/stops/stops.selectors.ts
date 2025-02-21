@@ -2,12 +2,35 @@ import { createFeatureSelector, createSelector } from '@ngrx/store';
 import { StopsState } from './stops.reducers';
 import { selectUserLocation } from '../user-location/user-location.selectors';
 import { isValidLocation, isValidStop } from '../../../utils/type-guards';
+import { selectUserState } from '../user/user.selectors';
+import { UserState } from '../user/user.reducers';
+import { Stop } from '../../../utils/global.types';
 
 export const selectStopsState = createFeatureSelector<StopsState>('stops');
 
 export const selectAllStops = createSelector(selectStopsState, (state: StopsState) => state.entities);
 
 export const selectStopsLoading = createSelector(selectStopsState, (state: StopsState) => state.loading);
+
+export const selectSelectedStop = createSelector(
+  selectUserState,
+  selectAllStops,
+  (state: UserState, stops): Stop | undefined => {
+    if (!state.selectedStop || !stops) {
+      return undefined;
+    }
+
+    const selectedStop = stops[state.selectedStop];
+
+    if (!selectedStop) return undefined;
+
+    return {
+      ...selectedStop,
+      stopLat: selectedStop.stopLat,
+      stopLon: selectedStop.stopLon,
+    };
+  }
+);
 
 export const selectAllStopsSortedByDistance = createSelector(selectUserLocation, selectAllStops, (userLoc, stops) => {
   if (!isValidLocation(userLoc) || !stops) return [];
@@ -16,6 +39,7 @@ export const selectAllStopsSortedByDistance = createSelector(selectUserLocation,
     .filter(isValidStop)
     .map((stop) => ({
       ...stop,
+      stopName: stop.stopName,
       distance: calcDistance(userLoc.latitude, userLoc.longitude, stop.stopLat, stop.stopLon),
     }))
     .sort((a, b) => a.distance - b.distance);
