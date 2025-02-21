@@ -334,3 +334,24 @@ body {
   animation: marquee 10s linear infinite;
   /* Optionally, adjust the duration (10s) for a faster/slower scroll */
 }
+
+/* FILE: frontend/src/styles.css */
+.arrival-highlight {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes gentle-pulse {
+  0% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(3px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.selected-arrival {
+  animation: gentle-pulse 0.6s ease-in-out;
+}

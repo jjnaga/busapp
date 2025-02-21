@@ -8,9 +8,9 @@ export const selectStopsSortedWithFavoritesAndPreferences = createSelector(
   selectStopPreferences,
   selectAllFavoriteEntities,
   (stops, preferences, favoriteIds) => {
-    console.log('Stops:', stops);
-    console.log('Preferences:', preferences);
-    console.log('FavoriteIds:', favoriteIds);
+    // console.log('Stops:', stops);
+    // console.log('Preferences:', preferences);
+    // console.log('FavoriteIds:', favoriteIds);
 
     // Apply user preferences (custom names) to stops.
     const stopsWithPrefs = stops.map((stop) => ({

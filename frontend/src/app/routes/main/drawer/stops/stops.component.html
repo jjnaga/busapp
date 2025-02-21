@@ -54,9 +54,16 @@
         <div class="absolute top-0 left-0 right-0 h-4 bg-gradient-to-b from-white to-transparent pointer-events-none">
         </div>
 
+        <!-- Inside the selectedStopTemplate in stops.component.html -->
         <ul class="px-4 py-3">
-          <li *ngFor="let arrival of selectedStop.arrivals" class="py-3 border-b border-gray-100 last:border-b-0">
-            <div class="flex items-center justify-between">
+          <li *ngFor="let arrival of selectedStop.arrivals; let i = index"
+            class="py-3 border-b border-gray-100 last:border-b-0 cursor-pointer transition-all duration-200 ease-out group relative"
+            [ngClass]="{
+            'bg-blue-200   border-l-4 border-blue-500': (selectedArrivalIndex$ | async) === i,
+            'hover:bg-gray-50 hover:-translate-y-[2px] hover:shadow-sm': (selectedArrivalIndex$ | async) !== i
+          }" (click)="setSelectedArrival(i)">
+            <div class="flex items-center justify-between ml-[-4px]">
+              <!-- Existing content remains the same -->
               <!-- Left Section: Route Number and Direction -->
               <div class="flex items-center flex-1 min-w-0">
                 <span class="bg-nagahama-blue text-white font-bold rounded-lg px-3 py-2 text-lg shadow-sm mr-3">
@@ -81,6 +88,7 @@
             </div>
           </li>
         </ul>
+
       </div>
     </div>
   </ng-container>

@@ -54,12 +54,9 @@ export class WebsocketService {
     }).subscribe((isVisible) => {
       if (isVisible) {
         if (this.socket$ && (!this.socket$.socket || this.socket$.socket.readyState !== WebSocket.OPEN)) {
-          this.toastr.info('Page visible, checking connection...');
           this.close();
           timer(this.VISIBILITY_RECONNECT_DELAY).subscribe(() => this.connect());
         }
-      } else {
-        this.toastr.info('Page hidden, connection may be suspended');
       }
     });
   }
@@ -96,7 +93,6 @@ export class WebsocketService {
             this.store.dispatch(websocketDisconnected());
             this.isConnecting = false;
             this.socket$ = null;
-            this.toastr.warning('WebSocket connection closed');
             this.attemptReconnect();
           },
         },
@@ -104,7 +100,6 @@ export class WebsocketService {
 
       this.connectSubscription = this.socket$.subscribe({
         error: (err) => {
-          this.toastr.error(`WebSocket Error: ${JSON.stringify(err)}`, 'Connection Error');
           this.isConnecting = false;
           this.socket$ = null;
           this.attemptReconnect();
@@ -112,7 +107,6 @@ export class WebsocketService {
       });
     } catch (e) {
       console.error('WebSocket connection error:', e);
-      this.toastr.error('Failed to establish WebSocket connection', 'Connection Error');
       this.isConnecting = false;
       this.socket$ = null;
       this.attemptReconnect();
@@ -128,7 +122,6 @@ export class WebsocketService {
       return;
     }
     this.reconnectAttempts++;
-    this.toastr.info(`Attempting to reconnect (${this.reconnectAttempts}/${this.MAX_RECONNECT_ATTEMPTS})...`);
     timer(2000).subscribe(() => this.connect());
   }
 
@@ -144,10 +137,8 @@ export class WebsocketService {
     if (this.socket$) {
       try {
         this.socket$.complete();
-        this.toastr.info('WebSocket connection closed');
       } catch (e) {
         console.warn('Error while closing socket:', e);
-        this.toastr.error('Error while closing WebSocket connection');
       }
       this.socket$ = null;
     }
