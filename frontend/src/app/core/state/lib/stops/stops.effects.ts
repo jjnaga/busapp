@@ -20,9 +20,13 @@ import {
 } from 'rxjs';
 import { getBaseUrl } from '../../../utils/utils';
 import { parse } from 'date-fns';
-import { selectAllStopsSortedByDistance, selectAllStops, selectStopsTrackingValues } from './stops.selectors';
+import {
+  selectAllStopsSortedByDistance,
+  selectAllStops,
+  selectStopsTrackingValues,
+  selectSelectedStop,
+} from './stops.selectors';
 import { Store } from '@ngrx/store';
-import { selectSelectedStop } from '../user/user.selectors';
 import { timer, EMPTY } from 'rxjs';
 import { appInit } from '../../root.actions';
 

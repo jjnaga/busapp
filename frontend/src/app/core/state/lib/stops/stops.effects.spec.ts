@@ -8,8 +8,12 @@ import * as UserActions from '../user/user.actions';
 import { Stop } from '../../../utils/global.types';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { provideMockStore, MockStore } from '@ngrx/store/testing';
-import { selectAllStops, selectAllStopsSortedByDistance, selectStopsTrackingValues } from './stops.selectors';
-import { selectSelectedStop } from '../user/user.selectors';
+import {
+  selectAllStops,
+  selectAllStopsSortedByDistance,
+  selectSelectedStop,
+  selectStopsTrackingValues,
+} from './stops.selectors';
 
 describe('StopsEffects', () => {
   let actions$: Observable<any>;

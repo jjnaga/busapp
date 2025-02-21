@@ -9,11 +9,10 @@ import { Store } from '@ngrx/store';
 import { selectVehicleEntities } from '../../../core/state/lib/vehicles/vehicles.selectors';
 import { selectUserLocation } from '../../../core/state/lib/user-location/user-location.selectors';
 import { MapLayoutService } from '../../../core/services/map-layout.service';
-import { selectSelectedStop } from '../../../core/state/lib/user/user.selectors';
 import { GoogleMapsLoaderService } from '../../../core/services/google-maps-loader.service';
 import { Dictionary } from '@ngrx/entity';
 import { selectIsMobile } from '../../../core/state/lib/layout/layout.selectors';
-import { selectAllStopsSortedByDistance } from '../../../core/state/lib/stops/stops.selectors';
+import { selectAllStopsSortedByDistance, selectSelectedStop } from '../../../core/state/lib/stops/stops.selectors';
 import { MapViewportService } from '../../../core/services/map-viewport.service';
 
 @Component({

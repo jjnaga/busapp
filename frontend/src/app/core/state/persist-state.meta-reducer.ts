@@ -21,6 +21,11 @@ function reviver(key: string, value: any): any {
 
 export function persistState(reducer: ActionReducer<any>): ActionReducer<any> {
   return function (state: any, action: any) {
+    if (action.type === '[App] Reset Store') {
+      localStorage.removeItem('app-state');
+      state = undefined; // Wipe everything
+    }
+
     if (action.type === '@ngrx/store/init') {
       const saved = localStorage.getItem('app-state');
       if (saved) {

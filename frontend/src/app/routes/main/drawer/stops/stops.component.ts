@@ -4,8 +4,12 @@ import { Store } from '@ngrx/store';
 import { Observable, BehaviorSubject, combineLatest } from 'rxjs';
 import { filter, switchMap, map } from 'rxjs/operators';
 import { Stop } from '../../../../core/utils/global.types';
-import { selectAllStopsSortedByDistance, selectStopsLoading } from '../../../../core/state/lib/stops/stops.selectors';
-import { selectDrawerExpanded, selectSelectedStop } from '../../../../core/state/lib/user/user.selectors';
+import {
+  selectAllStopsSortedByDistance,
+  selectSelectedStop,
+  selectStopsLoading,
+} from '../../../../core/state/lib/stops/stops.selectors';
+import { selectDrawerExpanded } from '../../../../core/state/lib/user/user.selectors';
 import { DiffMinutesPipe } from '../../../../core/utils/pipes/diff-minutes.pipe';
 import { selectIsFavorite } from '../../../../core/state/lib/favorites/favorites.selectors';
 import * as StopsActions from '../../../../core/state/lib/stops/stops.actions';
@@ -15,6 +19,7 @@ import { selectIsMobile } from '../../../../core/state/lib/layout/layout.selecto
 import { ReadableDistancePipe } from '../../../../core/utils/pipes/distance.pipe';
 import { faArrowLeft, faArrowRight, faClose, faHeart } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { selectStopsSortedWithFavoritesAndPreferences } from '../../../../core/state/views/stop-view.selector';
 
 @Component({
   selector: 'drawer-stops',
@@ -36,14 +41,14 @@ export class StopsComponent implements OnInit, AfterViewInit {
   drawerExpanded$: Observable<boolean> = this.store.select(selectDrawerExpanded);
   stopsLoading$: Observable<boolean> = this.store.select(selectStopsLoading);
   selectedStop$: Observable<Stop | undefined> = this.store.select(selectSelectedStop);
-  stopsSortedByDistance$: Observable<Stop[]> = this.store.select(selectAllStopsSortedByDistance);
+  selectStopsSortedWithFavoritesAndPreferences$: Observable<Stop[]> = this.store.select(selectStopsSortedWithFavoritesAndPreferences);
   isMobile$ = this.store.select(selectIsMobile);
 
   isFavorite$!: Observable<boolean>;
 
   // Pagination: start by displaying 20 stops.
   private displayLimit$ = new BehaviorSubject<number>(20);
-  paginatedStops$: Observable<Stop[]> = combineLatest([this.stopsSortedByDistance$, this.displayLimit$]).pipe(
+  paginatedStops$: Observable<Stop[]> = combineLatest([this.selectStopsSortedWithFavoritesAndPreferences$, this.displayLimit$]).pipe(
     map(([stops, limit]) => stops.slice(0, limit))
   );
 
