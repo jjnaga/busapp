@@ -8,3 +8,8 @@ export const selectDrawerMode = createSelector(selectUserState, (state: UserStat
 export const selectDrawerExpanded = createSelector(selectUserState, (state: UserState) => state.drawerExpanded);
 
 export const selectStopPreferences = createSelector(selectUserState, (state: UserState) => state.stopPreferences);
+
+export const selectSelectedArrivalIndex = createSelector(selectUserState, (state: UserState) => {
+  console.log('wtf:', state);
+  return state.selectedArrivalIndex;
+});

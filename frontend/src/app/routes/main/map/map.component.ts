@@ -14,6 +14,7 @@ import { Dictionary } from '@ngrx/entity';
 import { selectIsMobile } from '../../../core/state/lib/layout/layout.selectors';
 import { selectAllStopsSortedByDistance, selectSelectedStop } from '../../../core/state/lib/stops/stops.selectors';
 import { MapViewportService } from '../../../core/services/map-viewport.service';
+import { selectSelectedArrivalIndex } from '../../../core/state/lib/user/user.selectors';
 
 @Component({
   selector: 'map-component',
@@ -120,28 +121,36 @@ export class MapComponent implements OnInit {
       });
     });
 
-    this.store
-      .select(selectSelectedStop)
+    // Replace the existing subscription with:
+    combineLatest([this.store.select(selectSelectedStop), this.store.select(selectSelectedArrivalIndex)])
       .pipe(
-        // Only continue if the stop has valid coordinates.
-        filter((stop) => !!stop && stop.stopLat !== null && stop.stopLon !== null),
-        switchMap((selectedStop) => {
-          if (!selectedStop) return EMPTY;
+        tap((value) => console.log('1. Selected stop:', value[0], value[1])),
+        filter(
+          ([selectedStop, arrivalIndex]) =>
+            arrivalIndex !== null &&
+            selectedStop !== undefined &&
+            selectedStop.stopLat !== null &&
+            selectedStop.stopLon !== null
+        ),
+        switchMap(([selectedStop, arrivalIndex]) => {
+          const index = arrivalIndex !== null && arrivalIndex !== undefined ? arrivalIndex : 0;
+          console.log('Selected stop:', selectedStop);
 
-          const stopCoords: google.maps.LatLngLiteral = { lat: selectedStop.stopLat!, lng: selectedStop.stopLon! };
-          const busCoords$ = this.mapViewportService.getFirstBusCoordinates(selectedStop);
+          const stopCoords: google.maps.LatLngLiteral = { lat: selectedStop!.stopLat!, lng: selectedStop!.stopLon! };
+
+          // Use the new method that accepts the arrival index
+          const busCoords$ = this.mapViewportService.getBusCoordinates(selectedStop, index);
+          console.log('Bus coords:', busCoords$);
           if (busCoords$) {
-            // Combine stop and bus coordinates; debounce to smooth out rapid bus updates.
+            console.log('this dont owrk:', busCoords$);
             return combineLatest([of(stopCoords), busCoords$]).pipe(debounceTime(500));
           } else {
-            // Cancel the operation if bus coordinates are not available.
             return EMPTY;
           }
         })
       )
       .subscribe(([stopCoords, busCoords]) => {
         if (this.map) {
-          // Compute bounds to include both points.
           const bounds = new google.maps.LatLngBounds();
           bounds.extend(new google.maps.LatLng(stopCoords.lat, stopCoords.lng));
           bounds.extend(new google.maps.LatLng(busCoords.lat, busCoords.lng));

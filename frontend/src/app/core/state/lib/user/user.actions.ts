@@ -20,3 +20,5 @@ export const setStopCustomName = createAction(
   '[User] Set Stop Custom Name',
   props<{ stopId: string; customName: string | null }>()
 );
+
+export const setSelectedArrival = createAction('[User] Set Selected Arrival', props<{ arrivalIndex: number }>());

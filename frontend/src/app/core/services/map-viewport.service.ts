@@ -18,13 +18,14 @@ export class MapViewportService {
     return bounds;
   }
 
-  // For a given stop, get an observable for the first arrival's bus coordinates.
-  getFirstBusCoordinates(selectedStop: any): Observable<google.maps.LatLngLiteral> | null {
+  getBusCoordinates(selectedStop: any, arrivalIndex: number = 0): Observable<google.maps.LatLngLiteral> | null {
     if (!selectedStop || !selectedStop.arrivals || selectedStop.arrivals.length === 0) {
       return null;
     }
+    // Use the provided index, fallback to the first arrival if out-of-bounds
+    const arrival = selectedStop.arrivals[arrivalIndex] || selectedStop.arrivals[0];
     // Assuming arrival.vehicle holds the bus id that matches the key in the vehicle entities.
-    const busId = selectedStop.arrivals[0].vehicle;
+    const busId = arrival.vehicle;
     return this.store.select(selectVehicleEntities).pipe(
       map((entities) => entities[busId]),
       filter((vehicle) => vehicle !== undefined && !!vehicle.latitude && !!vehicle.longitude),
