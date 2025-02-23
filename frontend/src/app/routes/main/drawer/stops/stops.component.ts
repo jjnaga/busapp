@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Store } from '@ngrx/store';
-import { Observable, BehaviorSubject, combineLatest } from 'rxjs';
+import { Observable, BehaviorSubject, combineLatest, firstValueFrom } from 'rxjs';
 import { filter, switchMap, map } from 'rxjs/operators';
 import { Stop } from '../../../../core/utils/global.types';
 import { selectSelectedStop, selectStopsLoading } from '../../../../core/state/lib/stops/stops.selectors';
@@ -17,6 +17,7 @@ import { faArrowLeft, faArrowRight, faClose, faHeart } from '@fortawesome/free-s
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { selectStopsSortedWithFavoritesAndPreferences } from '../../../../core/state/views/stop-view.selector';
 import { setSelectedArrival } from '../../../../core/state/lib/user/user.actions';
+import { DirectorService } from '../../../../core/services/director.service';
 
 @Component({
   selector: 'drawer-stops',
@@ -26,6 +27,7 @@ import { setSelectedArrival } from '../../../../core/state/lib/user/user.actions
 })
 export class StopsComponent implements OnInit, AfterViewInit {
   store = inject(Store);
+  private cameraDirector = inject(DirectorService);
   StopsActions = StopsActions;
   UserActions = UserActions;
   FavoritesActions = FavoritesActions;
@@ -84,6 +86,9 @@ export class StopsComponent implements OnInit, AfterViewInit {
   }
 
   setSelectedArrival(index: number): void {
+    // set the arrival
     this.store.dispatch(setSelectedArrival({ arrivalIndex: index }));
+
+    this.cameraDirector.setIncomingBusMode();
   }
 }
