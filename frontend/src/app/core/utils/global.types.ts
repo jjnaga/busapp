@@ -65,8 +65,20 @@ export const ArrivalSchema = z.object({
   estimated: z.string(),
   headsign: z.string(),
   id: z.string(),
-  latitude: z.string(),
-  longitude: z.string(),
+  latitude: z.preprocess((arg) => {
+    if (typeof arg === 'string') {
+      const num = parseFloat(arg);
+      return isNaN(num) ? undefined : num;
+    }
+    return arg;
+  }, z.number().nullable()),
+  longitude: z.preprocess((arg) => {
+    if (typeof arg === 'string') {
+      const num = parseFloat(arg);
+      return isNaN(num) ? undefined : num;
+    }
+    return arg;
+  }, z.number().nullable()),
   route: z.string(),
   shape: z.string(),
   stopTime: z.string(),
