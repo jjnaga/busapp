@@ -114,7 +114,6 @@ describe('StopsEffects', () => {
 
     actions$ = of(StopsActions.nextStop());
     effects.navigateStops$.subscribe((action) => {
-      console.log(action);
       expect(action).toEqual(UserActions.setSelectedStop({ stop: stopsSorted[1] }));
       done();
     });

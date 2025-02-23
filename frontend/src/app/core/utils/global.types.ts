@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { parse } from 'date-fns';
+import { InjectionToken } from '@angular/core';
 
 // Create a type alias for StopId
 
@@ -138,3 +139,15 @@ export type StopDataState = {
   loading: string[];
   errors: { [stopId: string]: string };
 };
+
+export interface CameraStrategy {
+  execute(map: google.maps.Map): void;
+  cleanup(): void;
+}
+
+export interface MapController {
+  panAndZoom(center: google.maps.LatLngLiteral, zoom: number): void;
+  fitBounds(bounds: google.maps.LatLngBounds, padding?: number | google.maps.Padding): void;
+}
+
+export const MAP_CONTROLLER = new InjectionToken<MapController>('MapController');
