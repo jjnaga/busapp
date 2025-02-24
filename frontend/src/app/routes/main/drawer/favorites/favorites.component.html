@@ -1,13 +1,18 @@
+<!-- Updated Favorites Component Template -->
 <ng-container *ngIf="(selectFavoritesWithLiveData$ | async)?.length; else noFavorites">
   <div class="space-y-2 p-2">
     <div *ngFor="let stop of selectFavoritesWithLiveData$ | async" role="button" tabindex="0"
       (click)="setSelectedStop(stop)" (keydown.enter)="setSelectedStop(stop)"
       class="bg-white rounded-lg border border-gray-100 hover:border-gray-200 transition-all duration-200">
 
-      <!-- Header -->
+      <!-- Header Section -->
       <div class="flex items-center justify-between p-3 border-b border-gray-50">
+        <!-- 
+          Instead of directly outputting stop.stopName, we now use the stop-name component.
+          This component pulls in any custom name from user preferences and allows inline editing.
+        -->
         <h4 class="font-medium text-lg text-gray-900 truncate">
-          {{ stop?.stopName }}
+          <stop-name [stopId]="stop.stopId" [defaultName]="stop.stopName || ''"></stop-name>
         </h4>
         <div class="flex items-center space-x-2">
           <button type="button" (click)="toggleFavorite(stop); $event.stopPropagation()"
@@ -17,7 +22,7 @@
         </div>
       </div>
 
-      <!-- Body -->
+      <!-- Body Section: Displays arrival information -->
       <div class="py-2">
         <div *ngFor="let arrival of stop?.arrivals?.slice(0,3); let last = last"
           class="flex items-center space-x-4 px-4 py-2" [class.border-b]="!last" [class.border-gray-100]="!last">
@@ -30,7 +35,6 @@
         </div>
       </div>
     </div>
-
   </div>
 </ng-container>
 

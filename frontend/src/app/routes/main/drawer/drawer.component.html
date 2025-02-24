@@ -1,18 +1,48 @@
+<!-- Updated DrawerComponent HTML -->
 <div #drawerContainer [ngClass]="drawerContainerClasses$ | async">
-  <!-- Desktop Layout -->
-  <ng-container *ngIf="!(isMobile$ | async); else mobileLayout">
-    <div class="flex flex-col h-full">
-      <!-- Static Header -->
-      <div class="p-3">
-        <ng-container *ngIf="drawerMode$ | async as mode">
-          <h3 class="text-2xl font-bold overflow-hidden whitespace-nowrap">
+  <div class="flex flex-col h-full">
+    <!-- Combined Header for both Mobile and Desktop -->
+    <div class="p-3 flex justify-between items-center" [class.cursor-pointer]="isMobile$ | async"
+      (click)="isMobile$ ? toggleDrawer() : null">
+      <ng-container *ngIf="drawerMode$ | async as mode">
+        <h3 [class]="(isMobile$ | async) ? 'text-xl' : 'text-2xl'" class="font-bold overflow-hidden whitespace-nowrap">
+          <!-- For Stops mode with a selected stop, show the stop-name component -->
+          <ng-container *ngIf="mode === DrawerMode.Stops && (selectedStop$ | async) as selectedStop; else defaultTitle">
+            <stop-name [stopId]="selectedStop.stopId" [defaultName]="selectedStop.stopName || ''"></stop-name>
+          </ng-container>
+          <!-- Otherwise, display the header title -->
+          <ng-template #defaultTitle>
             <span appMarqueeIfOverflow class="inline-block">
-              {{ headerTitle$ | async }}
+              {{ headerTitles[mode] }}
             </span>
-          </h3>
+          </ng-template>
+        </h3>
+      </ng-container>
+      <!-- Mobile-only expand/collapse button -->
+      <button *ngIf="isMobile$ | async" class="text-blue-500">
+        {{ (drawerExpanded$ | async) ? "Close" : "Expand" }}
+      </button>
+    </div>
+
+    <!-- Content Area: Use a mobile-specific container if on mobile -->
+    <ng-container *ngIf="isMobile$ | async; else desktopContent">
+      <!-- Mobile Content Container: Fixed height with transition and scroll behavior -->
+      <div class="h-[50vh] transition-all duration-300"
+        [ngClass]="(drawerExpanded$ | async) ? 'overflow-scroll' : 'overflow-hidden'">
+        <ng-container [ngSwitch]="drawerMode$ | async">
+          <ng-container *ngSwitchCase="DrawerMode.Favorites">
+            <drawer-favorites></drawer-favorites>
+          </ng-container>
+          <ng-container *ngSwitchCase="DrawerMode.Stops">
+            <drawer-stops></drawer-stops>
+          </ng-container>
         </ng-container>
       </div>
-      <!-- Content fills remaining space -->
+      <bottom-menu></bottom-menu>
+    </ng-container>
+
+    <!-- Desktop Content Area: Fills available space -->
+    <ng-template #desktopContent>
       <div class="flex-grow overflow-auto">
         <ng-container [ngSwitch]="drawerMode$ | async">
           <ng-container *ngSwitchCase="DrawerMode.Favorites">
@@ -23,39 +53,7 @@
           </ng-container>
         </ng-container>
       </div>
-      <!-- Bottom Menu -->
-      <div>
-        <bottom-menu></bottom-menu>
-      </div>
-    </div>
-  </ng-container>
-
-  <!-- Mobile Layout (unchanged) -->
-  <ng-template #mobileLayout>
-    <div class="px-4 py-2 flex justify-between items-center cursor-pointer" (click)="toggleDrawer()">
-      <ng-container *ngIf="drawerMode$ | async as mode">
-        <h3 class="text-xl font-bold overflow-hidden whitespace-nowrap">
-          <span appMarqueeIfOverflow class="inline-block">
-            {{ headerTitle$ | async }}
-          </span>
-        </h3>
-      </ng-container>
-      <button class="text-blue-500">
-        {{ (drawerExpanded$ | async) ? "Close" : "Expand" }}
-      </button>
-    </div>
-    <div class="h-[50vh] transition-all duration-300" [ngClass]="(isMobile$ | async)
-    ? ((drawerExpanded$ | async) ? 'overflow-scroll' : 'overflow-hidden')
-    : ''">
-      <ng-container [ngSwitch]="drawerMode$ | async">
-        <ng-container *ngSwitchCase="DrawerMode.Favorites">
-          <drawer-favorites></drawer-favorites>
-        </ng-container>
-        <ng-container *ngSwitchCase="DrawerMode.Stops">
-          <drawer-stops></drawer-stops>
-        </ng-container>
-      </ng-container>
-    </div>
-    <bottom-menu></bottom-menu>
-  </ng-template>
+      <bottom-menu></bottom-menu>
+    </ng-template>
+  </div>
 </div>

@@ -1,0 +1,23 @@
+<div class="stop-name-container">
+  <!-- View Mode: Display name with an edit (rename) icon. -->
+  <ng-container *ngIf="!isEditing; else editTemplate">
+    <span class="rename-icon" (click)="enableEdit($event)" title="Rename">
+      <fa-icon class="text-2xl" [icon]="faEdit"></fa-icon>
+    </span>
+    <span class="stop-name-text">{{ (customName$ | async) || defaultName }}</span>
+  </ng-container>
+
+  <!-- Edit Mode: Show input field and save icon -->
+  <ng-template #editTemplate>
+    <!-- 
+      The input is now empty but shows the current name as a placeholder.
+      A (click) handler stops propagation to prevent unwanted document clicks.
+    -->
+    <input #inputField type="text" [(ngModel)]="editedName" placeholder="{{ (customName$ | async) || defaultName }}"
+      (click)="$event.stopPropagation()" (keydown)="onKeyDown($event)" class="stop-name-input" />
+    <!-- Stop propagation on the save icon as well -->
+    <span class="save-icon" (click)="saveName()" title="Save" (click)="$event.stopPropagation()">
+      <fa-icon class="text-2xl" [icon]="faSave"></fa-icon>
+    </span>
+  </ng-template>
+</div>
