@@ -7,7 +7,7 @@ import { BottomMenuComponent } from '../bottom-menu/bottom-menu.component';
 import { selectAllStops, selectSelectedStop, selectStopsLoading } from '../../../core/state/lib/stops/stops.selectors';
 import { selectDrawerExpanded, selectDrawerMode } from '../../../core/state/lib/user/user.selectors';
 import { toggleDrawerExpanded } from '../../../core/state/lib/user/user.actions';
-import { MapLayoutService } from '../../../core/services/map-layout.service';
+import { MapLayoutService } from '../../../core/services/maps/map-layout.service';
 import { StopsComponent } from './stops/stops.component';
 import { FvoritesComponent } from './favorites/favorites.components';
 import { getVisibleHeight } from '../../../core/utils/utils';

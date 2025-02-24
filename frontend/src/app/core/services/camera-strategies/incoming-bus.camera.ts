@@ -1,18 +1,17 @@
-import { inject, Injectable, Inject } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { Subscription, combineLatest, of } from 'rxjs';
-import { filter, debounceTime, switchMap, map as rxMap, distinct, distinctUntilChanged } from 'rxjs/operators';
-import { CameraStrategy, MAP_CONTROLLER, MapController, Stop } from '../../utils/global.types';
-import { MapViewportService } from '../map-viewport.service';
+import { filter, debounceTime, switchMap } from 'rxjs/operators';
+import { CameraStrategy, Stop } from '../../utils/global.types';
 import { selectSelectedStop } from '../../state/lib/stops/stops.selectors';
 import { selectSelectedArrivalIndex } from '../../state/lib/user/user.selectors';
-import { MapControllerService } from '../map-controller.service';
+import { MapControllerService } from '../maps/map-controller.service';
+import { isValidCoordinate } from '../../utils/utils';
 
 @Injectable({
   providedIn: 'root',
 })
 export class IncomingBusCameraStrategy implements CameraStrategy {
-  private mapViewportService = inject(MapViewportService);
   private store = inject(Store);
   private mapController = inject(MapControllerService);
   private subscription?: Subscription;
@@ -32,19 +31,21 @@ export class IncomingBusCameraStrategy implements CameraStrategy {
             value[0].stopLat !== null &&
             value[0].stopLon !== null &&
             value[1] !== null &&
-            value[0].arrivals?.[value[1]].latitude !== null &&
-            value[0].arrivals?.[value[1]].longitude !== null
+            value[0].arrivals !== undefined &&
+            isValidCoordinate(value[0].stopLat, value[0].stopLon) &&
+            isValidCoordinate(value[0].arrivals[value[1]].latitude!, value[0].arrivals[value[1]].longitude!)
         ),
         debounceTime(500),
         switchMap(([selectedStop, selectedArrivalIndex]) => {
-          console.log('this should work', selectedStop);
           const selectedStopCoordinates = { lat: selectedStop.stopLat!, lng: selectedStop.stopLon! };
           const arrivalCoordinates = {
             lat: selectedStop.arrivals![selectedArrivalIndex].latitude!,
             lng: selectedStop.arrivals![selectedArrivalIndex].longitude!,
           };
 
-          const bounds = this.mapViewportService.computeBounds(selectedStopCoordinates, arrivalCoordinates);
+          const bounds = new google.maps.LatLngBounds();
+          bounds.extend(selectedStopCoordinates);
+          bounds.extend(arrivalCoordinates);
 
           this.mapController?.fitBounds(bounds, {
             top: 50,
