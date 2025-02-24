@@ -193,6 +193,7 @@ export class MapComponent implements OnInit {
           }
           this.director.setUserMode();
         });
+      this.mapControllerService.emitMapEvent();
     });
 
     // Add to map controls

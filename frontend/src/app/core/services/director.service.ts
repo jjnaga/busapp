@@ -102,39 +102,41 @@ export class DirectorService {
   }
 
   startStopsMarkerManager(): void {
-    combineLatest([this.store.select(selectSelectedStop), this.store.select(selectSelectedArrivalIndex)]).subscribe(
-      ([selectedStop, arrivalIndex]) => {
-        if (arrivalIndex !== null && selectedStop?.arrivals?.[arrivalIndex]?.vehicle) {
-          this.markerService.updateStopMarkers({ [selectedStop.stopId]: selectedStop });
-        } else {
-          firstValueFrom(this.store.select(selectAllStops)).then((stops) => {
-            let zoom = this.mapController.getZoom();
+    combineLatest([
+      this.store.select(selectSelectedStop),
+      this.store.select(selectSelectedArrivalIndex),
+      this.mapController.mapEvents$,
+    ]).subscribe(([selectedStop, arrivalIndex]) => {
+      if (arrivalIndex !== null && selectedStop?.arrivals?.[arrivalIndex]?.vehicle) {
+        this.markerService.updateStopMarkers({ [selectedStop.stopId]: selectedStop });
+      } else {
+        firstValueFrom(this.store.select(selectAllStops)).then((stops) => {
+          let zoom = this.mapController.getZoom();
 
-            if (zoom == undefined) return;
-            if (zoom < 16) {
-              this.markerService.updateStopMarkers({});
-              return;
+          if (zoom == undefined) return;
+          if (zoom < 16) {
+            this.markerService.updateStopMarkers({});
+            return;
+          }
+
+          const bounds = this.mapController.getBounds();
+
+          if (bounds === undefined) {
+            this.markerService.updateStopMarkers({});
+            return;
+          }
+
+          const filteredStops: { [stopId: string]: Stop } = {};
+          Object.entries(stops).forEach(([stopNumber, stop]) => {
+            if (stop && stop.stopLat && stop.stopLon && bounds.contains({ lat: stop.stopLat!, lng: stop.stopLon! })) {
+              filteredStops[stop.stopId] = stop;
             }
-
-            const bounds = this.mapController.getBounds();
-
-            if (bounds === undefined) {
-              this.markerService.updateStopMarkers({});
-              return;
-            }
-
-            const filteredStops: { [stopId: string]: Stop } = {};
-            Object.entries(stops).forEach(([stopNumber, stop]) => {
-              if (stop && stop.stopLat && stop.stopLon && bounds.contains({ lat: stop.stopLat!, lng: stop.stopLon! })) {
-                filteredStops[stop.stopId] = stop;
-              }
-            });
-
-            this.markerService.updateStopMarkers(filteredStops);
           });
-        }
+
+          this.markerService.updateStopMarkers(filteredStops);
+        });
       }
-    );
+    });
   }
 
   setMode(mode: CameraMode): void {
