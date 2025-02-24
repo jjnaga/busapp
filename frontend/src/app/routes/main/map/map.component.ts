@@ -158,7 +158,6 @@ export class MapComponent implements OnInit {
   }
 
   private createLocationButton(map: google.maps.Map) {
-    // Create button element
     this.userLocationControl = document.createElement('button');
     this.userLocationControl.innerHTML = `
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -166,21 +165,20 @@ export class MapComponent implements OnInit {
       </svg>
     `;
 
-    // Apply styles
     Object.assign(this.userLocationControl.style, {
       backgroundColor: '#fff',
       border: 'none',
-      borderRadius: '2px',
+      borderRadius: '50%',
       boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
       cursor: 'pointer',
-      margin: '10px',
-      padding: '8px',
       width: '40px',
       height: '40px',
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
       color: '#666',
+      zIndex: '1000', // Ensure it appears above the map
+      margin: '10px 10px', // Add margin to control spacing
     });
 
     // Add click handler
@@ -197,9 +195,9 @@ export class MapComponent implements OnInit {
         });
     });
 
-    // Add to map
+    // Add to map controls
     try {
-      const controlPosition = google.maps.ControlPosition.BOTTOM_LEFT;
+      const controlPosition = google.maps.ControlPosition.RIGHT_BOTTOM; // Align with Google controls
       map.controls[controlPosition].push(this.userLocationControl);
     } catch (error) {
       console.warn('Failed to add location control to map:', error);
@@ -208,11 +206,9 @@ export class MapComponent implements OnInit {
     // Track mode changes
     this.cameraModeSubscription = this.director.mode$.subscribe((mode) => {
       if (mode === CameraMode.USER) {
-        this.userLocationControl.style.backgroundColor = '#e8f0fe';
-        this.userLocationControl.style.color = '#1e40af';
+        this.userLocationControl.classList.add('user-mode-active');
       } else {
-        this.userLocationControl.style.backgroundColor = '#fff';
-        this.userLocationControl.style.color = '#666';
+        this.userLocationControl.classList.remove('user-mode-active');
       }
     });
   }

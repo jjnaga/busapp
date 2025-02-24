@@ -401,3 +401,24 @@ body {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   transform: scale(1.1);
 }
+
+@keyframes location-button-pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(30, 64, 175, 0.4);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  }
+}
+
+.user-mode-active {
+  animation: location-button-pulse 2s ease-in-out infinite;
+  background-color: #e8f0fe !important;
+  color: #1e40af !important;
+}
