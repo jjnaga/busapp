@@ -1,20 +1,31 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { GoogleMap, GoogleMapsModule } from '@angular/google-maps';
 import { CommonModule } from '@angular/common';
-import { Subscription, Subject, BehaviorSubject, combineLatest, Observable, fromEvent, EMPTY, of } from 'rxjs';
+import {
+  Subscription,
+  Subject,
+  BehaviorSubject,
+  combineLatest,
+  Observable,
+  fromEvent,
+  EMPTY,
+  of,
+  firstValueFrom,
+} from 'rxjs';
 import { debounceTime, filter, startWith, take, switchMap, tap, distinctUntilChanged } from 'rxjs/operators';
 import { Stop, Vehicle, MapController, MAP_CONTROLLER } from '../../../core/utils/global.types';
-import { MarkerService } from '../../../core/services/marker.service';
+import { MarkerService } from '../../../core/services/markers/marker.service';
 import { Store } from '@ngrx/store';
-import { selectVehicleEntities } from '../../../core/state/lib/vehicles/vehicles.selectors';
+import { selectAllVehicles, selectVehicleEntities } from '../../../core/state/lib/vehicles/vehicles.selectors';
 import { selectUserLocation } from '../../../core/state/lib/user-location/user-location.selectors';
-import { MapLayoutService } from '../../../core/services/map-layout.service';
-import { GoogleMapsLoaderService } from '../../../core/services/google-maps-loader.service';
+import { MapLayoutService } from '../../../core/services/maps/map-layout.service';
+import { GoogleMapsLoaderService } from '../../../core/services/maps/google-maps-loader.service';
 import { Dictionary } from '@ngrx/entity';
 import { selectIsMobile } from '../../../core/state/lib/layout/layout.selectors';
 import { selectAllStopsSortedByDistance } from '../../../core/state/lib/stops/stops.selectors';
-import { DirectorService } from '../../../core/services/director.service';
-import { MapControllerService } from '../../../core/services/map-controller.service';
+import { CameraMode, DirectorService } from '../../../core/services/director.service';
+import { MapControllerService } from '../../../core/services/maps/map-controller.service';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'map-component',
@@ -29,10 +40,11 @@ import { MapControllerService } from '../../../core/services/map-controller.serv
   ],
 })
 export class MapComponent implements OnInit {
-  private cameraDirector = inject(DirectorService);
+  private userLocationControl: any;
+  private toastr = inject(ToastrService);
+  private director = inject(DirectorService);
   private isProgrammaticPanAndZoom: boolean = false;
   private mapControllerService = inject(MapControllerService);
-  minZoomLevel: number = 15;
   map: google.maps.Map | null = null;
   mapOptions: google.maps.MapOptions = {
     mapId: '53da1ad002655c53',
@@ -45,7 +57,6 @@ export class MapComponent implements OnInit {
   };
 
   private cameraModeSubscription!: Subscription;
-  private mapEvents$ = new Subject<void>();
 
   mapReady$ = new BehaviorSubject<google.maps.Map | null>(null);
   stopsAndMapEventsSubscription!: Subscription;
@@ -56,7 +67,6 @@ export class MapComponent implements OnInit {
   private store = inject(Store);
   private mapLayoutService = inject(MapLayoutService);
   private googleMapsLoader = inject(GoogleMapsLoaderService);
-  private hasPanAndZoomed = false;
 
   mapsLoaded$ = this.googleMapsLoader.mapsLoaded$;
   isMobile$ = this.store.select(selectIsMobile);
@@ -90,44 +100,6 @@ export class MapComponent implements OnInit {
           }
         }
       );
-
-      // Stops subscription: updates on stops or map events.
-      this.stopsAndMapEventsSubscription = combineLatest([
-        this.stopsSortedByDistance$,
-        this.mapEvents$.pipe(startWith(void 0)),
-      ]).subscribe(([stops]) => {
-        if (this.map) {
-          this.markerService.updateStopMarkers(stops, this.minZoomLevel);
-        }
-      });
-
-      // Vehicles subscription: only update when the map is ready.
-      this.vehiclesSubscription = combineLatest([
-        this.vehicles$,
-        this.mapReady$.pipe(filter((map) => map !== null)),
-      ]).subscribe(([vehicles]) => {
-        this.markerService.updateVehicleMarkers(vehicles, this.minZoomLevel);
-      });
-
-      // Subscribe to selected stop changes
-
-      // Handle user location
-      this.userLocationSubscription = combineLatest([
-        this.store
-          .select(selectUserLocation)
-          .pipe(filter((loc) => loc && loc.latitude !== null && loc.longitude !== null)),
-        this.mapReady$.pipe(filter((map) => map !== null)),
-      ]).subscribe(([loc]) => {
-        const newCenter = { lat: loc.latitude!, lng: loc.longitude! };
-
-        if (this.map && !this.hasPanAndZoomed) {
-          this.panAndZoom(newCenter, 17);
-        } else {
-          this.mapOptions.center = newCenter;
-        }
-
-        this.markerService.updateUserMarker(loc.latitude!, loc.longitude!);
-      });
     });
   }
 
@@ -137,43 +109,110 @@ export class MapComponent implements OnInit {
     this.map.setOptions(this.mapOptions);
     this.markerService.init(map);
     this.mapReady$.next(map);
-    this.cameraDirector.setMap(map);
+    this.director.setMap(map);
 
     this.mapControllerService.setController({
+      zoom$: this.mapControllerService.zoom$,
       panAndZoom: (center, zoom) => this.panAndZoom(center, zoom),
       fitBounds: (bounds, padding) => this.fitBounds(bounds, padding),
+      getBounds: () => this.map?.getBounds(),
+      updateZoom: (zoom) => this.updateZoom(zoom),
+      getZoom: () => this.getZoom(),
     });
 
     // Handle user-initiated interactions
     const handleUserInteraction = () => {
+      this.mapControllerService.updateZoom(this.map?.getZoom());
       if (!this.isProgrammaticPanAndZoom) {
-        this.cameraDirector.setFreeFormMode();
+        this.mapControllerService.emitMapEvent();
+        this.director.setFreeFormMode();
       }
-      this.mapEvents$.next();
     };
+
+    // Add location button
+    this.createLocationButton(map);
+
+    // Add vehicle markers
+    firstValueFrom(this.store.select(selectVehicleEntities)).then((vehicles) => {
+      this.markerService.updateVehicleMarkers(vehicles);
+    });
 
     // Track zoom operations
     map.addListener('zoom_changed', () => {
-      if (!this.isProgrammaticPanAndZoom) {
-        handleUserInteraction();
-      }
+      handleUserInteraction();
     });
 
     // Track drag operations
     map.addListener('dragstart', () => {
-      if (!this.isProgrammaticPanAndZoom) {
-        handleUserInteraction();
-      }
+      handleUserInteraction();
     });
 
     map.addListener('dragend', () => {
-      if (!this.isProgrammaticPanAndZoom) {
-        handleUserInteraction();
-      }
+      handleUserInteraction();
     });
 
     map.addListener('idle', () => {
       this.isProgrammaticPanAndZoom = false;
+    });
+  }
+
+  private createLocationButton(map: google.maps.Map) {
+    // Create button element
+    this.userLocationControl = document.createElement('button');
+    this.userLocationControl.innerHTML = `
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2ZM12 11.5C13.3807 11.5 14.5 10.3807 14.5 9C14.5 7.61929 13.3807 6.5 12 6.5C10.6193 6.5 9.5 7.61929 9.5 9C9.5 10.3807 10.6193 11.5 12 11.5Z" fill="currentColor"/>
+      </svg>
+    `;
+
+    // Apply styles
+    Object.assign(this.userLocationControl.style, {
+      backgroundColor: '#fff',
+      border: 'none',
+      borderRadius: '2px',
+      boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
+      cursor: 'pointer',
+      margin: '10px',
+      padding: '8px',
+      width: '40px',
+      height: '40px',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      color: '#666',
+    });
+
+    // Add click handler
+    this.userLocationControl.addEventListener('click', () => {
+      this.store
+        .select(selectUserLocation)
+        .pipe(take(1))
+        .subscribe((loc) => {
+          if (!loc?.latitude || !loc?.longitude) {
+            this.toastr.error('Location not available. Please enable location services.');
+            return;
+          }
+          this.director.setUserMode();
+        });
+    });
+
+    // Add to map
+    try {
+      const controlPosition = google.maps.ControlPosition.BOTTOM_LEFT;
+      map.controls[controlPosition].push(this.userLocationControl);
+    } catch (error) {
+      console.warn('Failed to add location control to map:', error);
+    }
+
+    // Track mode changes
+    this.cameraModeSubscription = this.director.mode$.subscribe((mode) => {
+      if (mode === CameraMode.USER) {
+        this.userLocationControl.style.backgroundColor = '#e8f0fe';
+        this.userLocationControl.style.color = '#1e40af';
+      } else {
+        this.userLocationControl.style.backgroundColor = '#fff';
+        this.userLocationControl.style.color = '#666';
+      }
     });
   }
 
@@ -184,6 +223,17 @@ export class MapComponent implements OnInit {
       // Execute pan and zoom
       this.map.panTo(newCenter);
       this.map.setZoom(newZoom);
+    }
+  }
+
+  getZoom(): number | undefined {
+    return this.map?.getZoom();
+  }
+
+  updateZoom(zoom: number | undefined): void {
+    if (this.map && zoom) {
+      this.isProgrammaticPanAndZoom = true;
+      this.map.setZoom(zoom);
     }
   }
 

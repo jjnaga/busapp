@@ -1,6 +1,6 @@
 import { Store } from '@ngrx/store';
 import { selectUserLocation } from '../../state/lib/user-location/user-location.selectors';
-import { CameraStrategy } from '../../utils/global.types';
+import { CameraStrategy, MapController } from '../../utils/global.types';
 import { inject, Injectable } from '@angular/core';
 import { filter, Subscription, take } from 'rxjs';
 
@@ -11,8 +11,7 @@ export class UserCameraStrategy implements CameraStrategy {
   private subscription?: Subscription;
   private store = inject(Store);
 
-  execute(map: google.maps.Map): void {
-    // Subscribe to user location once and adjust the camera.
+  execute(mapController: MapController): void {
     this.subscription = this.store
       .select(selectUserLocation)
       .pipe(
@@ -21,8 +20,7 @@ export class UserCameraStrategy implements CameraStrategy {
       )
       .subscribe((loc) => {
         const newCenter = { lat: loc.latitude!, lng: loc.longitude! };
-        map.panTo(newCenter);
-        map.setZoom(17);
+        mapController.panAndZoom(newCenter, 16);
       });
   }
 

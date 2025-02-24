@@ -23,9 +23,7 @@ export class FvoritesComponent {
 
   drawerExpanded$ = this.store.select(selectDrawerExpanded);
   faX = faX;
-  selectFavoritesWithLiveData$ = this.store
-    .select(selectFavoritesWithLiveData)
-    .pipe(tap((data) => console.log('this aint working', data)));
+  selectFavoritesWithLiveData$ = this.store.select(selectFavoritesWithLiveData);
 
   toggleFavorite(stop?: Stop) {
     if (stop === undefined) {

@@ -41,10 +41,6 @@ export const userReducer = createReducer(
   on(setSelectedStop, (state, { stop }) => ({
     ...state,
     selectedStop: stop?.stopId,
-  })),
-  on(setSelectedStop, (state, { stop }) => ({
-    ...state,
-    selectedStop: stop?.stopId,
     selectedArrivalIndex: null,
   })),
   on(setSelectedArrival, (state, { arrivalIndex }) => ({

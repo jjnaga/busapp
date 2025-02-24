@@ -1,6 +1,6 @@
 import { ToastrService } from 'ngx-toastr';
-import { Stop } from '../utils/global.types';
-import { MarkerService } from './marker.service';
+import { Stop } from '../../utils/global.types';
+import { MarkerService } from '../markers/marker.service';
 import { TestBed } from '@angular/core/testing';
 import { provideMockStore } from '@ngrx/store/testing';
 
@@ -55,14 +55,14 @@ describe('MarkerService', () => {
       stopName: 'Invalid Stop',
     } as unknown as Stop;
 
-    markerService.updateStopMarkers([invalidStop], 15);
+    markerService.updateStopMarkers({ invalidStop });
 
     expect(markerService['stopMarkers']?.size || 0).toBe(0);
   });
 
   test('should clear all markers', () => {
     const invalidStop = { stopId: '1', stopLat: 10, stopLon: 20 } as Stop;
-    markerService.updateStopMarkers([invalidStop], 15);
+    markerService.updateStopMarkers({ invalidStop });
     markerService.clearAllMarkers();
 
     expect(markerService['stopMarkers'].size).toBe(0);

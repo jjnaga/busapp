@@ -8,8 +8,6 @@ import * as UserActions from './user.actions';
 
 @Injectable()
 export class UserEffects {
-  private selectedStopLink = (stopNumber: string) => `${getBaseUrl()}/api/stops/${stopNumber}`;
-
   constructor(private actions$: Actions, private http: HttpClient) {}
   toggleDrawerOnSelectedStop$ = createEffect(() =>
     this.actions$.pipe(
@@ -19,6 +17,7 @@ export class UserEffects {
           return [
             UserActions.toggleDrawerExpanded({ expanded: true }),
             UserActions.setDrawerMode({ drawerMode: DrawerMode.Stops }),
+            UserActions.setSelectedArrival({ arrivalIndex: 0 }),
           ];
         }
 
