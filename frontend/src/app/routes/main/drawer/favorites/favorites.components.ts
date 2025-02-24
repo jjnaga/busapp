@@ -8,14 +8,14 @@ import { toggleFavoriteAction } from '../../../../core/state/lib/favorites/favor
 import { setSelectedStop } from '../../../../core/state/lib/user/user.actions';
 import { faX } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { tap } from 'rxjs';
 
 import { DiffMinutesPipe } from '../../../../core/utils/pipes/diff-minutes.pipe';
+import { StopNameComponent } from '../../../../shared/stop-name/stop-name.component';
 
 @Component({
   selector: 'drawer-favorites',
   templateUrl: './favorites.component.html',
-  imports: [CommonModule, FontAwesomeModule, DiffMinutesPipe],
+  imports: [CommonModule, FontAwesomeModule, DiffMinutesPipe, StopNameComponent],
   standalone: true,
 })
 export class FvoritesComponent {

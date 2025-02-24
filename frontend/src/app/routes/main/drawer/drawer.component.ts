@@ -13,12 +13,20 @@ import { FvoritesComponent } from './favorites/favorites.components';
 import { getVisibleHeight } from '../../../core/utils/utils';
 import { selectIsMobile } from '../../../core/state/lib/layout/layout.selectors';
 import { MarqueeIfOverflowDirective } from '../../../core/utils/directives/marquee-if-overflow.directive';
+import { StopNameComponent } from '../../../shared/stop-name/stop-name.component';
 
 @Component({
   selector: 'drawer',
   templateUrl: './drawer.component.html',
   standalone: true,
-  imports: [CommonModule, BottomMenuComponent, StopsComponent, FvoritesComponent, MarqueeIfOverflowDirective],
+  imports: [
+    CommonModule,
+    BottomMenuComponent,
+    StopsComponent,
+    FvoritesComponent,
+    MarqueeIfOverflowDirective,
+    StopNameComponent,
+  ],
 })
 export class DrawerComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('drawerContainer') drawerContainer!: ElementRef;
@@ -38,7 +46,6 @@ export class DrawerComponent implements OnInit, AfterViewInit, OnDestroy {
     [DrawerMode.Stops]: 'Nearby Stops',
     [DrawerMode.Favorites]: 'Favorites',
   };
-  headerTitle$: Observable<string> | undefined;
 
   // Compute container class based on platform: mobile gets slide transform; desktop is fixed.
   drawerContainerClasses$: Observable<string> = combineLatest([this.isMobile$, this.drawerExpanded$]).pipe(
@@ -85,13 +92,8 @@ export class DrawerComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.headerTitle$ = combineLatest([this.drawerMode$, this.selectedStop$]).pipe(
-      map(([drawerMode, selectedStop]) =>
-        drawerMode && drawerMode === DrawerMode.Stops && selectedStop && selectedStop.stopName
-          ? selectedStop.stopName
-          : this.headerTitles[drawerMode]
-      )
-    );
+    // Remove the headerTitle$ initialization
+    // The title is now handled directly in the template
   }
 
   ngOnDestroy() {
