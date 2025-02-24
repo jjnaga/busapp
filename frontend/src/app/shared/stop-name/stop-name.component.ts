@@ -91,17 +91,17 @@ export class StopNameComponent implements OnChanges, AfterViewInit {
    * If no changes were made (i.e., input is empty), it cancels the update.
    * @param event Optional mouse event to stop propagation.
    */
-  saveName(event?: MouseEvent): void {
-    if (event) {
-      event.stopPropagation(); // Prevent click from bubbling.
-    }
+  saveName(event: MouseEvent): void {
+    // Stop propagation so the parent element's click isn't triggered
+    event.stopPropagation();
+
     const trimmed = this.editedName.trim();
-    // If no changes were made (empty input), just cancel editing.
     if (!trimmed) {
+      // If input is empty after trimming, cancel editing
       this.cancelEdit();
       return;
     }
-    // Otherwise, dispatch the update.
+    // Dispatch the action to update the stop's custom name
     this.store.dispatch(setStopCustomName({ stopId: this.stopId, customName: trimmed }));
     this.isEditing = false;
   }
