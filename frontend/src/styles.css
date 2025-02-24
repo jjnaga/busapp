@@ -372,16 +372,32 @@ body {
   padding: 0.2rem 0.5rem;
   border-radius: 3px;
 }
+/* Updated styles for the save icon */
+.save-icon {
+  cursor: pointer;
+  margin-left: 0.5rem;
+  padding: 0.25rem;
+  border: 1px solid #ccc;
+  border-radius: 50%;
+  transition: box-shadow 0.3s ease, transform 0.2s ease;
+}
 
+.save-icon:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transform: scale(1.1);
+}
+
+/* Consistent styling for the rename icon as well */
 .rename-icon {
   cursor: pointer;
   margin-right: 0.5rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  padding: 0.25rem;
+  border: 1px solid transparent;
   border-radius: 50%;
-  padding: 0.2rem;
-  transition: box-shadow 0.3s ease;
+  transition: box-shadow 0.3s ease, transform 0.2s ease;
 }
 
 .rename-icon:hover {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transform: scale(1.1);
 }
