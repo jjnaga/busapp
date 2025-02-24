@@ -54,6 +54,7 @@ export class MapComponent implements OnInit {
     zoomControl: true,
     mapTypeControl: false,
     streetViewControl: false,
+    fullscreenControl: false,
   };
 
   private cameraModeSubscription!: Subscription;

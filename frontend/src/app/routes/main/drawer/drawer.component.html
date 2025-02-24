@@ -2,10 +2,11 @@
 <div #drawerContainer [ngClass]="drawerContainerClasses$ | async">
   <div class="flex flex-col h-full">
     <!-- Combined Header for both Mobile and Desktop -->
-    <div class="p-3 flex justify-between items-center" [class.cursor-pointer]="isMobile$ | async"
+    <div class="px-3 pt-1 flex justify-between items-center mb-2 mt-1" [class.cursor-pointer]="isMobile$ | async"
       (click)="isMobile$ ? toggleDrawer() : null">
       <ng-container *ngIf="drawerMode$ | async as mode">
-        <h3 [class]="(isMobile$ | async) ? 'text-xl' : 'text-2xl'" class="font-bold overflow-hidden whitespace-nowrap">
+        <h3 [class]="(isMobile$ | async) ? 'text-2xl' : 'text-2xl'"
+          class="font-semibold overflow-hidden whitespace-nowrap">
           <!-- For Stops mode with a selected stop, show the stop-name component -->
           <ng-container *ngIf="mode === DrawerMode.Stops && (selectedStop$ | async) as selectedStop; else defaultTitle">
             <stop-name [stopId]="selectedStop.stopId" [defaultName]="selectedStop.stopName || ''"></stop-name>
