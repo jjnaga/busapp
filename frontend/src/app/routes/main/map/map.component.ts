@@ -12,7 +12,16 @@ import {
   of,
   firstValueFrom,
 } from 'rxjs';
-import { debounceTime, filter, startWith, take, switchMap, tap, distinctUntilChanged } from 'rxjs/operators';
+import {
+  debounceTime,
+  filter,
+  startWith,
+  take,
+  switchMap,
+  tap,
+  distinctUntilChanged,
+  withLatestFrom,
+} from 'rxjs/operators';
 import { Stop, Vehicle, MapController, MAP_CONTROLLER } from '../../../core/utils/global.types';
 import { MarkerService } from '../../../core/services/markers/marker.service';
 import { Store } from '@ngrx/store';
@@ -124,6 +133,7 @@ export class MapComponent implements OnInit {
     // Handle user-initiated interactions
     const handleUserInteraction = () => {
       this.mapControllerService.updateZoom(this.map?.getZoom());
+
       if (!this.isProgrammaticPanAndZoom) {
         this.mapControllerService.emitMapEvent();
         this.director.setFreeFormMode();
@@ -222,6 +232,10 @@ export class MapComponent implements OnInit {
       this.map.panTo(newCenter);
       this.map.setZoom(newZoom);
     }
+
+    setTimeout(() => {
+      this.isProgrammaticPanAndZoom = false;
+    }, 500);
   }
 
   getZoom(): number | undefined {

@@ -22,13 +22,11 @@ export const selectSelectedStop = createSelector(
 
     const selectedStop = stops[state.selectedStop];
 
-    if (!selectedStop) return undefined;
-
-    return {
-      ...selectedStop,
-      stopLat: selectedStop.stopLat,
-      stopLon: selectedStop.stopLon,
-    };
+    if (!selectedStop) {
+      return undefined;
+    } else {
+      return selectedStop;
+    }
   }
 );
 

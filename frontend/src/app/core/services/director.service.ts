@@ -12,22 +12,26 @@ import { selectAllStops, selectSelectedStop } from '../state/lib/stops/stops.sel
 import { selectSelectedArrivalIndex } from '../state/lib/user/user.selectors';
 import { MarkerService } from './markers/marker.service';
 import { isValidCoordinate } from '../utils/utils';
+import { SelectedStopStrategy } from './camera-strategies/selected-stop.camera';
 
 export enum CameraMode {
   FREE_FORM = 'FREE_FORM',
   USER = 'USER',
   INCOMING_BUS = 'INCOMING_BUS',
+  SELECTED_STOP = 'SELECTED_STOP',
 }
 
 @Injectable({
   providedIn: 'root',
 })
 export class DirectorService {
+  private MIN_ZOOM_LEVEL = 15;
   private store = inject(Store);
   // Inject the camera strategies.
   private freeFormCameraStrategy = inject(FreeFormCameraStrategy);
   private userCameraStrategy = inject(UserCameraStrategy);
   private incomingBusCameraStrategy = inject(IncomingBusCameraStrategy);
+  private selectedStopCameraStrategy = inject(SelectedStopStrategy);
   private markerService = inject(MarkerService);
 
   // Manage the camera mode.
@@ -43,6 +47,7 @@ export class DirectorService {
   constructor() {
     // Subscribe to mode changes.
     this.mode$.pipe(distinctUntilChanged()).subscribe((mode) => {
+      // this.mode$.pipe(distinctUntilChanged()).subscribe((mode) => {
       this.currentStrategy.cleanup();
 
       switch (mode) {
@@ -51,6 +56,9 @@ export class DirectorService {
           break;
         case CameraMode.INCOMING_BUS:
           this.currentStrategy = this.incomingBusCameraStrategy;
+          break;
+        case CameraMode.SELECTED_STOP:
+          this.currentStrategy = this.selectedStopCameraStrategy;
           break;
         default:
           this.currentStrategy = this.freeFormCameraStrategy;
@@ -101,11 +109,14 @@ export class DirectorService {
     });
   }
 
+  // Based on selected stop and arrival index, update the stop markers and move the camera to the stop
+  // or set the incoming vehicle camera strategy.
   startStopsMarkerManager(): void {
+    // should this be in stops.effects.ts?
     combineLatest([
-      this.store.select(selectSelectedStop),
-      this.store.select(selectSelectedArrivalIndex),
-      this.mapController.mapEvents$,
+      this.store.select(selectSelectedStop).pipe(startWith(null)),
+      this.store.select(selectSelectedArrivalIndex).pipe(startWith(null)),
+      this.mapController.mapEvents$.pipe(startWith(null)),
     ]).subscribe(([selectedStop, arrivalIndex]) => {
       if (arrivalIndex !== null && selectedStop?.arrivals?.[arrivalIndex]?.vehicle) {
         this.markerService.updateStopMarkers({ [selectedStop.stopId]: selectedStop });
@@ -114,7 +125,8 @@ export class DirectorService {
           let zoom = this.mapController.getZoom();
 
           if (zoom == undefined) return;
-          if (zoom < 16) {
+
+          if (zoom && zoom < this.MIN_ZOOM_LEVEL) {
             this.markerService.updateStopMarkers({});
             return;
           }
@@ -153,5 +165,13 @@ export class DirectorService {
   }
   setIncomingBusMode(): void {
     this.setMode(CameraMode.INCOMING_BUS);
+  }
+
+  setSelectedStopMode(): void {
+    this.setMode(CameraMode.SELECTED_STOP);
+  }
+
+  getCurrentMode(): CameraMode {
+    return this.currentMode;
   }
 }

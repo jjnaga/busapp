@@ -12,6 +12,7 @@ import { UserEffects } from './lib/user/user.effects';
 import { WebsocketEffects } from './lib/websocket/websocket.effects';
 import { UserLocationEffects } from './lib/user-location/user-location.effects';
 import { FavoritesEffects } from './lib/favorites/favorites.effects';
+import { UserInitEffects } from './persist-state.meta-effects';
 
 @Injectable()
 export class RootEffects {
@@ -37,4 +38,5 @@ export const rootEffects = [
   WebsocketEffects,
   UserLocationEffects,
   FavoritesEffects,
+  UserInitEffects,
 ];
