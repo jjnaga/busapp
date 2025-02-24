@@ -29,7 +29,7 @@ export class MapControllerService implements MapController {
   }
 
   getZoom(): number | undefined {
-    return this.mapController?.getZoom();
+    return this.currentZoom.value;
   }
 
   // New method to emit map events
