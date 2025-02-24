@@ -165,7 +165,7 @@ export class StopsEffects {
       }),
       switchMap((stopIds) => {
         if (stopIds.length > 0) {
-          return timer(0, 15000).pipe(map(() => StopsActions.loadDetailedStops({ stopIds })));
+          return timer(0, 60000).pipe(map(() => StopsActions.loadDetailedStops({ stopIds })));
         } else {
           return EMPTY;
         }
