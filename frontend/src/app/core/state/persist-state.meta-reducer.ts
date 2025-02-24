@@ -1,4 +1,7 @@
 import { ActionReducer, MetaReducer } from '@ngrx/store';
+import { last } from 'rxjs';
+
+const SOFT_RESET_INTERVAL = 1000 * 60 * 10; // 10 minutes
 
 function replacer(key: string, value: any): any {
   if (value instanceof Date) {
@@ -31,7 +34,34 @@ export function persistState(reducer: ActionReducer<any>): ActionReducer<any> {
       if (saved) {
         try {
           const loadedState = JSON.parse(saved, reviver);
-          state = { ...state, ...loadedState };
+          if (loadedState && loadedState.user && loadedState.user.lastActive) {
+            let lastActive = new Date(loadedState.user.lastActive);
+            // If last active is older than the soft reset interval, reset the state.
+            if (new Date().getTime() - lastActive.getTime() > 1) {
+              console.log('RUH ROH RESET');
+              localStorage.removeItem('app-state');
+              state = {
+                ...state,
+                favorites: {
+                  ...state.favorites, // Keep default values
+                  ...loadedState.favorites, // Override with saved values
+                },
+              };
+              lastActive = new Date();
+            }
+          }
+          // Deep merge for each feature
+          state = {
+            ...state,
+            user: {
+              ...state.user, // Keep default values
+              ...loadedState.user, // Override with saved values
+            },
+            favorites: {
+              ...state.favorites, // Keep default values
+              ...loadedState.favorites, // Override with saved values
+            },
+          };
         } catch (e) {
           // If parsing fails, remove the corrupted saved state.
           localStorage.removeItem('app-state');
