@@ -24,57 +24,58 @@ function reviver(key: string, value: any): any {
 
 export function persistState(reducer: ActionReducer<any>): ActionReducer<any> {
   return function (state: any, action: any) {
-    if (action.type === '[App] Reset Store') {
-      localStorage.removeItem('app-state');
-      state = undefined; // Wipe everything
-    }
+    // Always get the next state first
+    let nextState = reducer(state, action);
 
     if (action.type === '@ngrx/store/init') {
       const saved = localStorage.getItem('app-state');
       if (saved) {
         try {
           const loadedState = JSON.parse(saved, reviver);
-          if (loadedState && loadedState.user && loadedState.user.lastActive) {
-            let lastActive = new Date(loadedState.user.lastActive);
-            // If last active is older than the soft reset interval, reset the state.
-            if (new Date().getTime() - lastActive.getTime() > 1) {
-              console.log('RUH ROH RESET');
-              localStorage.removeItem('app-state');
-              state = {
-                ...state,
-                favorites: {
-                  ...state.favorites, // Keep default values
-                  ...loadedState.favorites, // Override with saved values
-                },
-              };
-              lastActive = new Date();
-            }
-          }
-          // Deep merge for each feature
-          state = {
-            ...state,
+
+          // Merge with next state instead of undefined initial state
+          nextState = {
+            ...nextState,
             user: {
-              ...state.user, // Keep default values
-              ...loadedState.user, // Override with saved values
+              ...nextState.user,
+              ...loadedState.user,
             },
             favorites: {
-              ...state.favorites, // Keep default values
-              ...loadedState.favorites, // Override with saved values
+              ...nextState.favorites,
+              ...loadedState.favorites,
             },
           };
+
+          if (loadedState?.user?.lastActive) {
+            const lastActive = new Date(loadedState.user.lastActive);
+            const timeDiff = new Date().getTime() - lastActive.getTime();
+
+            if (timeDiff > SOFT_RESET_INTERVAL) {
+              nextState = {
+                ...nextState,
+                user: {
+                  ...nextState.user, // Use feature defaults
+                  stopPreferences: loadedState.user.stopPreferences || {},
+                  drawerMode: nextState.user.drawerMode,
+                  drawerExpanded: nextState.user.drawerExpanded,
+                  selectedArrivalIndex: null,
+                },
+              };
+            }
+          }
         } catch (e) {
-          // If parsing fails, remove the corrupted saved state.
-          localStorage.removeItem('app-state');
+          console.error('Error:', e);
         }
       }
     }
-    const nextState = reducer(state, action);
-    // Persist only the user and favorites parts of state.
+
+    // Save state after all modifications
     const stateToSave = {
       user: nextState.user,
       favorites: nextState.favorites,
     };
     localStorage.setItem('app-state', JSON.stringify(stateToSave, replacer));
+
     return nextState;
   };
 }
