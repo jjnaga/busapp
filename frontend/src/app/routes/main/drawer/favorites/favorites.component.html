@@ -24,14 +24,20 @@
 
       <!-- Body Section: Displays arrival information -->
       <div class="py-2">
-        <div *ngFor="let arrival of stop?.arrivals?.slice(0,3); let last = last"
-          class="flex items-center space-x-4 px-4 py-2" [class.border-b]="!last" [class.border-gray-100]="!last">
-          <span class="font-medium text-gray-700">{{ arrival?.route }}</span>
-          <span class="text-gray-300">•</span>
-          <span class="text-gray-600">{{ arrival?.stopTime }}</span>
-          <span class="text-gray-400 text-xs">
-            {{ arrival?.arrivalDate | diffMinutes }}min
+        <div *ngFor="let arrival of stop?.arrivals?.slice(0,3); let last = last" class="flex items-center px-4 py-2"
+          [class.border-b]="!last" [class.border-gray-100]="!last">
+          <!-- Route and Headsign -->
+          <span class="font-medium text-gray-700 truncate flex-1 pr-4">
+            {{ arrival?.route }} - {{ arrival?.headsign || 'N/A' }}
           </span>
+
+          <!-- times -->
+          <div class="flex items-center space-x-2 w-[120px] justify-end shrink-0">
+            <span class="text-gray-600 w-32 text-right text-sm">{{ arrival?.stopTime }}</span>
+            <span class="text-blue-600 text-md w-24 text-right">
+              {{ arrival?.arrivalDate | diffMinutes }}min
+            </span>
+          </div>
         </div>
       </div>
     </div>
