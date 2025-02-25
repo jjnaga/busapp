@@ -57,22 +57,26 @@
         <!-- Inside the selectedStopTemplate in stops.component.html -->
         <ul class="px-4 py-3">
           <li *ngFor="let arrival of selectedStop.arrivals; let i = index"
-            class="py-3 border-b border-gray-100 last:border-b-0 cursor-pointer transition-all duration-200 ease-out group relative"
+            class="py-3 border-b border-gray-100 last:border-b-0 transition-all duration-200 ease-out group relative"
             [ngClass]="{
-            'bg-blue-200   border-l-4 border-blue-500': (selectedArrivalIndex$ | async) === i,
-            'hover:bg-gray-50 hover:-translate-y-[2px] hover:shadow-sm': (selectedArrivalIndex$ | async) !== i
-          }" (click)="setSelectedArrival(i)">
-            <div class="flex items-center justify-between w-full">
-              <!-- Left Section: Route Number and Direction -->
-              <div class="flex items-center min-w-0 mr-2">
-                <span class="bg-nagahama-blue text-white font-bold rounded-lg px-3 py-2 text-lg shadow-sm mr-3">
-                  {{ arrival.route }}
-                </span>
+              'bg-blue-200 border-l-4 border-blue-500': (selectedArrivalIndex$ | async) === i,
+              'hover:bg-gray-50 hover:-translate-y-[2px] hover:shadow-sm': (selectedArrivalIndex$ | async) !== i && arrival.vehicle !== '???',
+              'pointer-events-none': arrival.vehicle === '???',
+              'cursor-pointer': arrival.vehicle !== '???',
+              'cursor-not-allowed': arrival.vehicle === '???'
+            }" (click)="arrival.vehicle !== '???' && setSelectedArrival(i, arrival)">
+            <div class="flex items-center w-full mr-2">
+              <span
+                class="bg-nagahama-blue text-white font-bold rounded-lg px-3 py-2 text-lg shadow-sm mr-3 overflow-ellipsis"
+                [class.opacity-60]="arrival.vehicle === '???'">
+                {{ arrival.route }}
+              </span>
+              <div class="flex-grow overflow-hidden">
                 <h3 class="font-semibold truncate">{{ arrival.headsign }}</h3>
+                <span *ngIf="arrival.vehicle === '???'" class="text-xs text-gray-500 italic">No vehicle data
+                  available</span>
               </div>
-
-              <!-- Right Section: Arrival Details -->
-              <div class="flex flex-col items-end w-32 px-4">
+              <div class="shrink-0 flex flex-col items-end w-32 px-4">
                 <span class="text-sm text-gray-500">{{ arrival.arrivalDate | date:'shortTime' }}</span>
                 <span class="text-md font-semibold text-blue-600">
                   {{ arrival.arrivalDate | diffMinutes }} min

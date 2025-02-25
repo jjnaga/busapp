@@ -27,6 +27,21 @@ import { StopNameComponent } from '../../../shared/stop-name/stop-name.component
     MarqueeIfOverflowDirective,
     StopNameComponent,
   ],
+  // wtf did 3.7 generate
+  styles: [
+    `
+      ::ng-deep .drawer-content .stop-name-component {
+        width: 100%;
+        padding: 0 0.5rem;
+        box-sizing: border-box;
+      }
+
+      ::ng-deep .drawer-content input {
+        max-width: 100%;
+        box-sizing: border-box;
+      }
+    `,
+  ],
 })
 export class DrawerComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('drawerContainer') drawerContainer!: ElementRef;

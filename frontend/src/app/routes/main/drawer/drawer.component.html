@@ -6,7 +6,7 @@
       (click)="isMobile$ ? toggleDrawer() : null">
       <ng-container *ngIf="drawerMode$ | async as mode">
         <h3 [class]="(isMobile$ | async) ? 'text-2xl' : 'text-2xl'"
-          class="font-semibold overflow-hidden whitespace-nowrap">
+          class="font-semibold overflow-hidden whitespace-nowrap flex-1">
           <!-- For Stops mode with a selected stop, show the stop-name component -->
           <ng-container *ngIf="mode === DrawerMode.Stops && (selectedStop$ | async) as selectedStop; else defaultTitle">
             <stop-name [stopId]="selectedStop.stopId" [defaultName]="selectedStop.stopName || ''"></stop-name>
