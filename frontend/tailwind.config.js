@@ -3,6 +3,10 @@ module.exports = {
   content: ["./src/**/*.{html,ts}"],
   theme: {
     extend: {
+      fontFamily: {
+        // Replace the default sans font stack with Cabinet Grotesk
+        sans: ['"Cabinet Grotesk"', "system-ui", "sans-serif"],
+      },
       colors: {
         "nagahama-blue": "rgb(30, 64, 175)",
       },
