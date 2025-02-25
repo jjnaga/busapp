@@ -24,7 +24,23 @@ export interface UserState {
 export const initialUserState: UserState = {
   drawerMode: DrawerMode.Favorites,
   drawerExpanded: true,
-  stopPreferences: {},
+  stopPreferences: {
+    '47': {
+      customName: 'work to home',
+    },
+    '2819': {
+      customName: 'home to mom and dad',
+    },
+    '2848': {
+      customName: 'home to town',
+    },
+    '2918': {
+      customName: '32 to parents',
+    },
+    '2925': {
+      customName: 'test',
+    },
+  },
   selectedArrivalIndex: null,
 };
 
