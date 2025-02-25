@@ -9,7 +9,7 @@ export const adapter: EntityAdapter<string> = createEntityAdapter<string>({
 });
 
 // export const initialState: FavoritesState = adapter.getInitialState();
-const initialFavoriteIds = ['2925', '2848', '2819', '2918'];
+const initialFavoriteIds = ['47', '2848', '2819', '2918'];
 export const initialState: FavoritesState = adapter.getInitialState({
   ids: initialFavoriteIds,
   entities: initialFavoriteIds.reduce((entities: { [id: string]: string }, id: string) => {
