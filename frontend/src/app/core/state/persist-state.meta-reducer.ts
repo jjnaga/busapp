@@ -1,5 +1,5 @@
 import { ActionReducer, MetaReducer } from '@ngrx/store';
-import { last } from 'rxjs';
+import { DrawerMode } from '../utils/global.types';
 
 const SOFT_RESET_INTERVAL = 1000 * 60 * 10; // 10 minutes
 
@@ -56,8 +56,9 @@ export function persistState(reducer: ActionReducer<any>): ActionReducer<any> {
                 user: {
                   ...nextState.user, // Use feature defaults
                   stopPreferences: loadedState.user.stopPreferences || {},
-                  drawerMode: nextState.user.drawerMode,
-                  drawerExpanded: nextState.user.drawerExpanded,
+                  drawerMode: DrawerMode.Favorites,
+                  drawerExpanded: true,
+                  selectedStop: null,
                   selectedArrivalIndex: null,
                 },
               };
