@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Store } from '@ngrx/store';
 import { Observable, BehaviorSubject, combineLatest, firstValueFrom } from 'rxjs';
 import { filter, switchMap, map } from 'rxjs/operators';
-import { Stop } from '../../../../core/utils/global.types';
+import { Arrival, Stop } from '../../../../core/utils/global.types';
 import { selectSelectedStop, selectStopsLoading } from '../../../../core/state/lib/stops/stops.selectors';
 import { selectDrawerExpanded, selectSelectedArrivalIndex } from '../../../../core/state/lib/user/user.selectors';
 import { DiffMinutesPipe } from '../../../../core/utils/pipes/diff-minutes.pipe';
@@ -85,8 +85,11 @@ export class StopsComponent implements OnInit, AfterViewInit {
     this.displayLimit$.next(currentLimit + 20);
   }
 
-  setSelectedArrival(index: number): void {
-    // set the arrival
+  setSelectedArrival(index: number, arrival: Arrival): void {
+    if (arrival.vehicle === '???') {
+      return;
+    }
+
     this.store.dispatch(setSelectedArrival({ arrivalIndex: index }));
 
     this.cameraDirector.setIncomingBusMode();

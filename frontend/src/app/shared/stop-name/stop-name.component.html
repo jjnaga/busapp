@@ -1,12 +1,12 @@
-<div class="grid grid-cols-[auto_2rem] items-center relative w-full h-8">
+<div class="flex items-center relative w-full h-8 overflow-hidden">
   <!-- View Mode: Display name with rename icon -->
   <ng-container *ngIf="!isEditing; else editTemplate">
     <span
-      class="font-medium transition-opacity duration-300 overflow-hidden text-ellipsis whitespace-nowrap py-0.5 px-2 text-blue-800">
+      class="font-medium transition-opacity duration-300 overflow-hidden text-ellipsis whitespace-nowrap py-0.5 px-2 text-nagahama-blue flex-1">
       {{ (customName$ | async) || defaultName }}
     </span>
     <span
-      class="flex justify-center items-center cursor-pointer opacity-70 transition-all duration-300 w-8 h-8 hover:opacity-100 hover:scale-110 hover:text-blue-800"
+      class="flex justify-center items-center cursor-pointer opacity-70 transition-all duration-300 min-w-8 h-8 hover:opacity-100 hover:scale-110 hover:text-blue-800 ml-1 shrink-0"
       (click)="enableEdit($event)" title="Rename">
       <fa-icon class="text-lg" [icon]="faEdit"></fa-icon>
     </span>
@@ -15,12 +15,12 @@
   <!-- Edit Mode: Show input field and save icon -->
   <ng-template #editTemplate>
     <input #inputField type="text" [(ngModel)]="editedName" placeholder="{{ (customName$ | async) || defaultName }}"
-      (click)="$event.stopPropagation()" (keydown)="onKeyDown($event)" class="border-2 border-blue-300 rounded py-0.5 px-2 w-full text-blue-800 font-medium bg-blue-50 
-             shadow-sm transition-all duration-200
+      (click)="$event.stopPropagation()" (keydown)="onKeyDown($event)" class="flex-1 border-2 border-blue-300 rounded py-0.5 px-2 text-blue-800 font-medium bg-blue-50 
+             shadow-sm transition-all duration-200 box-border
              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
              focus:shadow-md focus:bg-white" autofocus />
     <span
-      class="flex justify-center items-center cursor-pointer opacity-70 transition-all duration-300 w-8 h-8 hover:opacity-100 hover:scale-110 hover:text-blue-800"
+      class="flex justify-center items-center cursor-pointer opacity-70 transition-all duration-300 min-w-8 h-8 hover:opacity-100 hover:scale-110 hover:text-blue-800 ml-1 shrink-0"
       (click)="saveName($event)" title="Save">
       <fa-icon class="text-lg" [icon]="faSave"></fa-icon>
     </span>
