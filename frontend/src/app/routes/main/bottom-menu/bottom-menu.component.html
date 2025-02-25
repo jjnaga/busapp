@@ -1,44 +1,36 @@
 <div class="flex justify-between items-center bg-gray-200 py-2 px-4 border-t shadow-md">
-  <button
-    (click)="setDrawerMode(DrawerMode.Favorites)"
-    [ngClass]="{
-      'glow-neon-blue': (drawerMode$ | async) === DrawerMode.Favorites,
-    }"
-    class="py-1 px-3 flex flex-col items-center text-gray-600 hover:text-black transition-colors"
-  >
-    <fa-icon class="text-2xl" [icon]="faStar"></fa-icon>
-    <span class="mt-1 text-xs">Favorites</span>
-  </button>
-  <div class="w-px bg-gray-400 h-6"></div>
-  <!-- Divider -->
+  <!-- Navigation section - shrink to fit content -->
+  <div class="flex items-center space-x-2">
+    <button (click)="setDrawerMode(DrawerMode.Favorites)"
+      [ngClass]="{'glow-neon-blue': (drawerMode$ | async) === DrawerMode.Favorites}"
+      class="py-1 px-3 flex flex-col items-center text-gray-600 hover:text-black transition-colors">
+      <fa-icon class="text-xl" [icon]="faStar"></fa-icon>
+      <span class="mt-1 text-xs">Favorites</span>
+    </button>
 
-  <button
-    (click)="setDrawerMode(DrawerMode.Stops)"
-    [ngClass]="{ 'glow-neon-blue': (drawerMode$ | async) === DrawerMode.Stops }"
-    class="py-1 px-3 flex flex-col items-center text-gray-600 hover:text-black transition-colors"
-  >
-    <fa-icon class="text-2xl" [icon]="faMapMarkerAlt"></fa-icon>
-    <span class="mt-1 text-xs">Stops</span>
-  </button>
-  <div class="w-px bg-gray-400 h-6"></div>
-  <!-- Divider -->
+    <div class="w-px bg-gray-400 h-6"></div>
 
-  <button class="py-1 px-3 flex flex-col items-center text-gray-600 hover:text-black transition-colors">
-    <!-- <fa-icon class="text-2xl" [icon]="faStar"></fa-icon>
-    <span class="mt-1 text-xs">Profile</span> -->
-  </button>
-  <div class="w-px bg-gray-400 h-6"></div>
-  <!-- Divider -->
+    <button (click)="setDrawerMode(DrawerMode.Stops)"
+      [ngClass]="{'glow-neon-blue': (drawerMode$ | async) === DrawerMode.Stops}"
+      class="py-1 px-3 flex flex-col items-center text-gray-600 hover:text-black transition-colors">
+      <fa-icon class="text-xl" [icon]="faMapMarkerAlt"></fa-icon>
+      <span class="mt-1 text-xs">Stops</span>
+    </button>
 
-  <button class="py-1 px-3 flex flex-col items-center text-gray-600 hover:text-black transition-colors">
-    <!-- <fa-icon class="text-2xl" [icon]="faStar"></fa-icon>
-    <span class="mt-1 text-xs">Settings</span> -->
-  </button>
-  <div class="w-px bg-gray-400 h-6"></div>
-  <!-- Divider -->
+    <div class="w-px bg-gray-400 h-6"></div>
 
-  <button class="py-1 px-3 flex flex-col items-center text-gray-600 hover:text-black transition-colors">
-    <!-- <fa-icon class="text-2xl" [icon]="faStar"></fa-icon>
-    <span class="mt-1 text-xs">More</span> -->
-  </button>
+    <button class="py-1 px-3 flex flex-col items-center text-gray-600 hover:text-black transition-colors">
+      <fa-icon class="text-xl" [icon]="faBell"></fa-icon>
+      <span class="mt-1 text-xs">Subscriptions</span>
+    </button>
+  </div>
+
+  <!-- Spacer that grows to fill available space -->
+  <div class="flex-grow"></div>
+
+  <!-- Logo section -->
+  <div id="logo" class="flex flex-col text-right">
+    <p class="font-bold text-sm">BETTAH</p>
+    <p class="font-bold text-sm">BUS</p>
+  </div>
 </div>

@@ -66,7 +66,7 @@ export class WebsocketService {
       (this.socket$ && this.socket$.socket && this.socket$.socket.readyState === WebSocket.OPEN) ||
       this.isConnecting
     ) {
-      this.toastr.info('WebSocket connection already exists');
+      // this.toastr.info('WebSocket connection already exists');
       return;
     }
 
@@ -77,7 +77,7 @@ export class WebsocketService {
 
     const url = `${getBaseUrl(window.location.protocol === 'https:' ? 'wss:' : 'ws:')}/ws`;
     try {
-      this.toastr.info('Attempting to connect to WebSocket...');
+      // this.toastr.info('Attempting to connect to WebSocket...');
       this.socket$ = new CustomWebSocketSubject({
         url: url,
         openObserver: {
@@ -85,7 +85,7 @@ export class WebsocketService {
             this.store.dispatch(websocketConnected());
             this.isConnecting = false;
             this.reconnectAttempts = 0;
-            this.toastr.success('WebSocket connected successfully');
+            this.toastr.success('Connected to Bettah Bus');
           },
         },
         closeObserver: {
@@ -106,6 +106,7 @@ export class WebsocketService {
         },
       });
     } catch (e) {
+      this.store.dispatch(websocketConnected());
       console.error('WebSocket connection error:', e);
       this.isConnecting = false;
       this.socket$ = null;
@@ -115,7 +116,7 @@ export class WebsocketService {
 
   private attemptReconnect(): void {
     if (this.reconnectAttempts >= this.MAX_RECONNECT_ATTEMPTS) {
-      this.toastr.error('Maximum reconnection attempts reached', 'Connection Failed');
+      this.toastr.error('Connection Failed');
       return;
     }
     if (this.isConnecting) {
