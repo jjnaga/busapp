@@ -11,7 +11,13 @@ body {
   padding: 0;
 }
 
-/* based on angular-toastr css https://github.com/Foxandxss/angular-toastr/blob/cb508fe6801d6b288d3afc525bb40fee1b101650/dist/angular-toastr.css */
+@font-face {
+  font-family: "Cabinet Grotesk";
+  src: url("./assets/fonts/cabinet-grotesk/CabinetGrotesk-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+  font-style: normal;
+}
 
 /* position */
 .toast-center-center {
@@ -421,4 +427,9 @@ body {
   animation: location-button-pulse 2s ease-in-out infinite;
   background-color: #e8f0fe !important;
   color: #1e40af !important;
+}
+
+body,
+html {
+  font-family: "Cabinet Grotesk", system-ui, sans-serif;
 }
