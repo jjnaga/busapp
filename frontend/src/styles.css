@@ -371,21 +371,15 @@ body {
 .save-icon {
   cursor: pointer;
   margin-right: 0.5rem;
+  cursor: pointer;
+  margin-left: 0.5rem;
+  padding: 0.25rem;
 }
 
 .stop-name-input {
   border: 1px solid #ccc;
   padding: 0.2rem 0.5rem;
   border-radius: 3px;
-}
-/* Updated styles for the save icon */
-.save-icon {
-  cursor: pointer;
-  margin-left: 0.5rem;
-  padding: 0.25rem;
-  border: 1px solid #ccc;
-  border-radius: 50%;
-  transition: box-shadow 0.3s ease, transform 0.2s ease;
 }
 
 .save-icon:hover {

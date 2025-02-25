@@ -1,21 +1,28 @@
-<div class="stop-name-container">
+<div class="grid grid-cols-[auto_2rem] items-center relative w-full h-8">
   <!-- View Mode: Display name with rename icon -->
   <ng-container *ngIf="!isEditing; else editTemplate">
-    <!-- Rename Icon: Clicking this switches to edit mode -->
-    <span class="rename-icon" (click)="enableEdit($event)" title="Rename">
-      <fa-icon class="text-2xl" [icon]="faEdit"></fa-icon>
+    <span
+      class="font-medium transition-opacity duration-300 overflow-hidden text-ellipsis whitespace-nowrap py-0.5 px-2 text-blue-800">
+      {{ (customName$ | async) || defaultName }}
     </span>
-    <span class="stop-name-text">{{ (customName$ | async) || defaultName }}</span>
+    <span
+      class="flex justify-center items-center cursor-pointer opacity-70 transition-all duration-300 w-8 h-8 hover:opacity-100 hover:scale-110 hover:text-blue-800"
+      (click)="enableEdit($event)" title="Rename">
+      <fa-icon class="text-lg" [icon]="faEdit"></fa-icon>
+    </span>
   </ng-container>
 
   <!-- Edit Mode: Show input field and save icon -->
   <ng-template #editTemplate>
-    <!-- Input Field: Prevents click propagation so parent events aren’t triggered -->
     <input #inputField type="text" [(ngModel)]="editedName" placeholder="{{ (customName$ | async) || defaultName }}"
-      (click)="$event.stopPropagation()" (keydown)="onKeyDown($event)" class="stop-name-input" />
-    <!-- Save Icon: Single click binding which stops propagation -->
-    <span class="save-icon" (click)="saveName($event)" title="Save">
-      <fa-icon class="text-2xl" [icon]="faSave"></fa-icon>
+      (click)="$event.stopPropagation()" (keydown)="onKeyDown($event)" class="border-2 border-blue-300 rounded py-0.5 px-2 w-full text-blue-800 font-medium bg-blue-50 
+             shadow-sm transition-all duration-200
+             focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+             focus:shadow-md focus:bg-white" autofocus />
+    <span
+      class="flex justify-center items-center cursor-pointer opacity-70 transition-all duration-300 w-8 h-8 hover:opacity-100 hover:scale-110 hover:text-blue-800"
+      (click)="saveName($event)" title="Save">
+      <fa-icon class="text-lg" [icon]="faSave"></fa-icon>
     </span>
   </ng-template>
 </div>
