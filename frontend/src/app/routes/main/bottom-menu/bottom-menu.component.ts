@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faStar, faMapMarkerAlt } from '@fortawesome/free-solid-svg-icons';
+import { faBell, faCog, faStar, faMapMarkerAlt } from '@fortawesome/free-solid-svg-icons';
 import { DrawerMode } from '../../../core/utils/global.types';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
@@ -18,6 +18,8 @@ export class BottomMenuComponent {
   DrawerMode = DrawerMode;
   faStar = faStar;
   faMapMarkerAlt = faMapMarkerAlt;
+  faCog = faCog;
+  faBell = faBell;
   drawerMode$: Observable<DrawerMode>;
 
   constructor(private store: Store) {
