@@ -294,6 +294,7 @@ body {
 
 .custom-vehicle-marker {
   width: 35px;
+  z-index: 1000;
   height: auto;
 }
 
