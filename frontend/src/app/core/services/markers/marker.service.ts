@@ -103,11 +103,13 @@ export class MarkerService implements OnDestroy {
           // Create marker for the stop.
           const isFavorite = favoriteIds[stop.stopId];
 
+          // Create marker for the stop - add zIndex parameter
           marker = new google.maps.marker.AdvancedMarkerElement({
             map: this.map,
             position: { lat: stop.stopLat!, lng: stop.stopLon! },
             title: stop.stopName || 'Bus Stop',
             content: createStopSVG(stop.stopName ?? '', !!isFavorite),
+            zIndex: 1000, // High value to ensure stops are on top
           });
 
           marker.addListener('click', () => {
@@ -165,6 +167,7 @@ export class MarkerService implements OnDestroy {
         position: position,
         title: vehicle.headsign || 'Vehicle',
         content: createVehicleMarkerContent(),
+        zIndex: 5000,
       });
 
       marker.addListener('click', () => {
@@ -186,6 +189,7 @@ export class MarkerService implements OnDestroy {
         map: this.map,
         title: 'Your Location',
         content: createUserMarkerContent(),
+        zIndex: 10000,
       });
     }
 
