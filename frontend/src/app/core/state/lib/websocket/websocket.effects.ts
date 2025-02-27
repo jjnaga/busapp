@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import * as WebsocketActions from './websocket.actions';
-import * as VehiclesActions from '../vehicles/vehicles.actions';
 import { switchMap, map, catchError, tap } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { WebsocketService } from '../../../services/websocket.service';
+import { VehicleArraySchema } from '../../../utils/global.types';
 
 @Injectable()
 export class WebsocketEffects {
@@ -27,24 +27,39 @@ export class WebsocketEffects {
 
             switch (type) {
               case 'vehicleUpdate':
-                return WebsocketActions.websocketVehiclesUpdateMessageReceived({ vehicles: data });
+                const parseResults = VehicleArraySchema.safeParse(data);
+
+                if (!parseResults.success) {
+                  const errorDetails = JSON.stringify(parseResults.error.format(), null, 2);
+                  return WebsocketActions.websocketError({
+                    error: {
+                      message: 'Invalid vehicle data',
+                      details: errorDetails,
+                    },
+                  });
+                }
+
+                return WebsocketActions.websocketVehiclesUpdateMessageReceived({
+                  vehicles: parseResults.data,
+                });
 
               default:
                 return { type: 'NO_ACTION' };
             }
           }),
-          catchError((error) => of(WebsocketActions.websocketError({ error })))
+          catchError((error) => {
+            console.error('WebSocket error:', error);
+            return of(
+              WebsocketActions.websocketError({
+                error: {
+                  message: error.message || 'Unknown WebSocket error',
+                  details: error.stack || 'No stack trace available',
+                },
+              })
+            );
+          })
         )
       )
-    )
-  );
-
-  vehiclesUpdateMessageReceived$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(WebsocketActions.websocketVehiclesUpdateMessageReceived),
-      map(({ vehicles }) => {
-        return VehiclesActions.updateVehicles({ vehicles });
-      })
     )
   );
 

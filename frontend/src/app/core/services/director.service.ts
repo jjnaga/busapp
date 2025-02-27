@@ -1,6 +1,6 @@
-import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject, combineLatest, firstValueFrom } from 'rxjs';
-import { distinctUntilChanged, filter, startWith, tap, withLatestFrom } from 'rxjs/operators';
+import { Injectable, inject, OnDestroy } from '@angular/core';
+import { BehaviorSubject, combineLatest, firstValueFrom, Subscription } from 'rxjs';
+import { distinctUntilChanged, startWith, tap } from 'rxjs/operators';
 import { FreeFormCameraStrategy } from '../services/camera-strategies/free.camera';
 import { UserCameraStrategy } from '../services/camera-strategies/user.camera';
 import { IncomingBusCameraStrategy } from '../services/camera-strategies/incoming-bus.camera';
@@ -9,10 +9,11 @@ import { Store } from '@ngrx/store';
 import { MapControllerService } from './maps/map-controller.service';
 import { selectVehicleById, selectVehicleEntities } from '../state/lib/vehicles/vehicles.selectors';
 import { selectAllStops, selectSelectedStop } from '../state/lib/stops/stops.selectors';
+import * as WebSocketActions from '../state/lib/websocket/websocket.actions';
 import { selectSelectedArrivalIndex } from '../state/lib/user/user.selectors';
 import { MarkerService } from './markers/marker.service';
-import { isValidCoordinate } from '../utils/utils';
 import { SelectedStopStrategy } from './camera-strategies/selected-stop.camera';
+import { Actions, ofType } from '@ngrx/effects';
 
 export enum CameraMode {
   FREE_FORM = 'FREE_FORM',
@@ -24,7 +25,7 @@ export enum CameraMode {
 @Injectable({
   providedIn: 'root',
 })
-export class DirectorService {
+export class DirectorService implements OnDestroy {
   private MIN_ZOOM_LEVEL = 15;
   private store = inject(Store);
   // Inject the camera strategies.
@@ -43,11 +44,11 @@ export class DirectorService {
 
   // Subject to hold the map when it's ready.
   private mapReadySubject: BehaviorSubject<google.maps.Map | null> = new BehaviorSubject<google.maps.Map | null>(null);
+  private actions$ = inject(Actions);
+  private subscriptions = new Subscription();
 
   constructor() {
-    // Subscribe to mode changes.
-    this.mode$.pipe(distinctUntilChanged()).subscribe((mode) => {
-      // this.mode$.pipe(distinctUntilChanged()).subscribe((mode) => {
+    const modeSubscription = this.mode$.pipe(distinctUntilChanged()).subscribe((mode) => {
       this.currentStrategy.cleanup();
 
       switch (mode) {
@@ -72,6 +73,7 @@ export class DirectorService {
         this.currentStrategy.execute(this.mapController);
       }
     });
+    this.subscriptions.add(modeSubscription);
   }
 
   setMap(map: google.maps.Map): void {
@@ -85,7 +87,16 @@ export class DirectorService {
   }
 
   startVehiclesMarkerManager(): void {
-    combineLatest([
+    const updateMarkersFromWebsocket$ = this.actions$
+      .pipe(
+        ofType(WebSocketActions.websocketVehiclesUpdateMessageReceived), // Listen for this specific action
+        tap(({ vehicles }) => {
+          this.markerService.updateVehicleCoordinates(vehicles);
+        })
+      )
+      .subscribe();
+
+    const showOrHideVehicleMarkers$ = combineLatest([
       this.store.select(selectSelectedStop).pipe(startWith(undefined)),
       this.store.select(selectSelectedArrivalIndex).pipe(startWith(null)),
     ]).subscribe(([selectedStop, arrivalIndex]) => {
@@ -107,13 +118,16 @@ export class DirectorService {
         });
       }
     });
+
+    this.subscriptions.add(showOrHideVehicleMarkers$);
+    this.subscriptions.add(updateMarkersFromWebsocket$);
   }
 
   // Based on selected stop and arrival index, update the stop markers and move the camera to the stop
   // or set the incoming vehicle camera strategy.
   startStopsMarkerManager(): void {
     // should this be in stops.effects.ts?
-    combineLatest([
+    const stopMarkerSubscription = combineLatest([
       this.store.select(selectSelectedStop).pipe(startWith(null)),
       this.store.select(selectSelectedArrivalIndex).pipe(startWith(null)),
       this.mapController.mapEvents$.pipe(startWith(null)),
@@ -149,6 +163,8 @@ export class DirectorService {
         });
       }
     });
+
+    this.subscriptions.add(stopMarkerSubscription);
   }
 
   setMode(mode: CameraMode): void {
@@ -173,5 +189,9 @@ export class DirectorService {
 
   getCurrentMode(): CameraMode {
     return this.currentMode;
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
   }
 }

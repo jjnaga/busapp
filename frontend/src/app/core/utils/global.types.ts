@@ -1,26 +1,47 @@
 import { z } from 'zod';
-import { parse } from 'date-fns';
+import { parse, formatDistanceToNow } from 'date-fns';
 import { InjectionToken } from '@angular/core';
 import { Observable } from 'rxjs';
 
-// Create a type alias for StopId
+export const VehicleSchema = z
+  .object({
+    busNumber: z.string(),
+    tripId: z.string(),
+    driver: z.string(),
+    latitude: z.number(),
+    longitude: z.number(),
+    adherence: z.number(),
+    heartbeat: z.preprocess((arg) => {
+      // Convert string dates to Date objects
+      if (typeof arg === 'string') {
+        const parsedDate = new Date(arg);
+        if (isNaN(parsedDate.getTime())) {
+          return undefined;
+        }
+        return parsedDate;
+      }
+      return arg;
+    }, z.date()),
+    heartbeatFormatted: z.string().optional(),
+    routeName: z.string(),
+    headsign: z.string(),
+  })
+  .transform((data) => {
+    return {
+      ...data,
+      heartbeatFormatted:
+        data.heartbeat instanceof Date
+          ? formatDistanceToNow(data.heartbeat, { addSuffix: true })
+          : data.heartbeatFormatted || 'unknown',
+    };
+  });
 
-export type VehicleMap = {
-  [busNumber: string]: Vehicle;
-};
+export const VehicleMapSchema = z.record(z.number(), VehicleSchema);
+export const VehicleArraySchema = z.array(VehicleSchema);
 
-export type Vehicle = {
-  busNumber: string;
-  tripId: string;
-  driver: string;
-  latitude: number;
-  longitude: number;
-  adherence: number;
-  heartbeat: Date;
-  heartbeatFormatted?: string;
-  routeName: string;
-  headsign: string;
-};
+export type Vehicle = z.infer<typeof VehicleSchema>;
+export type VehicleMap = z.infer<typeof VehicleMapSchema>;
+export type VehicleArray = z.infer<typeof VehicleArraySchema>;
 
 // StopBase is from our internal DB
 export interface StopBase {

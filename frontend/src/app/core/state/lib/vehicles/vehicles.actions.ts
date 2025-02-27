@@ -7,4 +7,5 @@ export const loadVehiclesSuccess = createAction('[Vehicles] Load Vehicles Succes
 
 export const loadVehiclesFailure = createAction('[Vehicles] Load Vehicles Failure', props<{ error: string }>());
 
-export const updateVehicles = createAction('[Vehicles] Update Vehicles', props<{ vehicles: Vehicle[] }>());
+export const updateVehiclesSuccess = createAction('[Vehicles] Update Vehicles', props<{ vehicles: Vehicle[] }>());
+export const updateVehiclesFailure = createAction('[Vehicles] Update Vehicles Failure', props<{ error: string }>());
