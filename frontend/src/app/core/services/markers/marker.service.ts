@@ -126,6 +126,17 @@ export class MarkerService implements OnDestroy {
       });
   }
 
+  updateVehicleCoordinates(vehicles: Vehicle[]) {
+    for (const vehicle of vehicles) {
+      const marker = this.vehicleMarkers.get(vehicle.busNumber);
+      if (marker) {
+        marker.position = new google.maps.LatLng(vehicle.latitude, vehicle.longitude);
+      } else {
+        console.error('Vehicle marker not found:', vehicle.busNumber, this.stopMarkers);
+      }
+    }
+  }
+
   // update all vehicles in paramater. if vehicle is not listed in paramater, remove it from map.
   updateVehicleMarkers(vehicles: Dictionary<Vehicle>) {
     if (!this.map) {
@@ -136,7 +147,7 @@ export class MarkerService implements OnDestroy {
     // Remove markers for vehicles that are not in the list.
     this.vehicleMarkers.forEach((marker, busNumber) => {
       if (!vehicles[busNumber]) {
-        marker.remove();
+        // marker.remove();
         marker.map = null;
       }
     });
@@ -151,9 +162,8 @@ export class MarkerService implements OnDestroy {
 
       // update marker and return if it exists.
       let marker = this.vehicleMarkers.get(busNumber);
-      if (marker) {
-        marker.position = position;
 
+      if (marker) {
         if (marker.map === null) {
           marker.map = this.map;
         }

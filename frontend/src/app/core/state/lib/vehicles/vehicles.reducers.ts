@@ -1,6 +1,6 @@
 import { createReducer, on } from '@ngrx/store';
 import { Vehicle } from '../../../utils/global.types';
-import { loadVehiclesFailure, loadVehiclesSuccess, updateVehicles } from './vehicles.actions';
+import { loadVehiclesFailure, loadVehiclesSuccess, updateVehiclesSuccess } from './vehicles.actions';
 import { createEntityAdapter, EntityState } from '@ngrx/entity';
 
 // Create entity adapter
@@ -24,5 +24,5 @@ export const vehiclesReducer = createReducer(
     ...state,
     loading: false,
   })),
-  on(updateVehicles, (state, { vehicles }) => vehicleAdapter.upsertMany(vehicles, state))
+  on(updateVehiclesSuccess, (state, { vehicles }) => vehicleAdapter.upsertMany(vehicles, state))
 );

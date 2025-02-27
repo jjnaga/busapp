@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import * as VehiclesActions from './vehicles.actions';
+import * as WebSocket from '../websocket/websocket.actions';
 import { catchError, map, mergeMap, of } from 'rxjs';
 import { Vehicle } from '../../../utils/global.types';
-import { formatDistanceToNow } from 'date-fns';
 import { HttpClient } from '@angular/common/http';
 import { getBaseUrl } from '../../../utils/utils';
 
@@ -11,10 +11,7 @@ import { getBaseUrl } from '../../../utils/utils';
 export class VehiclesEffects {
   private vehiclesLink = `${getBaseUrl()}/api/vehicles`;
 
-  constructor(
-    private actions$: Actions,
-    private http: HttpClient,
-  ) {}
+  constructor(private actions$: Actions, private http: HttpClient) {}
 
   loadVehicles$ = createEffect(() => {
     return this.actions$.pipe(
@@ -22,26 +19,23 @@ export class VehiclesEffects {
       mergeMap(() =>
         this.http.get<{ data: Vehicle[] }>(this.vehiclesLink).pipe(
           map((response) => {
-            const cleanedVehicles = response.data.map((vehicle: Vehicle) => this.cleanVehicle(vehicle));
-
             return VehiclesActions.loadVehiclesSuccess({
-              vehicles: cleanedVehicles,
+              vehicles: response.data,
             });
           }),
-          catchError((error) => of(VehiclesActions.loadVehiclesFailure({ error: error.message }))),
-        ),
-      ),
+          catchError((error) => of(VehiclesActions.loadVehiclesFailure({ error: error.message })))
+        )
+      )
     );
   });
 
-  private cleanVehicle(vehicle: Vehicle): Vehicle {
-    return vehicle;
-    // return {
-    //   ...vehicle,
-    //   heartbeat: new Date(vehicle.heartbeat),
-    //   heartbeatFormatted: formatDistanceToNow(vehicle.heartbeat, {
-    //     addSuffix: true,
-    //   }),
-    // };
-  }
+  listenForVehicleUpdates$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(WebSocket.websocketVehiclesUpdateMessageReceived),
+      map(({ vehicles }) => {
+        return VehiclesActions.updateVehiclesSuccess({ vehicles });
+      }),
+      catchError((error) => of(VehiclesActions.loadVehiclesFailure({ error: error.message })))
+    );
+  });
 }
