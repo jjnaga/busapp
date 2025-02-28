@@ -25,8 +25,8 @@ export class Trips {
   @Column('integer', { name: 'block_id', nullable: true })
   blockId: number | null;
 
-  @Column('character varying', { name: 'shape_id', nullable: true, length: 17 })
-  shapeId: string | null;
+  // 2/27/2025 convert to number
+  shapeId: number;
 
   @Column('character varying', {
     name: 'trip_headsign_short',

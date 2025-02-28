@@ -3,8 +3,8 @@ import { Column, Entity, Index } from 'typeorm';
 @Index('shapes_pkey', ['shapeId', 'shapePtSequence'], { unique: true })
 @Entity('shapes', { schema: 'gtfs' })
 export class Shapes {
-  @Column('character varying', { primary: true, name: 'shape_id', length: 255 })
-  shapeId: string;
+  @Column('integer', { primary: true, name: 'shape_id' })
+  shapeId: number;
 
   @Column('double precision', {
     name: 'shape_pt_lat',
