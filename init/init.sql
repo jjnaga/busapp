@@ -94,16 +94,17 @@ CREATE TABLE IF NOT EXISTS gtfs.trips (
   trip_headsign VARCHAR(50),
   direction_id INT,
   block_id INT,
-  shape_id VARCHAR(17),
+  shape_id int,
   trip_headsign_short VARCHAR(39),
   apc_trip_id INT,
   display_code VARCHAR(10),
   trip_serial_number INT,
-  block VARCHAR(9)
+  block VARCHAR(9),
+  INDEX idx_trips_shape_id (shape_id)
 );
 
 CREATE TABLE IF NOT EXISTS gtfs.shapes (
-  shape_id VARCHAR(255),
+  shape_id int,
   shape_pt_lat DOUBLE PRECISION,
   shape_pt_lon DOUBLE PRECISION,
   shape_pt_sequence INT,
