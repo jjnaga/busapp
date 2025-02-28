@@ -99,9 +99,10 @@ CREATE TABLE IF NOT EXISTS gtfs.trips (
   apc_trip_id INT,
   display_code VARCHAR(10),
   trip_serial_number INT,
-  block VARCHAR(9),
-  INDEX idx_trips_shape_id (shape_id)
+  block VARCHAR(9)
 );
+
+CREATE INDEX IF NOT EXISTS idx_trips_shape_id ON gtfs.trips(shape_id);
 
 CREATE TABLE IF NOT EXISTS gtfs.shapes (
   shape_id int,
