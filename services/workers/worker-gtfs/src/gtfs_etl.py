@@ -167,6 +167,9 @@ def transform_data(data: BytesIO, file_name: str) -> pd.DataFrame:
     if "end_date" in df.columns:
         df["end_date"] = pd.to_datetime(df["end_date"].astype(str), format="%Y%m%d")
         df["end_date"] = df["end_date"].dt.tz_localize(hnl_time)
+    # convert to postgres int
+    if "shape_id" in df.columns:
+        df["shape_id"] = df["shape_id"].astype(int)
 
     if file_name == "stop_times.txt":
         # Transform times which come in as string representing hh24:mm:ss to datetime and extract time
