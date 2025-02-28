@@ -115,6 +115,20 @@ CREATE TABLE IF NOT EXISTS gtfs.last_checked (
     last_modified TIMESTAMP NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS thebus.vehicle_history (
+    history_id SERIAL PRIMARY KEY,
+    bus_number TEXT,
+    trip_id TEXT,
+    driver TEXT,
+    latitude FLOAT,
+    longitude FLOAT,
+    adherence INTEGER,
+    heartbeat TIMESTAMPTZ,
+    route_name TEXT,
+    headsign TEXT,
+    recorded_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 CREATE OR REPLACE FUNCTION gtfs.perform_gtfs_upserts()
 RETURNS INTEGER
 LANGUAGE plpgsql as 
@@ -230,3 +244,36 @@ BEGIN
     RETURN v_total_affected_rows;
 END $$
 ;
+
+-- Create the trigger function to log changes.
+CREATE OR REPLACE FUNCTION thebus.vehicle_audit_trigger_fn()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- For updates, log the old state before applying new values.
+  IF TG_OP = 'UPDATE' THEN
+    INSERT INTO thebus.vehicle_history(
+      bus_number, trip_id, driver, latitude, longitude, adherence, heartbeat, route_name, headsign, recorded_at
+    )
+    VALUES (
+      OLD.bus_number, OLD.trip_id, OLD.driver, OLD.latitude, OLD.longitude, OLD.adherence, OLD.heartbeat, OLD.route_name, OLD.headsign, NOW()
+    );
+    RETURN NEW;
+  ELSIF TG_OP = 'DELETE' THEN
+    -- For deletes, also log the old state.
+    INSERT INTO thebus.vehicle_history(
+      bus_number, trip_id, driver, latitude, longitude, adherence, heartbeat, route_name, headsign, recorded_at
+    )
+    VALUES (
+      OLD.bus_number, OLD.trip_id, OLD.driver, OLD.latitude, OLD.longitude, OLD.adherence, OLD.heartbeat, OLD.route_name, OLD.headsign, NOW()
+    );
+    RETURN OLD;
+  END IF;
+  RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create the trigger on the current vehicle table.
+DROP TRIGGER IF EXISTS vehicle_audit_trigger ON thebus.vehicle;
+CREATE TRIGGER vehicle_audit_trigger
+AFTER UPDATE OR DELETE ON thebus.vehicle
+FOR EACH ROW EXECUTE FUNCTION thebus.vehicle_audit_trigger_fn();
