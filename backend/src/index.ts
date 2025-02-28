@@ -103,7 +103,6 @@ import { VehicleSql } from '@utils/types';
         }));
 
         const broadcastData = JSON.stringify({ ...messageJson, data: cleanedData });
-        console.log(broadcastData);
 
         console.log(
           `Redis subscription ${redisVehiclesSubscribe}: ${data.length} message${
