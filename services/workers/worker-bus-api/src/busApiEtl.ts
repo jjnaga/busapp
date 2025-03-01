@@ -47,24 +47,30 @@ const parseXmlToJson = async (xml: string): Promise<object> => {
 };
 
 const transformToVehicleEntities = (vehicles: VehicleApi[]): Array<Vehicle> => {
-  return vehicles.map(
-    (data) =>
-      new Vehicle({
-        busNumber: data.number,
-        tripId: data.trip,
-        driver: data.driver,
-        latitude: Number(data.latitude),
-        longitude: Number(data.longitude),
-        adherence: Number(data.adherence),
-        heartbeat: DateTime.fromFormat(
-          data.last_message,
-          'M/d/yyyy h:mm:ss a',
-          { zone: 'Pacific/Honolulu' }
-        ).toJSDate(),
-        routeName: data.route_short_name,
-        headsign: data.headsign,
-      })
-  );
+  return vehicles.map((data) => {
+    // Add validation for date parsing
+    const parsedDate = DateTime.fromFormat(
+      data.last_message,
+      'M/d/yyyy h:mm:ss a',
+      { zone: 'Pacific/Honolulu' }
+    );
+
+    // Use current time as fallback if date parsing fails
+    //wtf how is this a fallback
+    const heartbeat = parsedDate.isValid ? parsedDate.toJSDate() : new Date();
+
+    return new Vehicle({
+      busNumber: data.number,
+      tripId: data.trip,
+      driver: data.driver,
+      latitude: Number(data.latitude),
+      longitude: Number(data.longitude),
+      adherence: Number(data.adherence),
+      heartbeat: heartbeat, // Use the validated date
+      routeName: data.route_short_name,
+      headsign: data.headsign,
+    });
+  });
 };
 
 const saveVehicleEntities = async (
