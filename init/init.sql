@@ -112,6 +112,10 @@ CREATE TABLE IF NOT EXISTS gtfs.shapes (
   PRIMARY KEY (shape_id, shape_pt_sequence)
 );
 
+CREATE TABLE IF NOT EXISTS gtfs.shape_id_mapping (
+  original_shape_id VARCHAR(15) PRIMARY KEY,
+  numeric_shape_id INT
+);
 
 CREATE TABLE IF NOT EXISTS gtfs.last_checked (
     last_modified TIMESTAMP NOT NULL
@@ -133,119 +137,112 @@ CREATE TABLE IF NOT EXISTS thebus.vehicle_history (
 
 CREATE OR REPLACE FUNCTION gtfs.perform_gtfs_upserts()
 RETURNS INTEGER
-LANGUAGE plpgsql as 
+LANGUAGE plpgsql AS
 $$
 DECLARE
-    v_table_record RECORD;
-    v_column_record RECORD;
-    v_table_name TEXT;
-    v_staging_table_name TEXT;
-    v_primary_key_cols TEXT;
-    v_non_primary_key_cols TEXT;
-    v_upsert_sql TEXT;
-    v_total_affected_rows INTEGER DEFAULT 0;
-   	v_affected_rows INTEGER;
+  v_table_record RECORD;
+  v_column_record RECORD;
+  v_table_name TEXT;
+  v_staging_table_name TEXT;
+  v_primary_key_cols TEXT;
+  v_non_primary_key_cols TEXT;
+  v_upsert_sql TEXT;
+  v_dedupe_sql TEXT;
+  v_total_affected_rows INTEGER DEFAULT 0;
+  v_affected_rows INTEGER;
 BEGIN
-    -- Loop through all tables in the gtfs schema that do not have '_staging' or 'last_checked' in the name.
-    FOR v_table_record IN 
-			select
-				t.table_name
-			from
-				information_schema.tables t
-			where
-				t.table_schema = 'gtfs'
-				and t.table_type = 'BASE TABLE'
-				and t.table_name not like '%_staging%'
-				and t.table_name not like '%last_checked%'
-    loop
+  -- Loop through all tables in the gtfs schema that do not have '_staging' or 'last_checked' in the name.
+  FOR v_table_record IN 
+    SELECT t.table_name
+    FROM information_schema.tables t
+    WHERE t.table_schema = 'gtfs'
+      AND t.table_type = 'BASE TABLE'
+      AND t.table_name NOT LIKE '%_staging%'
+      AND t.table_name NOT LIKE '%last_checked%'
+  LOOP
+    v_table_name := v_table_record.table_name;
+    v_staging_table_name := v_table_name || '_staging';
+    
+    -- Get primary key columns
+    SELECT string_agg(kcu.column_name, ', ') 
+    INTO v_primary_key_cols
+    FROM information_schema.key_column_usage kcu
+    JOIN information_schema.table_constraints tc
+      ON kcu.constraint_name = tc.constraint_name
+      AND kcu.constraint_schema = tc.constraint_schema
+    WHERE kcu.table_schema = 'gtfs'
+      AND kcu.table_name = v_table_name
+      AND tc.constraint_type = 'PRIMARY KEY';
 
-        v_table_name := v_table_record.table_name;
-        v_staging_table_name := v_table_name || '_staging';
-        
-        -- Create 'ON CONFLICT' statement from primary keys
-				select
-					string_agg(kcu.column_name, ', ') 
-				into 
-					v_primary_key_cols
-				from
-					information_schema.key_column_usage kcu
-				join information_schema.table_constraints tc
-				  on kcu.constraint_name = tc.constraint_name
-					and kcu.constraint_schema = tc.constraint_schema
-				where
-					kcu.table_schema = 'gtfs'
-					and kcu.table_name = v_table_name
-					and tc.constraint_type = 'PRIMARY KEY';
+    -- SAFETY: First deduplicate the staging table to avoid "affect row a second time" error
+    v_dedupe_sql := format(
+      'CREATE TEMPORARY TABLE temp_%s AS 
+       SELECT DISTINCT ON (%s) * FROM gtfs.%I;
+       
+       TRUNCATE gtfs.%I;
+       INSERT INTO gtfs.%I SELECT * FROM temp_%s;
+       DROP TABLE temp_%s;',
+      v_staging_table_name,
+      v_primary_key_cols,
+      v_staging_table_name,
+      v_staging_table_name,
+      v_staging_table_name,
+      v_staging_table_name,
+      v_staging_table_name
+    );
+    
+    -- Execute deduplication
+    EXECUTE v_dedupe_sql;
+    
+    -- Get non-primary key columns for update statement
+    SELECT string_agg(c.column_name || ' = EXCLUDED.' || c.column_name, ', ') 
+    INTO v_non_primary_key_cols
+    FROM information_schema.columns c
+    WHERE c.table_schema = 'gtfs'
+      AND c.table_name = v_table_name
+      AND c.column_name NOT IN (
+        SELECT kcu.column_name
+        FROM information_schema.key_column_usage kcu
+        JOIN information_schema.table_constraints tc
+          ON kcu.constraint_name = tc.constraint_name
+          AND kcu.constraint_schema = tc.constraint_schema
+        WHERE kcu.table_schema = 'gtfs'
+          AND kcu.table_name = v_table_name
+          AND tc.constraint_type = 'PRIMARY KEY'
+      );
+    
+    -- Build UPSERT SQL statement with columns list explicitly
+    v_upsert_sql := format(
+      'INSERT INTO gtfs.%I (%s) SELECT %s FROM gtfs.%I ON CONFLICT (%s) DO UPDATE SET %s;',
+      v_table_name,
+      (
+        SELECT string_agg(c.column_name, ', ')
+        FROM information_schema.columns c
+        WHERE c.table_schema = 'gtfs'
+          AND c.table_name = v_table_name
+      ),
+      (
+        SELECT string_agg(c.column_name, ', ')
+        FROM information_schema.columns c
+        WHERE c.table_schema = 'gtfs'
+          AND c.table_name = v_table_name
+      ),
+      v_staging_table_name,
+      v_primary_key_cols,
+      v_non_primary_key_cols
+    );
 
-        -- Create conflict update statements from non primary key columns
-				select
-					string_agg(c.column_name || ' = EXCLUDED.' || c.column_name, ', ') 
-				into 
-					v_non_primary_key_cols
-				from
-					information_schema.columns c
-				where
-					c.table_schema = 'gtfs'
-					and c.table_name = v_table_name
-					and c.column_name not in (
-						select
-							kcu.column_name
-						from
-							information_schema.key_column_usage kcu
-						join information_schema.table_constraints tc
-							on kcu.constraint_name = tc.constraint_name
-							and kcu.constraint_schema = tc.constraint_schema
-						where
-							kcu.table_schema = 'gtfs'
-							and kcu.table_name = v_table_name
-							and tc.constraint_type = 'PRIMARY KEY'
-          );
-        
-				-- Build UPSERT SQL statement
-        v_upsert_sql := format(
-            'INSERT INTO gtfs.%I (%s) SELECT %s FROM gtfs.%I ON CONFLICT (%s) DO UPDATE SET %s;',
-            v_table_name,
-						(
-							select
-								string_agg(c.column_name,
-								', ')
-							from
-								information_schema.columns c
-							where
-								c.table_schema = 'gtfs'
-								and c.table_name = v_table_name
-						),
-						(
-							select
-								string_agg(c.column_name,
-								', ')
-							from
-								information_schema.columns c
-							where
-								c.table_schema = 'gtfs'
-								and c.table_name = v_table_name
-						),
-            v_staging_table_name,
-            v_primary_key_cols,
-            v_non_primary_key_cols
-        );
+    -- Execute the UPSERT SQL statement
+    EXECUTE v_upsert_sql;
 
-				RAISE NOTICE 'UPSERT SQL: %', v_upsert_sql;
-
-				-- Execute the UPSERT SQL statement
-				EXECUTE v_upsert_sql;
-
-        -- Get affected rows
-        GET DIAGNOSTICS v_affected_rows = ROW_COUNT;
-
-        v_total_affected_rows := v_total_affected_rows + v_affected_rows;
-
-        RAISE NOTICE '%: Affected rows is %', v_table_name, v_affected_rows;
-    END LOOP;
-    RAISE NOTICE 'v_total_affected_rows is %', v_total_affected_rows;
-    RETURN v_total_affected_rows;
-END $$
-;
+    -- Get affected rows
+    GET DIAGNOSTICS v_affected_rows = ROW_COUNT;
+    v_total_affected_rows := v_total_affected_rows + v_affected_rows;
+  END LOOP;
+  
+  RETURN v_total_affected_rows;
+END
+$$;
 
 -- Create the trigger function to log changes.
 CREATE OR REPLACE FUNCTION thebus.vehicle_audit_trigger_fn()

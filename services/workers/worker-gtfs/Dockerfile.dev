@@ -1,5 +1,8 @@
 FROM python:3.12-slim-bullseye
 
+ENV DIRECT_MODE=true
+ENV FORCE_UPDATE=true
+
 WORKDIR /app
 
 COPY . /app
@@ -8,4 +11,4 @@ COPY . /app
 RUN pip install --no-cache-dir -r requirements.txt
 
 # CMD watchfiles "python src/gtfsEtl.py" src
-CMD watchfiles "python src/main.py" src
+CMD watchfiles "python src/main.py --force" src

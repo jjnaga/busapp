@@ -127,12 +127,33 @@ export class MarkerService implements OnDestroy {
   }
 
   updateVehicleCoordinates(vehicles: Vehicle[]) {
+    if (!this.map) return;
+
     for (const vehicle of vehicles) {
       const marker = this.vehicleMarkers.get(vehicle.busNumber);
       if (marker) {
+        // Update existing marker
         marker.position = new google.maps.LatLng(vehicle.latitude, vehicle.longitude);
       } else {
-        console.error('Vehicle marker not found:', vehicle.busNumber, this.stopMarkers);
+        // Create new marker if it doesn't exist and coordinates are valid
+        if (isValidCoordinate(vehicle.latitude, vehicle.longitude)) {
+          const position = new google.maps.LatLng(vehicle.latitude, vehicle.longitude);
+
+          // Create new marker
+          const newMarker = new google.maps.marker.AdvancedMarkerElement({
+            map: this.map,
+            position: position,
+            title: vehicle.headsign || 'Vehicle',
+            content: createVehicleMarkerContent(),
+            zIndex: 5000,
+          });
+
+          newMarker.addListener('click', () => {
+            console.log('Vehicle clicked:', vehicle);
+          });
+
+          this.vehicleMarkers.set(vehicle.busNumber, newMarker);
+        }
       }
     }
   }
