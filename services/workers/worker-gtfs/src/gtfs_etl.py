@@ -150,7 +150,7 @@ def update_gtfs_last_checked(engine: Engine) -> None:
 """
 
 
-def download_data_if_new(engine: Engine, url: str, force: bool = False) -> Optional[bytes]:
+def download_data_if_new(engine: Engine, url: str) -> Optional[bytes]:
     logging.info("Downloading data")
 
     # Get most recently loaded gtfs metadata.
@@ -165,15 +165,11 @@ def download_data_if_new(engine: Engine, url: str, force: bool = False) -> Optio
         last_modified_header, "%a, %d %b %Y %H:%M:%S GMT"
     )
 
-    # If force is True, bypass the timestamp check
-    if not force and last_modified_timestamp <= last_gtfs_metadata:
+    if last_modified_timestamp <= last_gtfs_metadata:
         logging.info(
             "Downloading data: GTFS file is same or newer as previous ETL. Returning None"
         )
         return None
-    
-    if force:
-        logging.info("Forcing download regardless of timestamp")
 
     # Extract gtfs file
     logging.info("Downloading data: File is new. Extracting.")
@@ -318,7 +314,7 @@ def transform_data(data: BytesIO, file_name: str, engine: Engine) -> pd.DataFram
     return df
 
 
-def main(force_update: bool = False):
+def main():
     # Connect to DB
     db_host = os.getenv("DB_HOST")
     db_port = os.getenv("DB_PORT")
@@ -335,7 +331,7 @@ def main(force_update: bool = False):
 
     # Download data with force parameter
     try:
-        data_bytes = download_data_if_new(pg_sqlalchemy_engine, gtfs_url, force=force_update)
+        data_bytes = download_data_if_new(pg_sqlalchemy_engine, gtfs_url)
     except Exception as e:
         logging.error("GTFS fetch failed.")
         job_status["message"] = f"Unable to fetch GTFS file. Error: {str(e)}"
@@ -416,12 +412,5 @@ def main(force_update: bool = False):
 run_gtfs_etl = main
 
 if __name__ == "__main__":
-    # Add command-line argument parsing
-    parser = argparse.ArgumentParser(description='GTFS ETL Process')
-    parser.add_argument('--force', '-f', action='store_true', 
-                        help='Force update regardless of timestamp')
-    args = parser.parse_args()
-    
-    # Run with the force parameter
-    job_status = main(force_update=args.force)
+    job_status = main()
     logging.info(f"Job status is: {job_status}")
