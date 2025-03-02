@@ -159,6 +159,7 @@ BEGIN
       AND t.table_type = 'BASE TABLE'
       AND t.table_name NOT LIKE '%_staging%'
       AND t.table_name NOT LIKE '%last_checked%'
+      AND t.table_name != 'shape_id_mapping'  -- Add this condition to exclude the mapping table
   LOOP
     v_table_name := v_table_record.table_name;
     v_staging_table_name := v_table_name || '_staging';
