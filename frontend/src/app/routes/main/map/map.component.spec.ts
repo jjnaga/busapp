@@ -80,7 +80,7 @@ interface TestState {
 const mockVehicles: Vehicle[] = [
   {
     busNumber: 'BUS001',
-    tripId: 'TRIP123',
+    tripId: 2,
     driver: 'John Doe',
     latitude: 21.3069,
     longitude: -157.8583,
@@ -92,7 +92,7 @@ const mockVehicles: Vehicle[] = [
   },
   {
     busNumber: 'BUS002',
-    tripId: 'TRIP456',
+    tripId: 2,
     driver: 'Jane Smith',
     latitude: 21.307,
     longitude: -157.8584,

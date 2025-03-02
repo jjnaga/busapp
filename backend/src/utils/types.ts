@@ -1,6 +1,8 @@
+import { Vehicle } from '@typeorm/entities/Vehicle';
+
 export interface VehicleSql {
   bus_number: string;
-  trip_id: string;
+  trip_id: number | null;
   driver: string;
   latitude: number;
   longitude: number;
@@ -20,4 +22,15 @@ export interface Coordinate {
 export interface BoundingBox {
   topLeft: Coordinate;
   bottomRight: Coordinate;
+}
+
+export interface Shape {
+  shapeId: number;
+  shapePtLat: number;
+  shapePtLon: number;
+  shapePtSequence: number;
+}
+
+export interface VehicleWithShape extends Vehicle {
+  shapePoints: Shape[];
 }

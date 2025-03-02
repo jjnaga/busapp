@@ -9,8 +9,8 @@ export class Vehicle {
   busNumber: string;
 
   // @Column({ name: 'trip_id', nullable: true })
-  @Column({ name: 'trip_id', type: 'text', nullable: true })
-  tripId: string;
+  @Column({ name: 'trip_id', type: 'int', nullable: true })
+  tripId: number | null;
 
   @Column({ type: 'text', nullable: true })
   driver: string;

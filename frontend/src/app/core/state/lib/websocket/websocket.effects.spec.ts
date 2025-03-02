@@ -10,7 +10,7 @@ import { WebsocketService } from '../../../services/websocket.service';
 
 const mockVehicle: Vehicle = {
   busNumber: '100',
-  tripId: 'v1',
+  tripId: 2,
   driver: 'John',
   latitude: 10,
   longitude: 10,

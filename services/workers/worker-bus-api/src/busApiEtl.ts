@@ -47,21 +47,56 @@ const parseXmlToJson = async (xml: string): Promise<object> => {
 };
 
 const transformToVehicleEntities = (vehicles: VehicleApi[]): Array<Vehicle> => {
+  // Track problematic trip IDs for reporting
+  const multiTripIds: Record<string, string> = {};
+
   return vehicles.map((data) => {
-    // Add validation for date parsing
+    // Parse date with validation
     const parsedDate = DateTime.fromFormat(
       data.last_message,
       'M/d/yyyy h:mm:ss a',
       { zone: 'Pacific/Honolulu' }
     );
 
-    // Use current time as fallback if date parsing fails
-    //wtf how is this a fallback
     const heartbeat = parsedDate.isValid ? parsedDate.toJSDate() : new Date();
+
+    // Process tripId - handle the three possible states:
+    // 1. Regular numeric ID (most common)
+    // 2. "null_trip" literal string (means null)
+    // 3. Multiple IDs separated by commas (e.g. "12345,67890")
+    let tripId: number | null = null;
+
+    if (data.trip) {
+      if (data.trip === 'null_trip') {
+        // Case: explicit null trip
+        tripId = null;
+      } else if (data.trip.includes(',')) {
+        // Case: multiple trip IDs (comma separated)
+        const firstTripId = data.trip.split(',')[0].trim();
+
+        // Log for monitoring and debugging
+        multiTripIds[data.number] = data.trip;
+        console.warn(
+          `Bus ${data.number} has multiple trips: ${data.trip} - using first ID: ${firstTripId}`
+        );
+
+        // Convert first ID to number (or null if not valid)
+        tripId = /^\d+$/.test(firstTripId) ? Number(firstTripId) : null;
+      } else if (/^\d+$/.test(data.trip)) {
+        // Case: clean numeric ID (most common)
+        tripId = Number(data.trip);
+      } else {
+        // Case: unexpected format
+        console.error(
+          `Unexpected tripId format for bus ${data.number}: ${data.trip}`
+        );
+        tripId = null;
+      }
+    }
 
     return new Vehicle({
       busNumber: data.number,
-      tripId: data.trip,
+      tripId: tripId,
       driver: data.driver,
       latitude: Number(data.latitude),
       longitude: Number(data.longitude),

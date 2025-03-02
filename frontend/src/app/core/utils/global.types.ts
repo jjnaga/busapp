@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
 export const VehicleSchema = z
   .object({
     busNumber: z.string(),
-    tripId: z.string(),
+    tripId: z.number().optional(),
     driver: z.string(),
     latitude: z.number(),
     longitude: z.number(),

@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS thebus.notification (
 
 CREATE TABLE thebus.vehicle (
     bus_number TEXT PRIMARY KEY,
-    trip_id TEXT,
+    trip_id INTEGER,
     driver TEXT,
     latitude FLOAT,
     longitude FLOAT,
@@ -124,7 +124,7 @@ CREATE TABLE IF NOT EXISTS gtfs.last_checked (
 CREATE TABLE IF NOT EXISTS thebus.vehicle_history (
     history_id SERIAL PRIMARY KEY,
     bus_number TEXT,
-    trip_id TEXT,
+    trip_id INTEGER,
     driver TEXT,
     latitude FLOAT,
     longitude FLOAT,
