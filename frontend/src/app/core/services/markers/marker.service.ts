@@ -1,7 +1,7 @@
 import { inject, Injectable, OnDestroy } from '@angular/core';
-import { Stop, Vehicle } from '../../utils/global.types';
+import { Stop, Vehicle, RouteShape } from '../../utils/global.types';
 import { Store } from '@ngrx/store';
-import { setSelectedStop } from '../../state/lib/user/user.actions';
+import { setSelectedStop, setSelectedVehicle } from '../../state/lib/user/user.actions';
 import { Dictionary } from '@ngrx/entity';
 import { selectAllFavoriteEntities } from '../../state/lib/favorites/favorites.selectors';
 import { Subscription, BehaviorSubject, firstValueFrom } from 'rxjs';
@@ -22,6 +22,7 @@ export class MarkerService implements OnDestroy {
   private stopMarkers: Map<string, google.maps.marker.AdvancedMarkerElement> = new Map();
   private vehicleMarkers: Map<string, google.maps.marker.AdvancedMarkerElement> = new Map();
   private userMarker: google.maps.marker.AdvancedMarkerElement | null = null;
+  private routeShapePolyline: google.maps.Polyline | null = null;
 
   private stopsSubscription!: Subscription;
   private userSubscription!: Subscription;
@@ -148,8 +149,10 @@ export class MarkerService implements OnDestroy {
             zIndex: 5000,
           });
 
+          // Update click listener to select vehicle
           newMarker.addListener('click', () => {
             console.log('Vehicle clicked:', vehicle);
+            this.store.dispatch(setSelectedVehicle({ vehicleId: vehicle.busNumber }));
           });
 
           this.vehicleMarkers.set(vehicle.busNumber, newMarker);
@@ -203,6 +206,7 @@ export class MarkerService implements OnDestroy {
 
       marker.addListener('click', () => {
         console.log('Vehicle clicked:', vehicle);
+        this.store.dispatch(setSelectedVehicle({ vehicleId: vehicle.busNumber }));
       });
 
       this.vehicleMarkers.set(busNumber, marker);
@@ -231,6 +235,35 @@ export class MarkerService implements OnDestroy {
     this.userMarker.position = coordinates;
   }
 
+  // New method to display route shape
+  displayRouteShape(routeShape: RouteShape): void {
+    if (!this.map) return;
+
+    // Clear existing polyline if any
+    this.clearRouteShape();
+
+    // Create new polyline with the route shape
+    this.routeShapePolyline = new google.maps.Polyline({
+      path: routeShape,
+      geodesic: true,
+      strokeColor: '#0088FF',
+      strokeOpacity: 0.8,
+      strokeWeight: 4,
+      zIndex: 2000, // Keep below vehicle markers but above other elements
+    });
+
+    // Add the polyline to the map
+    this.routeShapePolyline.setMap(this.map);
+  }
+
+  // New method to clear route shape
+  clearRouteShape(): void {
+    if (this.routeShapePolyline) {
+      this.routeShapePolyline.setMap(null);
+      this.routeShapePolyline = null;
+    }
+  }
+
   clearVehicleMarkers() {
     this.vehicleMarkers.forEach((marker) => {
       marker.remove();
@@ -250,6 +283,7 @@ export class MarkerService implements OnDestroy {
   clearAllMarkers() {
     this.clearStopMarkers();
     this.clearVehicleMarkers();
+    this.clearRouteShape();
 
     if (this.userMarker) {
       this.userMarker.remove();
@@ -261,5 +295,6 @@ export class MarkerService implements OnDestroy {
     this.stopsSubscription?.unsubscribe();
     this.vehiclesSubscription?.unsubscribe();
     this.userSubscription?.unsubscribe();
+    this.clearRouteShape();
   }
 }

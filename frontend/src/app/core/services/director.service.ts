@@ -1,6 +1,6 @@
 import { Injectable, inject, OnDestroy } from '@angular/core';
-import { BehaviorSubject, combineLatest, firstValueFrom, Subscription } from 'rxjs';
-import { distinctUntilChanged, startWith, tap } from 'rxjs/operators';
+import { BehaviorSubject, combineLatest, firstValueFrom, Subscription, EMPTY } from 'rxjs';
+import { distinctUntilChanged, startWith, tap, switchMap, filter, map } from 'rxjs/operators';
 import { FreeFormCameraStrategy } from '../services/camera-strategies/free.camera';
 import { UserCameraStrategy } from '../services/camera-strategies/user.camera';
 import { IncomingBusCameraStrategy } from '../services/camera-strategies/incoming-bus.camera';
@@ -10,10 +10,10 @@ import { MapControllerService } from './maps/map-controller.service';
 import { selectVehicleById, selectVehicleEntities } from '../state/lib/vehicles/vehicles.selectors';
 import { selectAllStops, selectSelectedStop } from '../state/lib/stops/stops.selectors';
 import * as WebSocketActions from '../state/lib/websocket/websocket.actions';
-import { selectSelectedArrivalIndex } from '../state/lib/user/user.selectors';
 import { MarkerService } from './markers/marker.service';
 import { SelectedStopStrategy } from './camera-strategies/selected-stop.camera';
 import { Actions, ofType } from '@ngrx/effects';
+import { selectSelectedVehicle } from '../state/lib/user/user.selectors';
 
 export enum CameraMode {
   FREE_FORM = 'FREE_FORM',
@@ -98,27 +98,49 @@ export class DirectorService implements OnDestroy {
 
     const showOrHideVehicleMarkers$ = combineLatest([
       this.store.select(selectSelectedStop).pipe(startWith(undefined)),
-      this.store.select(selectSelectedArrivalIndex).pipe(startWith(null)),
-    ]).subscribe(([selectedStop, arrivalIndex]) => {
-      // below is not used -- there will be an interval between selected stops where the arrivals loading will
-      // jump the if statement. more lasting fix is to have a loading state for the arrivals
-      // if (arrivalIndex !== null && selectedStop?.arrivals?.[arrivalIndex]?.vehicle) {
-      const vehicleNumber =
-        selectedStop?.arrivals && arrivalIndex !== null ? selectedStop?.arrivals?.[arrivalIndex]?.vehicle : null;
+      this.store.select(selectSelectedVehicle).pipe(startWith(null)),
+    ]).subscribe(([selectedStop, selectedVehicle]) => {
+      // Check if the selected vehicle matches any vehicle in the arrivals
+      const hasMatchingArrival = selectedStop?.arrivals?.some((arrival) => arrival.vehicle === selectedVehicle);
 
-      if (vehicleNumber) {
-        firstValueFrom(this.store.select(selectVehicleById(vehicleNumber))).then((vehicle) => {
+      // If there's a matching arrival and a selected vehicle, update just that vehicle marker
+      if (hasMatchingArrival && selectedVehicle) {
+        firstValueFrom(this.store.select(selectVehicleById(selectedVehicle))).then((vehicle) => {
           if (vehicle) {
-            this.markerService.updateVehicleMarkers({ [vehicleNumber]: vehicle });
+            this.markerService.updateVehicleMarkers({ [selectedVehicle]: vehicle });
           }
         });
       } else {
+        // Otherwise, show all vehicles
         firstValueFrom(this.store.select(selectVehicleEntities)).then((vehicles) => {
           this.markerService.updateVehicleMarkers(vehicles);
         });
       }
     });
 
+    // Add subscription to handle route shape display when a vehicle is selected
+    const vehicleShapeSubscription = this.store
+      .select(selectSelectedVehicle)
+      .pipe(
+        switchMap((vehicleId) => {
+          if (!vehicleId) {
+            this.markerService.clearRouteShape();
+            return EMPTY;
+          }
+
+          return this.store.select(selectVehicleById(vehicleId)).pipe(
+            filter((vehicle) => !!vehicle && !!vehicle.routeShape),
+            map((vehicle) => vehicle?.routeShape)
+          );
+        })
+      )
+      .subscribe((routeShape) => {
+        if (routeShape) {
+          this.markerService.displayRouteShape(routeShape);
+        }
+      });
+
+    this.subscriptions.add(vehicleShapeSubscription);
     this.subscriptions.add(showOrHideVehicleMarkers$);
     this.subscriptions.add(updateMarkersFromWebsocket$);
   }
@@ -129,10 +151,10 @@ export class DirectorService implements OnDestroy {
     // should this be in stops.effects.ts?
     const stopMarkerSubscription = combineLatest([
       this.store.select(selectSelectedStop).pipe(startWith(null)),
-      this.store.select(selectSelectedArrivalIndex).pipe(startWith(null)),
+      this.store.select(selectSelectedVehicle).pipe(startWith(null)),
       this.mapController.mapEvents$.pipe(startWith(null)),
-    ]).subscribe(([selectedStop, arrivalIndex]) => {
-      if (arrivalIndex !== null && selectedStop?.arrivals?.[arrivalIndex]?.vehicle) {
+    ]).subscribe(([selectedStop, selectedVehicle]) => {
+      if (!!selectedStop && !!selectedVehicle) {
         this.markerService.updateStopMarkers({ [selectedStop.stopId]: selectedStop });
       } else {
         firstValueFrom(this.store.select(selectAllStops)).then((stops) => {

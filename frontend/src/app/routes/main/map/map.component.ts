@@ -1,31 +1,12 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { GoogleMap, GoogleMapsModule } from '@angular/google-maps';
 import { CommonModule } from '@angular/common';
-import {
-  Subscription,
-  Subject,
-  BehaviorSubject,
-  combineLatest,
-  Observable,
-  fromEvent,
-  EMPTY,
-  of,
-  firstValueFrom,
-} from 'rxjs';
-import {
-  debounceTime,
-  filter,
-  startWith,
-  take,
-  switchMap,
-  tap,
-  distinctUntilChanged,
-  withLatestFrom,
-} from 'rxjs/operators';
-import { Stop, Vehicle, MapController, MAP_CONTROLLER } from '../../../core/utils/global.types';
+import { Subscription, BehaviorSubject, combineLatest, Observable, fromEvent, firstValueFrom } from 'rxjs';
+import { debounceTime, filter, take } from 'rxjs/operators';
+import { Stop, Vehicle, MAP_CONTROLLER } from '../../../core/utils/global.types';
 import { MarkerService } from '../../../core/services/markers/marker.service';
 import { Store } from '@ngrx/store';
-import { selectAllVehicles, selectVehicleEntities } from '../../../core/state/lib/vehicles/vehicles.selectors';
+import { selectVehicleEntities } from '../../../core/state/lib/vehicles/vehicles.selectors';
 import { selectUserLocation } from '../../../core/state/lib/user-location/user-location.selectors';
 import { MapLayoutService } from '../../../core/services/maps/map-layout.service';
 import { GoogleMapsLoaderService } from '../../../core/services/maps/google-maps-loader.service';

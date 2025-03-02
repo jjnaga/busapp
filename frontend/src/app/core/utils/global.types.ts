@@ -3,6 +3,33 @@ import { parse, formatDistanceToNow } from 'date-fns';
 import { InjectionToken } from '@angular/core';
 import { Observable } from 'rxjs';
 
+export const ShapePointSchema = z.object({
+  shapeId: z.number(),
+  lat: z.number(),
+  lon: z.number(),
+  sequence: z.number(),
+});
+
+export const VehicleShapeResponseSchema = z.object({
+  status: z.string(),
+  data: z.object({
+    tripId: z.number(),
+    shapes: z.array(ShapePointSchema),
+  }),
+});
+
+// Define the transformed shape type for Google Maps
+export const RouteShapeSchema = z.array(
+  z.object({
+    lat: z.number(),
+    lng: z.number(), // Converted from 'lon' to 'lng' for Google Maps compatibility
+  })
+);
+
+export type ShapePoint = z.infer<typeof ShapePointSchema>;
+export type VehicleShapeResponse = z.infer<typeof VehicleShapeResponseSchema>;
+export type RouteShape = z.infer<typeof RouteShapeSchema>;
+
 export const VehicleSchema = z
   .object({
     busNumber: z.string(),
@@ -25,6 +52,7 @@ export const VehicleSchema = z
     heartbeatFormatted: z.string().optional(),
     routeName: z.string(),
     headsign: z.string(),
+    routeShape: RouteShapeSchema.optional(), // Add the route shape property
   })
   .transform((data) => {
     return {
