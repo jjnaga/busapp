@@ -209,14 +209,21 @@ def transform_data(data: BytesIO, file_name: str, engine: Engine) -> pd.DataFram
         df["end_date"] = df["end_date"].dt.tz_localize(hnl_time)
         
     # Handle shape_id conversion for shapes.txt and trips.txt files
-    if "shape_id" in df.columns and (file_name == "shapes.txt" or file_name == "trips.txt"):
+    if "shape_id" in df.columns :
+    #and (file_name == "shapes.txt" or file_name == "trips.txt"):
         # First check for NaN values before any processing
         if df["shape_id"].isna().any():
             logging.warning(f"Found {df['shape_id'].isna().sum()} NaN shape_ids in {file_name}, filling with placeholder")
             df["shape_id"] = df["shape_id"].fillna("MISSING_ID")
         
-        # Map ALL shape_ids, not just non-numeric ones - this is the key difference from before
-        logging.info(f"Mapping all shape_ids in {file_name} to ensure consistency")
+        logging.info(f"Processing shape_ids in {file_name} - keeping original numeric IDs")
+        
+        # Identify which IDs are numeric vs non-numeric
+        numeric_mask = df["shape_id"].astype(str).str.match(r'^\d+$')
+        non_numeric_ids = df.loc[~numeric_mask, "shape_id"].unique()
+        
+        logging.info(f"Found {sum(numeric_mask)} numeric shape_ids to keep as-is")
+        logging.info(f"Found {len(non_numeric_ids)} non-numeric shape_ids that need mapping")
         
         # Load existing mappings
         id_mapping = load_shape_id_mapping(engine)
@@ -227,13 +234,9 @@ def transform_data(data: BytesIO, file_name: str, engine: Engine) -> pd.DataFram
             next_id = max(id_mapping.values()) + 1
             logging.info(f"Starting with next_id: {next_id} based on existing mappings")
         
-        # Get unique shape_ids for mapping 
-        unique_ids = df["shape_id"].unique()
-        logging.info(f"Found {len(unique_ids)} unique shape_ids to process")
-        
-        # Create new mappings for any new shape_ids (both numeric and non-numeric)
+        # Create new mappings for any new non-numeric shape_ids
         new_mappings = {}
-        for original_id in unique_ids:
+        for original_id in non_numeric_ids:
             str_id = str(original_id)
             if str_id not in id_mapping:
                 id_mapping[str_id] = next_id
@@ -245,58 +248,44 @@ def transform_data(data: BytesIO, file_name: str, engine: Engine) -> pd.DataFram
             store_shape_id_mapping(engine, new_mappings)
             logging.info(f"Created {len(new_mappings)} new shape_id mappings")
         
-        # Map ALL shape_ids using the dictionary with safer approach
+        # Apply mappings only for non-numeric IDs, keeping numeric ones as-is
         mapped_values = []
-        unmapped_ids = set()
+        id_counts = {}
         
-        # Map each shape_id to its numeric equivalent
         for shape_id in df["shape_id"]:
             str_id = str(shape_id)
-            if str_id in id_mapping:
-                mapped_values.append(id_mapping[str_id])
+            
+            # If it's numeric, keep the original value (converting to int)
+            if str_id.isdigit():
+                numeric_id = int(str_id)
+                mapped_values.append(numeric_id)
+                id_counts[numeric_id] = id_counts.get(numeric_id, 0) + 1
+                
+            # If non-numeric, use mapping
+            elif str_id in id_mapping:
+                numeric_id = id_mapping[str_id]
+                mapped_values.append(numeric_id)
+                id_counts[numeric_id] = id_counts.get(numeric_id, 0) + 1
+                
+            # Fallback - should never happen?
             else:
-                # This shouldn't happen since we just mapped all unique values
-                unmapped_ids.add(str_id)
-                # Use a placeholder ID to avoid errors
-                mapped_values.append(808999999)
+                fallback_id = next_id + int(hash(str_id)) % 1000
+                mapped_values.append(fallback_id)
+                logging.warning(f"Using fallback ID {fallback_id} for unmapped shape_id: {str_id}")
         
-        # Log if we found any unmapped IDs (which shouldn't happen)
-        if unmapped_ids:
-            logging.error(f"Found {len(unmapped_ids)} unmapped shape_ids! First 10: {list(unmapped_ids)[:10]}")
-        
-        # Replace shape_id column with mapped values
+        # Replace the shape_id column with our mapped values
         df["shape_id"] = mapped_values
         
-        # CRITICAL: Check for duplicate key combinations AFTER mapping
         if file_name == "shapes.txt":
             # Count records before deduplication
             df_size_before = len(df)
+            df = df.drop_duplicates(subset=['shape_id', 'shape_pt_sequence'])
+            df_size_after = len(df)
             
-            # First try to identify duplicates
-            duplicate_mask = df.duplicated(subset=['shape_id', 'shape_pt_sequence'], keep=False)
-            duplicate_count = duplicate_mask.sum()
-            
-            if duplicate_count > 0:
-                # Log some examples of the duplicates to help debug
-                duplicate_examples = df[duplicate_mask].head(3).to_dict('records')
-                logging.warning(f"Found {duplicate_count} duplicate (shape_id, shape_pt_sequence) combinations")
-                logging.warning(f"Duplicate examples: {duplicate_examples}")
-                
-                # Deduplicate by dropping duplicates, keeping the first occurrence
-                df = df.drop_duplicates(subset=['shape_id', 'shape_pt_sequence'])
-                df_size_after = len(df)
-                
-                logging.warning(f"Removed {df_size_before - df_size_after} duplicate rows through deduplication")
-                
-                # Double-check no duplicates remain
-                remaining_dupes = df.duplicated(subset=['shape_id', 'shape_pt_sequence'], keep=False).sum()
-                if remaining_dupes > 0:
-                    logging.error(f"CRITICAL: Still found {remaining_dupes} duplicates after deduplication!")
-                    # Apply more aggressive deduplication - group by key and take first record of each group
-                    df = df.groupby(['shape_id', 'shape_pt_sequence'], as_index=False).first()
-                    logging.warning("Applied aggressive groupby deduplication as fallback")
+            if df_size_before != df_size_after:
+                logging.warning(f"Removed {df_size_before - df_size_after} duplicate rows through deduplication. THIS SHOULD HAPPEN??")
         
-        # Convert all shape_ids to integers
+        # Ensure shape_ids are integers
         df["shape_id"] = df["shape_id"].astype(int)
     
     if file_name == "stop_times.txt":
