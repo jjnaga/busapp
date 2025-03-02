@@ -2,7 +2,7 @@ import { createReducer, on } from '@ngrx/store';
 import { DrawerMode, Stop } from '../../../utils/global.types';
 import {
   setDrawerMode,
-  setSelectedArrival,
+  setSelectedVehicle,
   setSelectedStop,
   setStopCustomName,
   toggleDrawerExpanded,
@@ -13,7 +13,7 @@ export interface UserState {
   drawerMode: DrawerMode;
   drawerExpanded: boolean;
   selectedStop?: Stop['stopId'];
-  selectedArrivalIndex: number | null;
+  selectedVehicle: string | null; // Changed from selectedArrivalIndex
   stopPreferences: {
     [stopId: string]: {
       customName: string;
@@ -41,7 +41,7 @@ export const initialUserState: UserState = {
       customName: 'test',
     },
   },
-  selectedArrivalIndex: null,
+  selectedVehicle: null, // Changed from selectedArrivalIndex
 };
 
 export const userReducer = createReducer(
@@ -57,11 +57,11 @@ export const userReducer = createReducer(
   on(setSelectedStop, (state, { stop }) => ({
     ...state,
     selectedStop: stop?.stopId,
-    selectedArrivalIndex: null,
+    selectedVehicle: null, // Reset vehicle selection when stop changes
   })),
-  on(setSelectedArrival, (state, { arrivalIndex }) => ({
+  on(setSelectedVehicle, (state, { vehicleId }) => ({
     ...state,
-    selectedArrivalIndex: arrivalIndex,
+    selectedVehicle: vehicleId,
   })),
   on(setStopCustomName, (state, { stopId, customName }) => {
     const newPreferences = { ...state.stopPreferences };

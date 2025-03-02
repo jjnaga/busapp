@@ -5,7 +5,7 @@ import { Observable, BehaviorSubject, combineLatest, firstValueFrom } from 'rxjs
 import { filter, switchMap, map } from 'rxjs/operators';
 import { Arrival, Stop } from '../../../../core/utils/global.types';
 import { selectSelectedStop, selectStopsLoading } from '../../../../core/state/lib/stops/stops.selectors';
-import { selectDrawerExpanded, selectSelectedArrivalIndex } from '../../../../core/state/lib/user/user.selectors';
+import { selectDrawerExpanded, selectSelectedVehicle } from '../../../../core/state/lib/user/user.selectors';
 import { DiffMinutesPipe } from '../../../../core/utils/pipes/diff-minutes.pipe';
 import { selectIsFavorite } from '../../../../core/state/lib/favorites/favorites.selectors';
 import * as StopsActions from '../../../../core/state/lib/stops/stops.actions';
@@ -16,7 +16,6 @@ import { ReadableDistancePipe } from '../../../../core/utils/pipes/distance.pipe
 import { faArrowLeft, faArrowRight, faClose, faHeart } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { selectStopsSortedWithFavoritesAndPreferences } from '../../../../core/state/views/stop-view.selector';
-import { setSelectedArrival } from '../../../../core/state/lib/user/user.actions';
 import { DirectorService } from '../../../../core/services/director.service';
 
 @Component({
@@ -38,7 +37,7 @@ export class StopsComponent implements OnInit, AfterViewInit {
   selectStopsSortedWithFavoritesAndPreferences$: Observable<Stop[]> = this.store.select(
     selectStopsSortedWithFavoritesAndPreferences
   );
-  selectedArrivalIndex$ = this.store.select(selectSelectedArrivalIndex);
+  selectedVehicle$ = this.store.select(selectSelectedVehicle);
   isMobile$ = this.store.select(selectIsMobile);
   isFavorite$!: Observable<boolean>;
   faHeart = faHeart;
@@ -85,13 +84,12 @@ export class StopsComponent implements OnInit, AfterViewInit {
     this.displayLimit$.next(currentLimit + 20);
   }
 
-  setSelectedArrival(index: number, arrival: Arrival): void {
-    if (arrival.vehicle === '???') {
+  setSelectedArrival(arrival: Arrival): void {
+    if (arrival.vehicle === '???' || !arrival.vehicle) {
       return;
     }
 
-    this.store.dispatch(setSelectedArrival({ arrivalIndex: index }));
-
+    this.store.dispatch(UserActions.setSelectedVehicle({ vehicleId: arrival.vehicle }));
     this.cameraDirector.setIncomingBusMode();
   }
 }

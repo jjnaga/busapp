@@ -59,12 +59,12 @@
           <li *ngFor="let arrival of selectedStop.arrivals; let i = index"
             class="py-3 border-b border-gray-100 last:border-b-0 transition-all duration-200 ease-out group relative"
             [ngClass]="{
-              'bg-blue-200 border-l-4 border-blue-500': (selectedArrivalIndex$ | async) === i,
-              'hover:bg-gray-50 hover:-translate-y-[2px] hover:shadow-sm': (selectedArrivalIndex$ | async) !== i && arrival.vehicle !== '???',
+              'bg-blue-200 border-l-4 border-blue-500': (selectedVehicle$ | async) === arrival.vehicle,
+              'hover:bg-gray-50 hover:-translate-y-[2px] hover:shadow-sm': (selectedVehicle$ | async) !== arrival.vehicle && arrival.vehicle !== '???',
               'pointer-events-none': arrival.vehicle === '???',
               'cursor-pointer': arrival.vehicle !== '???',
               'cursor-not-allowed': arrival.vehicle === '???'
-            }" (click)="arrival.vehicle !== '???' && setSelectedArrival(i, arrival)">
+            }" (click)="arrival.vehicle !== '???' && setSelectedArrival(arrival)">
             <div class="flex items-center w-full mr-2">
               <span
                 class="bg-nagahama-blue text-white font-bold rounded-lg px-3 py-2 text-lg shadow-sm mr-3 overflow-ellipsis"

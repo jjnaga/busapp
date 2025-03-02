@@ -9,6 +9,4 @@ export const selectDrawerExpanded = createSelector(selectUserState, (state: User
 
 export const selectStopPreferences = createSelector(selectUserState, (state: UserState) => state.stopPreferences);
 
-export const selectSelectedArrivalIndex = createSelector(selectUserState, (state: UserState) => {
-  return state.selectedArrivalIndex;
-});
+export const selectSelectedVehicle = createSelector(selectUserState, (state: UserState) => state.selectedVehicle);

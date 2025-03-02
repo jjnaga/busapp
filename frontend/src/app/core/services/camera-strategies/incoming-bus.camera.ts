@@ -4,7 +4,7 @@ import { Subscription, combineLatest, of } from 'rxjs';
 import { filter, debounceTime, switchMap } from 'rxjs/operators';
 import { CameraStrategy, Stop } from '../../utils/global.types';
 import { selectSelectedStop } from '../../state/lib/stops/stops.selectors';
-import { selectSelectedArrivalIndex } from '../../state/lib/user/user.selectors';
+import { selectSelectedVehicle } from '../../state/lib/user/user.selectors';
 import { MapControllerService } from '../maps/map-controller.service';
 import { isValidCoordinate } from '../../utils/utils';
 
@@ -20,27 +20,29 @@ export class IncomingBusCameraStrategy implements CameraStrategy {
     // Clean up any previous subscription.
     this.cleanup();
 
-    this.subscription = combineLatest([
-      this.store.select(selectSelectedStop),
-      this.store.select(selectSelectedArrivalIndex),
-    ])
+    this.subscription = combineLatest([this.store.select(selectSelectedStop), this.store.select(selectSelectedVehicle)])
       .pipe(
         filter(
-          (value): value is [Stop, number] =>
-            value[0] !== undefined &&
+          (value): value is [Stop, string] =>
+            !!value[0] &&
+            !!value[1] &&
             value[0].stopLat !== null &&
             value[0].stopLon !== null &&
-            value[1] !== null &&
-            value[0].arrivals !== undefined &&
-            isValidCoordinate(value[0].stopLat, value[0].stopLon) &&
-            isValidCoordinate(value[0].arrivals[value[1]].latitude!, value[0].arrivals[value[1]].longitude!)
+            isValidCoordinate(value[0].stopLat, value[0].stopLon)
         ),
         debounceTime(500),
-        switchMap(([selectedStop, selectedArrivalIndex]) => {
+        switchMap(([selectedStop, selectedVehicle]) => {
+          // Find the arrival with the matching vehicle ID
+          const selectedArrival = selectedStop.arrivals?.find((a) => a.vehicle === selectedVehicle);
+
+          if (!selectedArrival || !isValidCoordinate(selectedArrival.latitude!, selectedArrival.longitude!)) {
+            return of(null);
+          }
+
           const selectedStopCoordinates = { lat: selectedStop.stopLat!, lng: selectedStop.stopLon! };
           const arrivalCoordinates = {
-            lat: selectedStop.arrivals![selectedArrivalIndex].latitude!,
-            lng: selectedStop.arrivals![selectedArrivalIndex].longitude!,
+            lat: selectedArrival.latitude!,
+            lng: selectedArrival.longitude!,
           };
 
           const bounds = new google.maps.LatLngBounds();
