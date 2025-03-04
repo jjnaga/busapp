@@ -1,12 +1,13 @@
 import { inject, Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { Subscription, combineLatest, of } from 'rxjs';
-import { filter, debounceTime, switchMap } from 'rxjs/operators';
+import { filter, debounceTime, switchMap, withLatestFrom } from 'rxjs/operators';
 import { CameraStrategy, Stop } from '../../utils/global.types';
 import { selectSelectedStop } from '../../state/lib/stops/stops.selectors';
 import { selectSelectedVehicle } from '../../state/lib/user/user.selectors';
 import { MapControllerService } from '../maps/map-controller.service';
 import { isValidCoordinate } from '../../utils/utils';
+import { MapLayoutService } from '../maps/map-layout.service';
 
 @Injectable({
   providedIn: 'root',
@@ -14,14 +15,16 @@ import { isValidCoordinate } from '../../utils/utils';
 export class IncomingBusCameraStrategy implements CameraStrategy {
   private store = inject(Store);
   private mapController = inject(MapControllerService);
+  private mapLayout = inject(MapLayoutService);
   private subscription?: Subscription;
 
   execute(): void {
-    // Clean up any previous subscription.
+    // Clean up any previous subscription
     this.cleanup();
 
     this.subscription = combineLatest([this.store.select(selectSelectedStop), this.store.select(selectSelectedVehicle)])
       .pipe(
+        // Only proceed if we have valid stop and vehicle data
         filter(
           (value): value is [Stop, string] =>
             !!value[0] &&
@@ -30,31 +33,43 @@ export class IncomingBusCameraStrategy implements CameraStrategy {
             value[0].stopLon !== null &&
             isValidCoordinate(value[0].stopLat, value[0].stopLon)
         ),
+        // Add a small delay to avoid rapid calculations during transitions
         debounceTime(500),
-        switchMap(([selectedStop, selectedVehicle]) => {
+        // Get the current drawer height to calculate viewport
+        withLatestFrom(this.mapLayout.visibleDrawerHeight$),
+        switchMap(([[selectedStop, selectedVehicle], drawerHeight]) => {
           // Find the arrival with the matching vehicle ID
           const selectedArrival = selectedStop.arrivals?.find((a) => a.vehicle === selectedVehicle);
 
           if (!selectedArrival || !isValidCoordinate(selectedArrival.latitude!, selectedArrival.longitude!)) {
-            return of(null);
+            return of(null); // Skip if we don't have valid coordinates
           }
 
-          const selectedStopCoordinates = { lat: selectedStop.stopLat!, lng: selectedStop.stopLon! };
-          const arrivalCoordinates = {
+          // Get viewport dimensions from window and adjust for drawer
+          const viewportWidth = window.innerWidth;
+          const viewportHeight = window.innerHeight - drawerHeight;
+
+          // Define points for stop and bus
+          const stopPoint = {
+            lat: selectedStop.stopLat!,
+            lng: selectedStop.stopLon!,
+          };
+
+          const busPoint = {
             lat: selectedArrival.latitude!,
             lng: selectedArrival.longitude!,
           };
 
-          const bounds = new google.maps.LatLngBounds();
-          bounds.extend(selectedStopCoordinates);
-          bounds.extend(arrivalCoordinates);
+          // Calculate optimal view settings based on the two points and viewport
+          const { center, zoom } = this.mapController.calculateOptimalView(
+            stopPoint,
+            busPoint,
+            viewportWidth,
+            viewportHeight
+          );
 
-          this.mapController?.fitBounds(bounds, {
-            top: 50,
-            bottom: 50,
-            left: 50,
-            right: 50,
-          });
+          // Apply the calculated view settings
+          this.mapController.panAndZoom(center, zoom);
 
           return of(null);
         })
