@@ -40,6 +40,9 @@ export const initialUserState: UserState = {
     '2925': {
       customName: 'test',
     },
+    '738': {
+      customName: 'times 🫡',
+    },
   },
   selectedVehicle: null, // Changed from selectedArrivalIndex
 };
