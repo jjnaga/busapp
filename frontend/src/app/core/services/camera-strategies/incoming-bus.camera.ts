@@ -1,10 +1,11 @@
 import { inject, Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { Subscription, combineLatest, of } from 'rxjs';
-import { filter, debounceTime, switchMap, withLatestFrom } from 'rxjs/operators';
+import { filter, debounceTime, switchMap, withLatestFrom, map } from 'rxjs/operators';
 import { CameraStrategy, Stop } from '../../utils/global.types';
 import { selectSelectedStop } from '../../state/lib/stops/stops.selectors';
 import { selectSelectedVehicle } from '../../state/lib/user/user.selectors';
+import { selectVehicleById } from '../../state/lib/vehicles/vehicles.selectors';
 import { MapControllerService } from '../maps/map-controller.service';
 import { isValidCoordinate } from '../../utils/utils';
 import { MapLayoutService } from '../maps/map-layout.service';
@@ -24,43 +25,49 @@ export class IncomingBusCameraStrategy implements CameraStrategy {
 
     this.subscription = combineLatest([this.store.select(selectSelectedStop), this.store.select(selectSelectedVehicle)])
       .pipe(
-        // Only proceed if we have valid stop and vehicle data
+        // Only proceed if we have valid stop and vehicle ID
         filter(
-          (value): value is [Stop, string] =>
-            !!value[0] &&
-            !!value[1] &&
-            value[0].stopLat !== null &&
-            value[0].stopLon !== null &&
-            isValidCoordinate(value[0].stopLat, value[0].stopLon)
+          ([stop, vehicleId]) =>
+            !!stop &&
+            !!vehicleId &&
+            stop.stopLat !== null &&
+            stop.stopLon !== null &&
+            isValidCoordinate(stop.stopLat, stop.stopLon)
         ),
-        // Add a small delay to avoid rapid calculations during transitions
-        debounceTime(500),
-        // Get the current drawer height to calculate viewport
-        withLatestFrom(this.mapLayout.visibleDrawerHeight$),
-        switchMap(([[selectedStop, selectedVehicle], drawerHeight]) => {
-          // Find the arrival with the matching vehicle ID
-          const selectedArrival = selectedStop.arrivals?.find((a) => a.vehicle === selectedVehicle);
-
-          if (!selectedArrival || !isValidCoordinate(selectedArrival.latitude!, selectedArrival.longitude!)) {
-            return of(null); // Skip if we don't have valid coordinates
-          }
-
-          // Get viewport dimensions from window and adjust for drawer
+        // Switch to a stream that combines stop info with latest vehicle data
+        switchMap(([selectedStop, vehicleId]) => {
+          // Now get the actual vehicle entity which will update when websocket updates come in
+          return combineLatest([of(selectedStop), this.store.select(selectVehicleById(vehicleId!))]).pipe(
+            debounceTime(300), // Debounce to avoid too many recalculations when bus is moving
+            withLatestFrom(this.mapLayout.visibleDrawerHeight$),
+            map(([[stop, vehicle], drawerHeight]) => ({ stop, vehicle, drawerHeight })),
+            filter(
+              (data): data is { stop: Stop; vehicle: any; drawerHeight: number } =>
+                !!data.stop &&
+                !!data.vehicle &&
+                isValidCoordinate(data.stop.stopLat!, data.stop.stopLon!) &&
+                isValidCoordinate(data.vehicle.latitude!, data.vehicle.longitude!)
+            )
+          );
+        }),
+        // Process the data to update the map view
+        switchMap(({ stop, vehicle, drawerHeight }) => {
+          // Get viewport dimensions
           const viewportWidth = window.innerWidth;
           const viewportHeight = window.innerHeight - drawerHeight;
 
           // Define points for stop and bus
           const stopPoint = {
-            lat: selectedStop.stopLat!,
-            lng: selectedStop.stopLon!,
+            lat: stop.stopLat!,
+            lng: stop.stopLon!,
           };
 
           const busPoint = {
-            lat: selectedArrival.latitude!,
-            lng: selectedArrival.longitude!,
+            lat: vehicle.latitude!,
+            lng: vehicle.longitude!,
           };
 
-          // Calculate optimal view settings based on the two points and viewport
+          // Calculate and apply optimal view
           const { center, zoom } = this.mapController.calculateOptimalView(
             stopPoint,
             busPoint,
@@ -68,9 +75,7 @@ export class IncomingBusCameraStrategy implements CameraStrategy {
             viewportHeight
           );
 
-          // Apply the calculated view settings
           this.mapController.panAndZoom(center, zoom);
-
           return of(null);
         })
       )

@@ -69,10 +69,10 @@ export class MapControllerService implements MapController {
     if (isEastWestOriented) {
       // East-west oriented points need more zoom on typical portrait mobile screens
       // We'll use a larger factor for the denominator to zoom in more
-      zoomFactor = 800;
+      zoomFactor = 700;
 
       // If the screen is very narrow, zoom in even more
-      if (aspectRatio < 0.6) zoomFactor = 700;
+      if (aspectRatio < 0.6) zoomFactor = 750;
     } else {
       // North-south oriented points work better with the original formula
       zoomFactor = 1000;

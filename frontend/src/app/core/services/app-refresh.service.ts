@@ -14,7 +14,7 @@ export class AppRefreshService {
 
   // Time thresholds for different behaviors
   private readonly SHORT_ABSENCE_THRESHOLD = 2000; // 2 seconds
-  private readonly LONG_ABSENCE_THRESHOLD = 600000; // 10 minutes
+  private readonly LONG_ABSENCE_THRESHOLD = 18000000; // 30 minutes
 
   initialize(): void {
     // Detect visibility changes (tab/window focus, mobile app resuming)
