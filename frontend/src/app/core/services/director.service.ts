@@ -190,7 +190,6 @@ export class DirectorService implements OnDestroy {
   }
 
   setMode(mode: CameraMode): void {
-    console.log('set mode?', mode);
     if (mode !== this.currentMode) {
       this.modeSubject.next(mode);
     }
