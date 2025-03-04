@@ -33,7 +33,7 @@ export type RouteShape = z.infer<typeof RouteShapeSchema>;
 export const VehicleSchema = z
   .object({
     busNumber: z.string(),
-    tripId: z.number().optional(),
+    tripId: z.number().nullable(),
     driver: z.string(),
     latitude: z.number(),
     longitude: z.number(),
