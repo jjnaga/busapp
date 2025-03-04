@@ -4,10 +4,12 @@ import { DrawerMode } from '../utils/global.types';
 import { fromEvent, merge } from 'rxjs';
 import * as AppActions from '../state/lib/app/app.actions';
 import * as UserActions from '../state/lib/user/user.actions';
+import { DirectorService } from './director.service';
 
 @Injectable({ providedIn: 'root' })
 export class AppRefreshService {
   private store = inject(Store);
+  private directorService = inject(DirectorService);
   private lastInvisibleTime: number | null = null;
 
   // Time thresholds for different behaviors
@@ -55,6 +57,9 @@ export class AppRefreshService {
         this.store.dispatch(UserActions.setSelectedVehicle({ vehicleId: null }));
         this.store.dispatch(UserActions.setDrawerMode({ drawerMode: 'favorites' as DrawerMode }));
         this.store.dispatch(UserActions.toggleDrawerExpanded({ expanded: true }));
+
+        // go to user mode
+        this.directorService.setUserMode();
       }
     }
   }
