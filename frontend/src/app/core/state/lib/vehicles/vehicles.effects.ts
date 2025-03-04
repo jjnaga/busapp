@@ -3,6 +3,7 @@ import { Actions, createEffect, ofType } from '@ngrx/effects';
 import * as VehiclesActions from './vehicles.actions';
 import * as WebSocket from '../websocket/websocket.actions';
 import * as UserActions from '../user/user.actions';
+import * as AppActions from '../app/app.actions';
 import { catchError, map, mergeMap, of, filter, withLatestFrom } from 'rxjs';
 import { RouteShape, Vehicle, VehicleShapeResponse } from '../../../utils/global.types';
 import { HttpClient } from '@angular/common/http';
@@ -86,4 +87,12 @@ export class VehiclesEffects {
       })
     );
   });
+
+  // Reload vehicles data when the app wakes up
+  refreshVehiclesOnWakeUp$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AppActions.appWokeUp),
+      map(() => VehiclesActions.loadVehicles())
+    )
+  );
 }

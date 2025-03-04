@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { appInit } from './core/state/root.actions';
 import { setMobileMode } from './core/state/lib/layout/layout.actions';
+import { AppRefreshService } from './core/services/app-refresh.service';
 
 @Component({
   selector: 'app-root',
@@ -9,10 +10,12 @@ import { setMobileMode } from './core/state/lib/layout/layout.actions';
   styleUrls: ['./app.component.css'],
 })
 export class AppComponent implements OnInit {
-  constructor(private store: Store) {}
+  constructor(private store: Store, private appRefreshService: AppRefreshService) {}
 
   ngOnInit() {
     this.store.dispatch(appInit());
+
+    this.appRefreshService.initialize();
 
     // Implement size
     this.onResize();

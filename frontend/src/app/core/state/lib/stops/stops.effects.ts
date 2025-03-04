@@ -3,6 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import * as StopsActions from './stops.actions';
 import * as UserActions from '../user/user.actions';
+import * as AppActions from '../app/app.actions';
 import { Stop, StopApiResponse, StopApiResponseSchema } from '../../../utils/global.types';
 import {
   catchError,
@@ -170,6 +171,16 @@ export class StopsEffects {
           return EMPTY;
         }
       })
+    )
+  );
+
+  // Refresh tracked stops data when the app wakes up
+  refreshTrackedStopsOnWakeUp$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AppActions.appWokeUp),
+      withLatestFrom(this.store.select(selectStopsTrackingValues)),
+      filter(([_, stopIds]) => stopIds.length > 0),
+      map(([_, stopIds]) => StopsActions.loadDetailedStops({ stopIds }))
     )
   );
 
