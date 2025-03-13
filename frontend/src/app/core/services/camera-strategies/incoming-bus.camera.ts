@@ -52,10 +52,6 @@ export class IncomingBusCameraStrategy implements CameraStrategy {
         }),
         // Process the data to update the map view
         switchMap(({ stop, vehicle, drawerHeight }) => {
-          // Get viewport dimensions
-          const viewportWidth = window.innerWidth;
-          const viewportHeight = window.innerHeight - drawerHeight;
-
           // Define points for stop and bus
           const stopPoint = {
             lat: stop.stopLat!,
@@ -68,12 +64,7 @@ export class IncomingBusCameraStrategy implements CameraStrategy {
           };
 
           // Calculate and apply optimal view
-          const { center, zoom } = this.mapController.calculateOptimalView(
-            stopPoint,
-            busPoint,
-            viewportWidth,
-            viewportHeight
-          );
+          const { center, zoom } = this.mapController.calculateOptimalView(stopPoint, busPoint);
 
           this.mapController.panAndZoom(center, zoom);
           return of(null);

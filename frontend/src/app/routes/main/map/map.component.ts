@@ -104,6 +104,7 @@ export class MapComponent implements OnInit {
 
     this.mapControllerService.setController({
       zoom$: this.mapControllerService.zoom$,
+      mapElement: this.map.getDiv(),
       panAndZoom: (center, zoom) => this.panAndZoom(center, zoom),
       fitBounds: (bounds, padding) => this.fitBounds(bounds, padding),
       getBounds: () => this.map?.getBounds(),

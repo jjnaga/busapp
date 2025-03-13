@@ -214,6 +214,7 @@ export interface MapController {
   updateZoom: (zoom: number | undefined) => void;
   getZoom: () => number | undefined;
   zoom$: Observable<number | undefined>;
+  mapElement: HTMLElement | null;
 }
 
 export const MAP_CONTROLLER = new InjectionToken<MapController>('MapController');

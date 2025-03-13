@@ -16,6 +16,7 @@ export class MapControllerService implements MapController {
   private mapEvents = new Subject<void>();
   private currentZoom = new BehaviorSubject<number | undefined>(undefined); // Default zoom level
   public zoom$ = this.currentZoom.asObservable();
+  public mapElement: HTMLElement | null = null;
 
   public mapEvents$ = this.mapEvents.asObservable();
 
@@ -29,14 +30,33 @@ export class MapControllerService implements MapController {
     this.mapController?.panAndZoom(center, limitedZoom);
   }
 
+  getMapDimensions(): { width: number; height: number } {
+    if (this.mapElement) {
+      return {
+        width: this.mapElement.clientWidth,
+        height: this.mapElement.clientHeight,
+      };
+    }
+    // Fallback to window dimensions if no element set
+    return {
+      width: window.innerWidth,
+      height: window.innerHeight,
+    };
+  }
+
   // Calculate optimal view settings for two points
   // Returns the center point and appropriate zoom level
   calculateOptimalView(
     point1: google.maps.LatLngLiteral,
     point2: google.maps.LatLngLiteral,
-    viewportWidth: number,
-    viewportHeight: number
+    viewportWidth?: number,
+    viewportHeight?: number
   ): { center: google.maps.LatLngLiteral; zoom: number } {
+    // Get dimensions from the actual map element if available
+    const dimensions = this.getMapDimensions();
+    const width = viewportWidth || dimensions.width;
+    const height = viewportHeight || dimensions.height;
+
     // Calculate center between two points
     const center = {
       lat: (point1.lat + point2.lat) / 2,
@@ -59,7 +79,7 @@ export class MapControllerService implements MapController {
     const isEastWestOriented = lngDistanceApprox > latDistanceApprox;
 
     // Calculate viewport aspect ratio
-    const aspectRatio = viewportWidth / viewportHeight;
+    const aspectRatio = width / height;
 
     // Base zoom and adjustment factors
     const baseZoom = 15.5; // Slightly higher base zoom for better detail
@@ -120,6 +140,11 @@ export class MapControllerService implements MapController {
 
   setController(controller: MapController): void {
     this.mapController = controller;
+
+    // Store the map element when controller is set
+    if (controller.mapElement) {
+      this.mapElement = controller.mapElement;
+    }
   }
 
   updateZoom(zoom: number | undefined): void {
