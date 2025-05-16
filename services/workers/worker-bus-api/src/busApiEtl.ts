@@ -76,9 +76,9 @@ const transformToVehicleEntities = (vehicles: VehicleApi[]): Array<Vehicle> => {
 
         // Log for monitoring and debugging
         multiTripIds[data.number] = data.trip;
-        console.warn(
-          `Bus ${data.number} has multiple trips: ${data.trip} - using first ID: ${firstTripId}`
-        );
+        // console.warn(
+        //   `Bus ${data.number} has multiple trips: ${data.trip} - using first ID: ${firstTripId}`
+        // );
 
         // Convert first ID to number (or null if not valid)
         tripId = /^\d+$/.test(firstTripId) ? Number(firstTripId) : null;
