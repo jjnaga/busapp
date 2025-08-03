@@ -33,12 +33,20 @@ export function createVehicleMarkerContent(): HTMLElement {
   return div;
 }
 
-export function createStopSVG(title: string, isFavorite: boolean): HTMLElement {
+export function createStopSVG(title: string, isFavorite: boolean, isNearby: boolean = false): HTMLElement {
   const outerCircleSize = 34;
   const innerCircleSize = 27;
   const iconSize = 16;
   const outerCircleColor = 'white';
-  const innerCircleColor = isFavorite ? '#FFD700' : 'rgb(30,64,175)';
+
+  // Color priority: favorite > nearby > normal
+  let innerCircleColor = 'rgb(30,64,175)'; // Default blue
+  if (isFavorite) {
+    innerCircleColor = '#FFD700'; // Gold for favorites
+  } else if (isNearby) {
+    innerCircleColor = '#10B981'; // Green for nearby (special) stops
+  }
+
   const iconColor = 'white';
 
   // Calculate centers and offsets
@@ -50,6 +58,8 @@ export function createStopSVG(title: string, isFavorite: boolean): HTMLElement {
 
   if (isFavorite) {
     div.classList.add('favorite');
+  } else if (isNearby) {
+    div.classList.add('nearby');
   }
 
   div.innerHTML = `

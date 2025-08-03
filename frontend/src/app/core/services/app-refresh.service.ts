@@ -55,7 +55,7 @@ export class AppRefreshService {
         // Reset selected state and UI
         this.store.dispatch(UserActions.setSelectedStop({ stop: null }));
         this.store.dispatch(UserActions.setSelectedVehicle({ vehicleId: null }));
-        this.store.dispatch(UserActions.setDrawerMode({ drawerMode: 'favorites' as DrawerMode }));
+        this.store.dispatch(UserActions.setDrawerMode({ drawerMode: 'home' as DrawerMode }));
         this.store.dispatch(UserActions.toggleDrawerExpanded({ expanded: true }));
 
         // go to user mode

@@ -5,23 +5,76 @@
   <meta charset="utf-8" />
   <title>Bettah Bus</title>
   <base href="/" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <link href="https://fonts.cdnfonts.com/css/cabinet-grotesk" rel="stylesheet">
-  <link rel="icon" type="image/x-icon" href="favicon.ico" />
-  <link rel="apple-touch-icon" href="icons/icon-192x192.png" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-  <meta name="apple-mobile-web-app-title" content="Bettah Bus" />
-  <link rel="manifest" href="manifest.webmanifest" />
   <meta name="viewport"
     content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="Hawaii Bus App for Power Users">
+  <meta name="keywords" content="Honolulu bus, TheBus, Hawaii transit, bus tracker, real-time, Oahu transportation">
+  <meta name="author" content="Bettah Bus">
+
+  <!-- Open Graph / Social Media -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Bettah Bus">
+  <meta property="og:description" content="Hawaii Bus App for Power Users">
+  <meta property="og:url" content="https://bettahbus.com">
+  <meta property="og:image" content="https://bettahbus.com/icons/icon-512x512.png">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Bettah Bus">
+  <meta name="twitter:description" content="Hawaii Bus App for Power Users">
+  <meta name="twitter:image" content="https://bettahbus.com/icons/icon-512x512.png">
+
+  <!-- Fonts -->
+  <link href="https://fonts.cdnfonts.com/css/cabinet-grotesk" rel="stylesheet">
+
+  <!-- Icons & Manifest -->
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  <link rel="apple-touch-icon" href="icons/icon-192x192.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180x180.png" />
+  <link rel="manifest" href="manifest.webmanifest" />
+
+  <!-- iOS PWA Meta Tags -->
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Bettah Bus" />
+
+  <!-- Theme Colors -->
   <meta name="theme-color" content="#1976d2" />
+  <meta name="msapplication-navbutton-color" content="#1976d2" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+  <!-- Preconnect for performance -->
+  <link rel="preconnect" href="https://maps.googleapis.com">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <!-- Security -->
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta http-equiv="X-Frame-Options" content="DENY">
+  <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+
+  <!-- DNS Prefetch for external resources -->
+  <link rel="dns-prefetch" href="//api.thebus.org">
+  <link rel="dns-prefetch" href="//maps.googleapis.com">
+
+  <!-- Preload critical app resources -->
+  <link rel="preload" href="/assets/bus-icon.svg" as="image">
+  <link rel="modulepreload" href="/main.js">
 </head>
 
 <body>
   <app-root></app-root>
-  <noscript>Please enable JavaScript to continue using this application.</noscript>
+  <noscript>
+    <div style="text-align: center; padding: 2rem; font-family: system-ui, -apple-system, sans-serif;">
+      <h1>JavaScript Required</h1>
+      <p>Bettah Bus requires JavaScript to track buses in real-time.</p>
+      <p>Please enable JavaScript in your browser settings and refresh the page.</p>
+    </div>
+  </noscript>
 </body>
 
 </html>

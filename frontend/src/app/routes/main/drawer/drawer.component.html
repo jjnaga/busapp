@@ -1,14 +1,20 @@
 <!-- Updated DrawerComponent HTML -->
 <div #drawerContainer [ngClass]="drawerContainerClasses$ | async">
   <div class="flex flex-col h-full">
+    <!-- Mobile-only drag handle -->
+    <div *ngIf="isMobile$ | async" class="flex justify-center py-2 cursor-grab active:cursor-grabbing"
+      (touchstart)="onTouchStart($event)" (touchmove)="onTouchMove($event)" (touchend)="onTouchEnd($event)">
+      <div class="w-8 h-1 bg-gray-300 rounded-full"></div>
+    </div>
+
     <!-- Combined Header for both Mobile and Desktop -->
     <div class="px-3 pt-1 flex justify-between items-center mb-2 mt-1" [class.cursor-pointer]="isMobile$ | async"
       (click)="isMobile$ ? toggleDrawer() : null">
       <ng-container *ngIf="drawerMode$ | async as mode">
         <h3 [class]="(isMobile$ | async) ? 'text-2xl' : 'text-2xl'"
           class="font-semibold overflow-hidden whitespace-nowrap flex-1">
-          <!-- For Stops mode with a selected stop, show the stop-name component -->
-          <ng-container *ngIf="mode === DrawerMode.Stops && (selectedStop$ | async) as selectedStop; else defaultTitle">
+          <!-- For Home mode with a selected stop, show the stop-name component -->
+          <ng-container *ngIf="mode === DrawerMode.Home && (selectedStop$ | async) as selectedStop; else defaultTitle">
             <stop-name [stopId]="selectedStop.stopId" [defaultName]="selectedStop.stopName || ''"></stop-name>
           </ng-container>
           <!-- Otherwise, display the header title -->
@@ -27,15 +33,20 @@
 
     <!-- Content Area: Use a mobile-specific container if on mobile -->
     <ng-container *ngIf="isMobile$ | async; else desktopContent">
-      <!-- Mobile Content Container: Fixed height with transition and scroll behavior -->
-      <div class="h-[50vh] transition-all duration-300"
-        [ngClass]="(drawerExpanded$ | async) ? 'overflow-scroll' : 'overflow-hidden'">
+      <!-- Mobile Content Container: Fixed height with transition and always scrollable -->
+      <div class="h-[50vh] transition-all duration-300 overflow-auto">
         <ng-container [ngSwitch]="drawerMode$ | async">
           <ng-container *ngSwitchCase="DrawerMode.Favorites">
             <drawer-favorites></drawer-favorites>
           </ng-container>
-          <ng-container *ngSwitchCase="DrawerMode.Stops">
-            <drawer-stops></drawer-stops>
+          <ng-container *ngSwitchCase="DrawerMode.Home">
+            <!-- Show detailed stop view if a stop is selected, otherwise show home view -->
+            <ng-container *ngIf="selectedStop$ | async; else homeView">
+              <drawer-stops></drawer-stops>
+            </ng-container>
+            <ng-template #homeView>
+              <drawer-home></drawer-home>
+            </ng-template>
           </ng-container>
         </ng-container>
       </div>
@@ -49,8 +60,14 @@
           <ng-container *ngSwitchCase="DrawerMode.Favorites">
             <drawer-favorites></drawer-favorites>
           </ng-container>
-          <ng-container *ngSwitchCase="DrawerMode.Stops">
-            <drawer-stops></drawer-stops>
+          <ng-container *ngSwitchCase="DrawerMode.Home">
+            <!-- Show detailed stop view if a stop is selected, otherwise show home view -->
+            <ng-container *ngIf="selectedStop$ | async; else homeViewDesktop">
+              <drawer-stops></drawer-stops>
+            </ng-container>
+            <ng-template #homeViewDesktop>
+              <drawer-home></drawer-home>
+            </ng-template>
           </ng-container>
         </ng-container>
       </div>

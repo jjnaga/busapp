@@ -1,0 +1,76 @@
+<ng-container *ngIf="nearbyStops$ | async as nearbyStops">
+  <div class="mb-4" *ngIf="nearbyStops.length > 0">
+    <div class="sticky top-0 z-10 flex items-center px-3 py-2 bg-blue-50 border-b border-blue-100">
+      <fa-icon [icon]="faLocationDot" class="text-blue-600 mr-2"></fa-icon>
+      <h3 class="text-sm font-semibold text-blue-800 uppercase tracking-wide">Nearby</h3>
+    </div>
+
+    <!-- All Nearby Stops (both favorites and non-favorites) -->
+    <div *ngFor="let stop of nearbyStops" [ngClass]="{
+        'bg-blue-50 border-l-4 border-blue-400 hover:bg-blue-100': stop.isFavorite,
+        'bg-gray-50 border-l-4 border-gray-400 hover:bg-gray-100': !stop.isFavorite
+      }" class="px-3 py-3 cursor-pointer transition-colors" (click)="setSelectedStop(stop)">
+      <div class="flex items-center justify-between">
+        <div class="flex-1">
+          <div class="flex items-center">
+            <stop-name class="w-full" [stopId]="stop.stopId" [defaultName]="stop.stopName || ''"
+              [canEdit]="false"></stop-name>
+          </div>
+          <div class="mt-1 space-y-1">
+            <div *ngFor="let arrival of getNextArrivals(stop, 2)" class="flex items-center text-sm">
+              <span [ngClass]="{
+                  'bg-blue-600': stop.isFavorite,
+                  'bg-gray-600': !stop.isFavorite
+                }" class="text-white px-2 py-0.5 rounded text-xs font-medium mr-2">
+                {{ arrival.route }}
+              </span>
+              <span class="text-gray-700 flex-1">{{ arrival.headsign }}</span>
+              <span [ngClass]="{
+                  'text-blue-700': stop.isFavorite,
+                  'text-gray-700': !stop.isFavorite
+                }" class="font-semibold">{{ arrival.arrivalDate | diffMinutes }}min</span>
+            </div>
+            <div *ngIf="!stop.arrivals?.length" class="text-xs text-gray-500">No arrivals available</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-container>
+
+<!-- All Favorites Section -->
+<div>
+  <div class="sticky top-0 z-10 flex items-center justify-between px-3 py-2 bg-gray-50 border-b border-gray-100">
+    <h3 class="text-sm font-semibold text-gray-800 uppercase tracking-wide">Your Favorites</h3>
+  </div>
+
+  <ng-container *ngIf="otherFavorites$ | async as otherFavorites">
+    <div *ngIf="otherFavorites.length === 0 && (nearbyStops$ | async)?.length === 0" class="text-center py-12 px-4">
+      <p class="text-lg font-medium text-gray-700">No favorite stops yet</p>
+      <p class="mt-2 text-sm text-gray-500">
+        Tap any stop on the map and click "Add Favorite" to save it here
+      </p>
+    </div>
+
+    <!-- Compact Favorites List -->
+    <div *ngFor="let stop of otherFavorites"
+      class="px-3 py-3 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors"
+      (click)="setSelectedStop(stop)">
+      <div class="flex items-center justify-between">
+        <div class="flex-1">
+          <stop-name [stopId]="stop.stopId" [defaultName]="stop.stopName || ''" [canEdit]="false"></stop-name>
+          <div class="mt-1 space-y-1">
+            <div *ngFor="let arrival of getNextArrivals(stop, 3)" class="flex items-center text-sm">
+              <span class="bg-blue-600 text-white px-2 py-0.5 rounded text-xs font-medium mr-2">
+                {{ arrival.route }}
+              </span>
+              <span class="text-gray-700 flex-1 truncate">{{ arrival.headsign }}</span>
+              <span class="text-blue-700 font-semibold ml-2">{{ arrival.arrivalDate | diffMinutes }}min</span>
+            </div>
+            <div *ngIf="!stop.arrivals?.length" class="text-xs text-gray-500">No arrivals available</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</div>

@@ -22,7 +22,7 @@ export interface UserState {
 }
 
 export const initialUserState: UserState = {
-  drawerMode: DrawerMode.Favorites,
+  drawerMode: DrawerMode.Home,
   drawerExpanded: true,
   stopPreferences: {
     '47': {

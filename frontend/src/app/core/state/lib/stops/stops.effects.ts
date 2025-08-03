@@ -18,6 +18,8 @@ import {
   take,
   concatMap,
   withLatestFrom,
+  startWith,
+  pairwise,
 } from 'rxjs';
 import { getBaseUrl } from '../../../utils/utils';
 import { parse } from 'date-fns';
@@ -26,6 +28,8 @@ import {
   selectAllStops,
   selectStopsTrackingValues,
   selectSelectedStop,
+  selectNearbyStopIds,
+  selectNearbyNonFavoriteStopIds,
 } from './stops.selectors';
 import { Store } from '@ngrx/store';
 import { timer, EMPTY } from 'rxjs';
@@ -181,6 +185,34 @@ export class StopsEffects {
       withLatestFrom(this.store.select(selectStopsTrackingValues)),
       filter(([_, stopIds]) => stopIds.length > 0),
       map(([_, stopIds]) => StopsActions.loadDetailedStops({ stopIds }))
+    )
+  );
+
+  // Effect to manage tracking of nearby non-favorite stops
+  manageNearbyStopsTracking$ = createEffect(() =>
+    this.store.select(selectNearbyNonFavoriteStopIds).pipe(
+      startWith([] as string[]), // Start with empty array for first comparison
+      pairwise(), // Get [previous, current] pairs
+      filter(([prev, curr]) => {
+        // Only react if the arrays are actually different
+        return !(prev.length === curr.length && prev.every((id, index) => id === curr[index]));
+      }),
+      switchMap(([previousNearbyIds, currentNearbyIds]) => {
+        const actions = [];
+
+        const stopIdsToStopTracking = previousNearbyIds.filter((stopId) => !currentNearbyIds.includes(stopId));
+        const stopIdsToStartTracking = currentNearbyIds.filter((stopId) => !previousNearbyIds.includes(stopId));
+
+        if (stopIdsToStopTracking.length > 0) {
+          actions.push(StopsActions.stopTrackingStops({ stopIds: stopIdsToStopTracking }));
+        }
+
+        if (stopIdsToStartTracking.length > 0) {
+          actions.push(StopsActions.startTrackingStops({ stopIds: stopIdsToStartTracking }));
+        }
+
+        return from(actions);
+      })
     )
   );
 

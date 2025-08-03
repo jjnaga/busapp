@@ -106,8 +106,6 @@ export interface Marker {
   content?: any;
 }
 
-export type sideBarModes = 'favorites' | 'stop' | 'subscriptions' | null;
-
 export const ArrivalSchema = z.object({
   canceled: z.string(),
   date: z.string(),
@@ -192,8 +190,8 @@ export type TrackerMode = {
 };
 
 export enum DrawerMode {
+  Home = 'home',
   Favorites = 'favorites',
-  Stops = 'stops',
 }
 
 export type StopDataState = {

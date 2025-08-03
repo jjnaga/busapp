@@ -35,7 +35,7 @@ describe('UserEffects', () => {
       if (action.type === UserActions.toggleDrawerExpanded.type) {
         expect(action).toEqual(UserActions.toggleDrawerExpanded({ expanded: true }));
       } else if (action.type === UserActions.setDrawerMode.type) {
-        expect(action).toEqual(UserActions.setDrawerMode({ drawerMode: DrawerMode.Stops }));
+        expect(action).toEqual(UserActions.setDrawerMode({ drawerMode: DrawerMode.Home }));
         done();
       }
     });

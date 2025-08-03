@@ -29,6 +29,7 @@ export class StopNameComponent implements OnChanges, AfterViewInit {
   // Input properties: stop identifier and its default name.
   @Input() stopId!: string;
   @Input() defaultName!: string;
+  @Input() canEdit: boolean = true; // Controls whether edit functionality is available
 
   // Observable for the custom name if the user has set one.
   customName$!: Observable<string | null>;

@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { selectDrawerExpanded } from '../../../../core/state/lib/user/user.selectors';
-import { selectFavoritesWithLiveData } from '../../../../core/state/lib/favorites/favorites.selectors';
+import { selectFavoritesWithLiveData } from '../../../../core/state/lib/stops/stops.selectors';
 import { Stop } from '../../../../core/utils/global.types';
 import { toggleFavoriteAction } from '../../../../core/state/lib/favorites/favorites.actions';
 import { setSelectedStop } from '../../../../core/state/lib/user/user.actions';

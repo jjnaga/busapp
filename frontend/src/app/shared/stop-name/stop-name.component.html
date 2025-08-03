@@ -5,7 +5,7 @@
       class="font-medium transition-opacity duration-300 overflow-hidden text-ellipsis whitespace-nowrap py-0.5 px-2 text-nagahama-blue flex-1">
       {{ (customName$ | async) || defaultName }}
     </span>
-    <span
+    <span *ngIf="canEdit"
       class="flex justify-center items-center cursor-pointer opacity-70 transition-all duration-300 min-w-8 h-8 hover:opacity-100 hover:scale-110 hover:text-blue-800 ml-1 shrink-0"
       (click)="enableEdit($event)" title="Rename">
       <fa-icon class="text-lg" [icon]="faEdit"></fa-icon>

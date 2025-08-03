@@ -31,7 +31,10 @@ import { metaReducers } from './core/state/persist-state.meta-reducer';
       // or after 30 seconds (whichever comes first).
       registrationStrategy: 'registerWhenStable:30000',
     }),
-    StoreDevtoolsModule.instrument({ maxAge: 25 }), // Keeps last 25 states
+    StoreDevtoolsModule.instrument({
+      maxAge: 25,
+      logOnly: !isDevMode(),
+    }),
   ],
   providers: [provideHttpClient()],
   bootstrap: [AppComponent],

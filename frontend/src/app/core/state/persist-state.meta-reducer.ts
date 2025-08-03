@@ -56,7 +56,7 @@ export function persistState(reducer: ActionReducer<any>): ActionReducer<any> {
                 user: {
                   ...nextState.user, // Use feature defaults
                   stopPreferences: loadedState.user.stopPreferences || {},
-                  drawerMode: DrawerMode.Favorites,
+                  drawerMode: DrawerMode.Home,
                   drawerExpanded: true,
                   selectedStop: null,
                   selectedArrivalIndex: null,

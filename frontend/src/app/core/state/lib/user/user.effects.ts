@@ -20,7 +20,7 @@ export class UserEffects {
       mergeMap(({ stop }) => {
         if (stop) {
           this.directorService.setSelectedStopMode();
-          return of(UserActions.setDrawerMode({ drawerMode: DrawerMode.Stops }));
+          return of(UserActions.setDrawerMode({ drawerMode: DrawerMode.Home }));
         }
 
         return of({

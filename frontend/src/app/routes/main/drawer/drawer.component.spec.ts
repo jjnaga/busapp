@@ -30,7 +30,7 @@ describe('DrawerComponent', () => {
           selectors: [
             { selector: selectIsMobile, value: true },
             { selector: selectDrawerExpanded, value: false },
-            { selector: selectDrawerMode, value: DrawerMode.Stops },
+            { selector: selectDrawerMode, value: DrawerMode.Home },
             { selector: selectSelectedStop, value: null },
           ],
         }),

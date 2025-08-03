@@ -4,6 +4,7 @@ import { Store } from '@ngrx/store';
 import { setSelectedStop, setSelectedVehicle } from '../../state/lib/user/user.actions';
 import { Dictionary } from '@ngrx/entity';
 import { selectAllFavoriteEntities } from '../../state/lib/favorites/favorites.selectors';
+import { selectNearbyStopIds } from '../../state/lib/stops/stops.selectors';
 import { Subscription, BehaviorSubject, firstValueFrom } from 'rxjs';
 import { createStopSVG, createUserMarkerContent, createVehicleMarkerContent } from './utils.service';
 import { selectUserLocation } from '../../state/lib/user-location/user-location.selectors';
@@ -71,8 +72,13 @@ export class MarkerService implements OnDestroy {
       }
     });
 
-    firstValueFrom(this.store.select(selectAllFavoriteEntities))
-      .then((favoriteIds: Dictionary<string>) => {
+    Promise.all([
+      firstValueFrom(this.store.select(selectAllFavoriteEntities)),
+      firstValueFrom(this.store.select(selectNearbyStopIds)),
+    ])
+      .then(([favoriteIds, nearbyStopIds]: [Dictionary<string>, string[]]) => {
+        const nearbyStopIdsSet = new Set(nearbyStopIds);
+
         // Add or update markers for stops inside the viewport.
         Object.entries(stops).forEach(([_, stop]) => {
           // Skip stops with invalid coordinates.
@@ -102,14 +108,15 @@ export class MarkerService implements OnDestroy {
           }
 
           // Create marker for the stop.
-          const isFavorite = favoriteIds[stop.stopId];
+          const isFavorite = !!favoriteIds[stop.stopId];
+          const isNearby = nearbyStopIdsSet.has(stop.stopId);
 
           // Create marker for the stop - add zIndex parameter
           marker = new google.maps.marker.AdvancedMarkerElement({
             map: this.map,
             position: { lat: stop.stopLat!, lng: stop.stopLon! },
             title: stop.stopName || 'Bus Stop',
-            content: createStopSVG(stop.stopName ?? '', !!isFavorite),
+            content: createStopSVG(stop.stopName ?? '', isFavorite, isNearby),
             zIndex: 1000, // High value to ensure stops are on top
           });
 
@@ -123,7 +130,7 @@ export class MarkerService implements OnDestroy {
         });
       })
       .catch((error) => {
-        console.error('Error getting favorite stop IDs:', error);
+        console.error('Error getting favorite and nearby stop information:', error);
       });
   }
 
