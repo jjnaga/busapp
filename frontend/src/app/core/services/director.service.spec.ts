@@ -7,6 +7,8 @@ import { IncomingBusCameraStrategy } from '../services/camera-strategies/incomin
 import { MarkerService } from '../services/markers/marker.service';
 import { MapControllerService } from './maps/map-controller.service';
 import { provideMockStore, MockStore } from '@ngrx/store/testing';
+import { Actions } from '@ngrx/effects';
+import { selectUserLocation } from '../state/lib/user-location/user-location.selectors';
 import { of } from 'rxjs';
 
 // Create fake spy objects for the strategies
@@ -42,6 +44,7 @@ const fakeMapController = {
   updateZoom: jest.fn(),
   getZoom: jest.fn(() => 16),
   zoom$: of(16),
+  mapEvents$: of(), // Add this property
   emitMapEvent: jest.fn(), // Add this
 };
 
@@ -57,6 +60,12 @@ const initialState = {
   },
   user: {
     selectedArrivalIndex: null,
+  },
+  'user-location': {
+    latitude: null,
+    longitude: null,
+    error: null,
+    dateUpdated: null,
   },
 };
 
@@ -74,6 +83,7 @@ describe('DirectorService', () => {
         { provide: IncomingBusCameraStrategy, useValue: incomingBusCameraStrategySpy },
         { provide: MarkerService, useValue: markerServiceSpy },
         { provide: MapControllerService, useValue: fakeMapController },
+        { provide: Actions, useValue: of() }, // Mock Actions for effects
         provideMockStore({
           initialState,
         }),
@@ -138,6 +148,48 @@ describe('DirectorService', () => {
     // Add a small delay to allow for async operations
     setTimeout(() => {
       expect(freeFormStrategySpy.execute).toHaveBeenCalledWith(fakeMapController);
+    }, 0);
+  });
+
+  // Test auto-switch to user mode when location becomes available
+  test('should auto-switch to USER mode when user location becomes available', () => {
+    // Start with no location in the store
+    expect((service as any).currentMode).toBe(CameraMode.FREE_FORM);
+
+    // Update the store to have user location data
+    store.overrideSelector(selectUserLocation, {
+      latitude: 21.3069,
+      longitude: -157.8583,
+      error: null,
+      dateUpdated: new Date(),
+    });
+    store.refreshState();
+
+    // Allow time for the subscription to trigger
+    setTimeout(() => {
+      expect((service as any).currentMode).toBe(CameraMode.USER);
+      expect(userCameraStrategySpy.execute).toHaveBeenCalled();
+    }, 0);
+  });
+
+  // Test that it doesn't auto-switch if user has already changed mode
+  test('should not auto-switch to USER mode if user has already selected a different mode', () => {
+    // Manually set to INCOMING_BUS mode
+    service.setIncomingBusMode();
+    expect((service as any).currentMode).toBe(CameraMode.INCOMING_BUS);
+
+    // Update the store to have user location data
+    store.overrideSelector(selectUserLocation, {
+      latitude: 21.3069,
+      longitude: -157.8583,
+      error: null,
+      dateUpdated: new Date(),
+    });
+    store.refreshState();
+
+    // Mode should remain INCOMING_BUS, not auto-switch to USER
+    setTimeout(() => {
+      expect((service as any).currentMode).toBe(CameraMode.INCOMING_BUS);
     }, 0);
   });
 });

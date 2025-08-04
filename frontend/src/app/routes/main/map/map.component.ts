@@ -217,6 +217,8 @@ export class MapComponent implements OnInit {
 
     setTimeout(() => {
       this.isProgrammaticPanAndZoom = false;
+
+      this.mapControllerService.emitMapEvent();
     }, 500);
   }
 
@@ -239,6 +241,12 @@ export class MapComponent implements OnInit {
       this.isProgrammaticPanAndZoom = true;
 
       padding ? this.map.fitBounds(bounds, padding) : this.map.fitBounds(bounds);
+
+      // Emit map event after fit bounds to update markers
+      setTimeout(() => {
+        this.isProgrammaticPanAndZoom = false;
+        this.mapControllerService.emitMapEvent();
+      }, 500);
     }
   }
 

@@ -20,7 +20,11 @@ export class UserCameraStrategy implements CameraStrategy {
       )
       .subscribe((loc) => {
         const newCenter = { lat: loc.latitude!, lng: loc.longitude! };
-        mapController.panAndZoom(newCenter, 17);
+
+        // Use requestAnimationFrame to ensure the map is ready for operations
+        requestAnimationFrame(() => {
+          mapController.panAndZoom(newCenter, 16);
+        });
       });
   }
 

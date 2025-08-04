@@ -1,6 +1,6 @@
 import { Injectable, inject, OnDestroy } from '@angular/core';
 import { BehaviorSubject, combineLatest, firstValueFrom, Subscription, EMPTY } from 'rxjs';
-import { distinctUntilChanged, startWith, tap, switchMap, filter, map } from 'rxjs/operators';
+import { distinctUntilChanged, startWith, tap, switchMap, filter, map, take } from 'rxjs/operators';
 import { FreeFormCameraStrategy } from '../services/camera-strategies/free.camera';
 import { UserCameraStrategy } from '../services/camera-strategies/user.camera';
 import { IncomingBusCameraStrategy } from '../services/camera-strategies/incoming-bus.camera';
@@ -14,6 +14,7 @@ import { MarkerService } from './markers/marker.service';
 import { SelectedStopStrategy } from './camera-strategies/selected-stop.camera';
 import { Actions, ofType } from '@ngrx/effects';
 import { selectSelectedVehicle } from '../state/lib/user/user.selectors';
+import { selectUserLocation } from '../state/lib/user-location/user-location.selectors';
 
 export enum CameraMode {
   FREE_FORM = 'FREE_FORM',
@@ -79,11 +80,34 @@ export class DirectorService implements OnDestroy {
   setMap(map: google.maps.Map): void {
     this.mapReadySubject.next(map);
 
-    // default to free mode
-    this.setFreeFormMode();
-
     this.startVehiclesMarkerManager();
     this.startStopsMarkerManager();
+
+    // Auto-switch to user mode when location is available and map is ready
+    this.initializeAutoUserMode();
+  }
+
+  private initializeAutoUserMode(): void {
+    // Auto-switch to user mode when location becomes available
+    // This indicates the user has previously granted location permissions
+    const autoUserModeSubscription = this.store
+      .select(selectUserLocation)
+      .pipe(
+        filter((location) => {
+          const isValid = location?.latitude !== null && location?.longitude !== null;
+          return isValid;
+        }),
+        take(1) // Only trigger on the first location update
+      )
+      .subscribe((location) => {
+        // Only auto-switch if we're still in the default FREE_FORM mode
+        // Don't override user's explicit mode selection
+        if (this.currentMode === CameraMode.FREE_FORM) {
+          this.setUserMode();
+        }
+      });
+
+    this.subscriptions.add(autoUserModeSubscription);
   }
 
   startVehiclesMarkerManager(): void {
