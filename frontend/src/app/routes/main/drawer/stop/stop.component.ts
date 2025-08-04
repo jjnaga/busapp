@@ -8,10 +8,9 @@ import { selectSelectedStop } from '../../../../core/state/lib/stops/stops.selec
 import { selectDrawerExpanded, selectSelectedVehicle } from '../../../../core/state/lib/user/user.selectors';
 import { DiffMinutesPipe } from '../../../../core/utils/pipes/diff-minutes.pipe';
 import { selectIsFavorite } from '../../../../core/state/lib/favorites/favorites.selectors';
-import * as StopsActions from '../../../../core/state/lib/stops/stops.actions';
 import * as UserActions from '../../../../core/state/lib/user/user.actions';
 import * as FavoritesActions from '../../../../core/state/lib/favorites/favorites.actions';
-import { faArrowLeft, faArrowRight, faClose, faHeart } from '@fortawesome/free-solid-svg-icons';
+import { faClose, faHeart } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { DirectorService } from '../../../../core/services/director.service';
 
@@ -24,7 +23,6 @@ import { DirectorService } from '../../../../core/services/director.service';
 export class StopComponent implements OnInit {
   store = inject(Store);
   private cameraDirector = inject(DirectorService);
-  StopsActions = StopsActions;
   UserActions = UserActions;
   FavoritesActions = FavoritesActions;
   faClose = faClose;
@@ -33,8 +31,6 @@ export class StopComponent implements OnInit {
   selectedVehicle$ = this.store.select(selectSelectedVehicle);
   isFavorite$!: Observable<boolean>;
   faHeart = faHeart;
-  faArrowLeft = faArrowLeft;
-  faArrowRight = faArrowRight;
 
   ngOnInit(): void {
     // Whenever the selected stop changes, update the isFavorite$ observable.

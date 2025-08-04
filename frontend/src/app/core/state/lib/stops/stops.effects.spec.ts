@@ -103,22 +103,6 @@ describe('StopsEffects', () => {
     );
   });
 
-  it('should navigate to next stop on nextStop action', (done) => {
-    const stopsSorted = [
-      { ...mockStop, distance: 100, stopLat: 10, stopLon: 20 },
-      { ...mockStop, stopId: '2', stopName: 'Stop 2', stopLat: 15, stopLon: 25, distance: 200 },
-    ];
-
-    store.overrideSelector(selectAllStopsSortedByDistance, stopsSorted); // Override with sorted array
-    store.overrideSelector(selectSelectedStop, mockStop);
-
-    actions$ = of(StopsActions.nextStop());
-    effects.navigateStops$.subscribe((action) => {
-      expect(action).toEqual(UserActions.setSelectedStop({ stop: stopsSorted[1] }));
-      done();
-    });
-  });
-
   it('should dispatch startTrackingStops on setSelectedStop when stop is provided', (done) => {
     actions$ = of(UserActions.setSelectedStop({ stop: mockStop }));
     effects.updateStopsTrackingOnSelectedStop$.subscribe((action) => {

@@ -132,21 +132,6 @@ export class StopsEffects {
     )
   );
 
-  navigateStops$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(StopsActions.nextStop, StopsActions.previousStop),
-      withLatestFrom(this.store.select(selectAllStopsSortedByDistance), this.store.select(selectSelectedStop)),
-      map(([action, stops, currentStop]) => {
-        const currentIndex = stops.findIndex((s) => s.stopId === currentStop?.stopId) ?? -1;
-        const newIndex =
-          action.type === '[Stops] Next Stop'
-            ? (currentIndex + 1) % stops.length
-            : (currentIndex - 1 + stops.length) % stops.length;
-        return UserActions.setSelectedStop({ stop: stops[newIndex] });
-      })
-    )
-  );
-
   // Effect to update stopsTracking when the selected stop changes.
   updateStopsTrackingOnSelectedStop$ = createEffect(() =>
     this.actions$.pipe(
