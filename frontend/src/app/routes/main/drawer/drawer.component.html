@@ -1,40 +1,48 @@
 <!-- Updated DrawerComponent HTML -->
 <div #drawerContainer [ngClass]="drawerContainerClasses$ | async">
   <div class="flex flex-col h-full">
-    <!-- Mobile-only drag handle -->
-    <div *ngIf="isMobile$ | async" class="flex justify-center py-2 cursor-grab active:cursor-grabbing"
-      (touchstart)="onTouchStart($event)" (touchmove)="onTouchMove($event)" (touchend)="onTouchEnd($event)">
-      <div class="w-8 h-1 bg-gray-300 rounded-full"></div>
-    </div>
-
     <!-- Combined Header for both Mobile and Desktop -->
-    <div class="px-3 pt-1 flex justify-between items-center mb-2 mt-1" [class.cursor-pointer]="isMobile$ | async"
-      (click)="isMobile$ ? toggleDrawer() : null">
-      <ng-container *ngIf="drawerMode$ | async as mode">
-        <h3 [class]="(isMobile$ | async) ? 'text-2xl' : 'text-2xl'"
-          class="font-semibold overflow-hidden whitespace-nowrap flex-1">
-          <!-- For Home mode with a selected stop, show the stop-name component -->
-          <ng-container *ngIf="mode === DrawerMode.Home && (selectedStop$ | async) as selectedStop; else defaultTitle">
-            <stop-name [stopId]="selectedStop.stopId" [defaultName]="selectedStop.stopName || ''"></stop-name>
-          </ng-container>
-          <!-- Otherwise, display the header title -->
-          <ng-template #defaultTitle>
-            <span appMarqueeIfOverflow class="inline-block">
-              {{ headerTitles[mode] }}
-            </span>
-          </ng-template>
-        </h3>
-      </ng-container>
-      <!-- Mobile-only expand/collapse button -->
-      <button *ngIf="isMobile$ | async" class="text-blue-500">
-        {{ (drawerExpanded$ | async) ? "Close" : "Expand" }}
-      </button>
+    <div
+      class="px-4 py-3 flex flex-col gap-1 min-h-[48px] bg-gradient-to-r from-slate-50 to-blue-50 border-b border-slate-100"
+      [class.cursor-pointer]="isMobile$ | async" (click)="isMobile$ ? toggleDrawer() : null"
+      (touchstart)="isMobile$ ? onTouchStart($event) : null" (touchmove)="isMobile$ ? onTouchMove($event) : null"
+      (touchend)="isMobile$ ? onTouchEnd($event) : null">
+
+      <!-- Mobile drag handle (purely visual) -->
+      <div *ngIf="isMobile$ | async" class="flex justify-center -mb-1">
+        <div class="w-12 h-1.5 bg-gradient-to-r from-slate-300 to-nagahama-blue/30 rounded-full"></div>
+      </div>
+
+      <!-- Header content -->
+      <div class="flex justify-between items-center">
+        <ng-container *ngIf="drawerMode$ | async as mode">
+          <h3 class="text-xl font-semibold text-slate-700 overflow-hidden whitespace-nowrap flex-1">
+            <!-- For Home mode with a selected stop, show the stop-name component -->
+            <ng-container
+              *ngIf="mode === DrawerMode.Home && (selectedStop$ | async) as selectedStop; else defaultTitle">
+              <stop-name [stopId]="selectedStop.stopId" [defaultName]="selectedStop.stopName || ''"></stop-name>
+            </ng-container>
+            <!-- Otherwise, display the header title -->
+            <ng-template #defaultTitle>
+              <span appMarqueeIfOverflow class="inline-block">
+                {{ headerTitles[mode] }}
+              </span>
+            </ng-template>
+          </h3>
+        </ng-container>
+        <!-- Mobile-only expand/collapse button -->
+        <button *ngIf="isMobile$ | async"
+          class="text-nagahama-blue text-sm font-medium hover:text-blue-700 transition-colors px-2 py-1 rounded-md hover:bg-white/50">
+          {{ (drawerExpanded$ | async) ? "Close" : "Expand" }}
+        </button>
+      </div>
     </div>
 
     <!-- Content Area: Use a mobile-specific container if on mobile -->
     <ng-container *ngIf="isMobile$ | async; else desktopContent">
       <!-- Mobile Content Container: Fixed height with transition and always scrollable -->
-      <div class="h-[50vh] transition-all duration-300 overflow-auto">
+      <div
+        [class]="'h-[' + DRAWER_CONSTANTS.MOBILE.CONTENT_HEIGHT_VH + 'vh] transition-all duration-300 overflow-auto'">
         <ng-container [ngSwitch]="drawerMode$ | async">
           <ng-container *ngSwitchCase="DrawerMode.Favorites">
             <drawer-favorites></drawer-favorites>
@@ -42,7 +50,7 @@
           <ng-container *ngSwitchCase="DrawerMode.Home">
             <!-- Show detailed stop view if a stop is selected, otherwise show home view -->
             <ng-container *ngIf="selectedStop$ | async; else homeView">
-              <drawer-stops></drawer-stops>
+              <drawer-stop></drawer-stop>
             </ng-container>
             <ng-template #homeView>
               <drawer-home></drawer-home>
@@ -63,7 +71,7 @@
           <ng-container *ngSwitchCase="DrawerMode.Home">
             <!-- Show detailed stop view if a stop is selected, otherwise show home view -->
             <ng-container *ngIf="selectedStop$ | async; else homeViewDesktop">
-              <drawer-stops></drawer-stops>
+              <drawer-stop></drawer-stop>
             </ng-container>
             <ng-template #homeViewDesktop>
               <drawer-home></drawer-home>
