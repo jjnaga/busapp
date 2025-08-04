@@ -12,10 +12,13 @@ import {
   selectFavoritesWithLiveData,
 } from '../../../../core/state/lib/stops/stops.selectors';
 import { selectUserLocation } from '../../../../core/state/lib/user-location/user-location.selectors';
+import { selectDrawerExpanded } from '../../../../core/state/lib/user/user.selectors';
+import { selectIsMobile } from '../../../../core/state/lib/layout/layout.selectors';
 import { toggleFavoriteAction } from '../../../../core/state/lib/favorites/favorites.actions';
 import { setSelectedStop } from '../../../../core/state/lib/user/user.actions';
 import { DiffMinutesPipe } from '../../../../core/utils/pipes/diff-minutes.pipe';
 import { StopNameComponent } from '../../../../shared/stop-name/stop-name.component';
+import { getDrawerBottomPadding } from '../../../../core/utils/drawer.constants';
 
 @Component({
   selector: 'drawer-home',
@@ -32,6 +35,8 @@ export class HomeComponent implements OnInit, OnDestroy {
   favorites$ = this.store.select(selectFavoritesWithLiveData);
   allStopsSortedByDistance$ = this.store.select(selectAllStopsSortedByDistance);
   userLocation$ = this.store.select(selectUserLocation);
+  drawerExpanded$ = this.store.select(selectDrawerExpanded);
+  isMobile$ = this.store.select(selectIsMobile);
 
   // Track favorite IDs for easy lookup
   favoriteIds$ = this.favorites$.pipe(map((favorites) => new Set(favorites.map((f) => f.stopId))));
@@ -45,6 +50,11 @@ export class HomeComponent implements OnInit, OnDestroy {
       const nearbyStopIds = new Set(nearbyStops.map((stop) => stop.stopId));
       return allFavorites.filter((fav) => !nearbyStopIds.has(fav.stopId));
     })
+  );
+
+  // Calculate bottom padding for mobile closed drawer
+  bottomPadding$ = combineLatest([this.isMobile$, this.drawerExpanded$]).pipe(
+    map(([isMobile, expanded]) => getDrawerBottomPadding(isMobile, expanded))
   );
 
   ngOnInit(): void {

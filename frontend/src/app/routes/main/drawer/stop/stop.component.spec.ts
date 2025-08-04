@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { StopsComponent } from './stops.component';
+import { StopComponent } from './stop.component';
 import { toggleFavoriteAction } from '../../../../core/state/lib/favorites/favorites.actions';
 import { Stop } from '../../../../core/utils/global.types';
 import { provideMockStore, MockStore } from '@ngrx/store/testing';
@@ -56,14 +56,14 @@ const mockStopsArray: Stop[] = [
   },
 ];
 
-describe('StopsComponent', () => {
-  let component: StopsComponent;
-  let fixture: ComponentFixture<StopsComponent>;
+describe('StopComponent', () => {
+  let component: StopComponent;
+  let fixture: ComponentFixture<StopComponent>;
   let storeMock: MockStore;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [StopsComponent],
+      imports: [StopComponent],
       providers: [
         provideMockStore({
           selectors: [
@@ -77,12 +77,11 @@ describe('StopsComponent', () => {
     storeMock = TestBed.inject(MockStore);
     storeMock.dispatch = jest.fn();
 
-    fixture = TestBed.createComponent(StopsComponent);
+    fixture = TestBed.createComponent(StopComponent);
     component = fixture.componentInstance;
 
     // Set initial values
-    component.paginatedStops$ = of(mockStopsArray);
-    component.selectedStop$ = of(undefined); // Force stopsListTemplate to be shown
+    component.selectedStop$ = of(undefined);
 
     fixture.detectChanges();
   });
@@ -148,19 +147,5 @@ describe('StopsComponent', () => {
     component.isFavorite$?.subscribe((isFavorite) => {
       expect(isFavorite).toBe(false);
     });
-  });
-
-  it('should set up IntersectionObserver for loadMore element', async () => {
-    // Force the stopsListTemplate to be shown
-    component.selectedStop$ = of(undefined);
-    component.paginatedStops$ = of(mockStopsArray);
-
-    // Force template to update
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    // Now the loadMore element should be available
-    const loadMoreElement = fixture.debugElement.query(By.css('[data-testid="load-more"]'));
-    expect(loadMoreElement).toBeTruthy();
   });
 });

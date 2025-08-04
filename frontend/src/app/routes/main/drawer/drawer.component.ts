@@ -8,13 +8,14 @@ import { selectAllStops, selectSelectedStop, selectStopsLoading } from '../../..
 import { selectDrawerExpanded, selectDrawerMode } from '../../../core/state/lib/user/user.selectors';
 import { toggleDrawerExpanded } from '../../../core/state/lib/user/user.actions';
 import { MapLayoutService } from '../../../core/services/maps/map-layout.service';
-import { StopsComponent } from './stops/stops.component';
+import { StopComponent } from './stop/stop.component';
 import { FvoritesComponent } from './favorites/favorites.components';
 import { HomeComponent } from './home/home.component';
 import { getVisibleHeight } from '../../../core/utils/utils';
 import { selectIsMobile } from '../../../core/state/lib/layout/layout.selectors';
 import { MarqueeIfOverflowDirective } from '../../../core/utils/directives/marquee-if-overflow.directive';
 import { StopNameComponent } from '../../../shared/stop-name/stop-name.component';
+import { DRAWER_CONSTANTS } from '../../../core/utils/drawer.constants';
 
 @Component({
   selector: 'drawer',
@@ -23,7 +24,7 @@ import { StopNameComponent } from '../../../shared/stop-name/stop-name.component
   imports: [
     CommonModule,
     BottomMenuComponent,
-    StopsComponent,
+    StopComponent,
     FvoritesComponent,
     HomeComponent,
     MarqueeIfOverflowDirective,
@@ -64,6 +65,9 @@ export class DrawerComponent implements OnInit, AfterViewInit, OnDestroy {
     [DrawerMode.Favorites]: 'Favorites',
   };
 
+  // Drawer configuration constants
+  readonly DRAWER_CONSTANTS = DRAWER_CONSTANTS;
+
   // Touch/drag state
   private isDragging = false;
   private startY = 0;
@@ -77,11 +81,14 @@ export class DrawerComponent implements OnInit, AfterViewInit, OnDestroy {
         // Mobile: full-width bottom drawer with slide animation.
         const baseClasses =
           'absolute bottom-0 left-0 w-full bg-white border-t shadow-lg transition-transform duration-200';
-        const transformClass = expanded ? 'translate-y-0' : 'translate-y-[60%]';
+        const transformClass = expanded
+          ? 'translate-y-0'
+          : `translate-y-[${DRAWER_CONSTANTS.MOBILE.CLOSED_TRANSLATE_PERCENTAGE}%]`;
         return `${baseClasses} ${transformClass}`;
       } else {
-        // Desktop: Fixed floating drawer simulating a 375x575 iPhone screen.
-        return `absolute left-10 top-10 bg-white border shadow-lg w-[375px] h-[575px]`;
+        // Desktop: Fixed floating drawer simulating iPhone screen dimensions.
+        const { WIDTH_PX, HEIGHT_PX } = DRAWER_CONSTANTS.DESKTOP;
+        return `absolute left-10 top-10 bg-white border shadow-lg w-[${WIDTH_PX}px] h-[${HEIGHT_PX}px]`;
       }
     })
   );
@@ -123,7 +130,8 @@ export class DrawerComponent implements OnInit, AfterViewInit, OnDestroy {
     const deltaY = currentY - this.startY;
 
     // Calculate new translateY, constrain it to reasonable bounds
-    const newTranslateY = Math.max(-50, Math.min(this.initialTranslateY + deltaY, window.innerHeight * 0.6));
+    const maxTranslateY = window.innerHeight * (DRAWER_CONSTANTS.MOBILE.CLOSED_TRANSLATE_PERCENTAGE / 100);
+    const newTranslateY = Math.max(-50, Math.min(this.initialTranslateY + deltaY, maxTranslateY));
     this.currentTranslateY = newTranslateY;
 
     // Apply transform directly
@@ -139,7 +147,7 @@ export class DrawerComponent implements OnInit, AfterViewInit, OnDestroy {
     this.drawerContainer.nativeElement.style.transition = '';
 
     // Determine final position based on drag distance
-    const threshold = window.innerHeight * 0.3; // 30% of screen height
+    const threshold = window.innerHeight * (DRAWER_CONSTANTS.MOBILE.GESTURE_THRESHOLD_PERCENTAGE / 100);
     const shouldExpand = this.currentTranslateY < threshold;
 
     // Get current state and update if needed
