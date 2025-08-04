@@ -293,9 +293,157 @@ body {
 }
 
 .custom-vehicle-marker {
-  width: 35px;
   z-index: 1000;
   height: auto;
+  position: relative;
+}
+
+/* Vehicle marker container styles */
+.vehicle-marker-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  position: relative;
+}
+
+.vehicle-marker-container.compact {
+  flex-direction: row;
+  gap: 6px;
+  align-items: center;
+}
+
+.vehicle-marker-container.minimal {
+  width: 12px;
+  height: 12px;
+}
+
+/* Vehicle info box */
+.vehicle-info-box {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  border-radius: 8px;
+  padding: 6px 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(4px);
+  min-width: 100px;
+  max-width: 160px;
+  text-align: center;
+  transform: translateY(-8px);
+  position: relative;
+  z-index: 1001; /* Ensure info box appears above other elements */
+}
+
+/* Arrow pointing down from info box to vehicle */
+.vehicle-info-box::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 4px solid rgba(255, 255, 255, 0.95);
+}
+
+/* Route badge styles */
+.route-badge {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: white;
+  font-weight: bold;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-bottom: 2px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.route-badge-only {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: white;
+  font-weight: bold;
+  font-size: 10px;
+  padding: 2px 4px;
+  border-radius: 3px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
+}
+
+/* Headsign text */
+.headsign-text {
+  font-size: 10px;
+  color: #374151;
+  line-height: 1.2;
+  font-weight: 500;
+}
+
+/* Vehicle icon styles */
+.vehicle-icon {
+  background: white;
+  border: 2px solid #2563eb;
+  border-radius: 50%;
+  padding: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vehicle-icon-small {
+  background: white;
+  border: 1px solid #2563eb;
+  border-radius: 50%;
+  padding: 2px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Hover effects and animations */
+.custom-vehicle-marker .vehicle-info-box {
+  opacity: 0;
+  transform: translateY(-8px) scale(0.8);
+  transition: all 0.2s ease-out;
+  pointer-events: none;
+}
+
+/* Always visible info box for highest zoom levels */
+.custom-vehicle-marker .vehicle-info-box.always-visible {
+  opacity: 1;
+  transform: translateY(-8px) scale(1);
+  pointer-events: auto;
+}
+
+.custom-vehicle-marker:hover .vehicle-info-box {
+  opacity: 1;
+  background: rgba(255, 255, 255, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transform: translateY(-10px) scale(1);
+  pointer-events: auto;
+}
+
+.custom-vehicle-marker:hover .vehicle-icon {
+  transform: scale(1.1);
+  transition: transform 0.2s ease-out;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .vehicle-info-box {
+    min-width: 80px;
+    max-width: 120px;
+  }
+
+  .headsign-text {
+    font-size: 9px;
+  }
+
+  .route-badge {
+    font-size: 10px;
+  }
 }
 
 .custom-user-marker {

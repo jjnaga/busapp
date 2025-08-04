@@ -22,15 +22,63 @@ export function createUserMarkerContent(): HTMLElement {
   return div;
 }
 
-// TODO vehicles are too big when zoomed out.
-// we need to get rid of the image, or make svg, or make image smaller on zoom out
-export function createVehicleMarkerContent(): HTMLElement {
+// Enhanced vehicle marker with route info and zoom-aware display
+export function createVehicleMarkerContent(routeName?: string, headsign?: string, zoom?: number): HTMLElement {
   const div = document.createElement('div');
-  div.classList.add('custom-marker');
-  div.innerHTML = `
-      <img src="bus.png" alt="Vehicle Marker" class="custom-vehicle-marker" />
+  div.classList.add('custom-vehicle-marker');
+
+  // Filter out null values (both actual null and string 'null')
+  const validRouteName = routeName && routeName !== 'null' ? routeName : null;
+  const validHeadsign = headsign && headsign !== 'null' ? headsign : null;
+
+  // Determine display mode based on zoom level
+  const showInfoOnHover = (zoom || 15) >= 15;
+  const showRouteOnly = (zoom || 15) >= 13;
+
+  if (showInfoOnHover && validRouteName && validHeadsign) {
+    // Detailed view with route and headsign info box (always visible)
+    div.innerHTML = `
+      <div class="vehicle-marker-container">
+        <div class="vehicle-info-box always-visible">
+          <div class="route-badge">${validRouteName}</div>
+          <div class="headsign-text">${truncateText(validHeadsign, 20)}</div>
+        </div>
+        <div class="vehicle-icon">
+          <svg width="24" height="24" viewBox="0 0 576 512" xmlns="http://www.w3.org/2000/svg">
+            <path fill="#2563eb" d="M288 0C422.4 0 512 35.2 512 80l0 16 0 32c17.7 0 32 14.3 32 32l0 64c0 17.7-14.3 32-32 32l0 160c0 17.7-14.3 32-32 32l0 32c0 17.7-14.3 32-32 32l-32 0c-17.7 0-32-14.3-32-32l0-32-192 0 0 32c0 17.7-14.3 32-32 32l-32 0c-17.7 0-32-14.3-32-32l0-32c-17.7 0-32-14.3-32-32l0-160c0-17.7-14.3-32-32-32l0-64c0-17.7-14.3-32-32-32l0-32 0-16C64 35.2 153.6 0 288 0zM128 160l0 96c0 17.7 14.3 32 32 32l32 0c17.7 0 32-14.3 32-32l0-96-96 0zM304 160l0 96c0 17.7 14.3 32 32 32l32 0c17.7 0 32-14.3 32-32l0-96-96 0zM144 400a32 32 0 1 0 0-64 32 32 0 1 0 0 64zm288 0a32 32 0 1 0 0-64 32 32 0 1 0 0 64zM384 80c0-8.8-7.2-16-16-16L208 64c-8.8 0-16 7.2-16 16s7.2 16 16 16l160 0c8.8 0 16-7.2 16-16z"/>
+          </svg>
+        </div>
+      </div>
     `;
+  } else if (showRouteOnly && validRouteName) {
+    // Route badge only view for medium zoom (always visible)
+    div.innerHTML = `
+      <div class="vehicle-marker-container compact">
+        <div class="route-badge-only">${validRouteName}</div>
+        <div class="vehicle-icon-small">
+          <svg width="16" height="16" viewBox="0 0 576 512" xmlns="http://www.w3.org/2000/svg">
+            <path fill="#2563eb" d="M288 0C422.4 0 512 35.2 512 80l0 16 0 32c17.7 0 32 14.3 32 32l0 64c0 17.7-14.3 32-32 32l0 160c0 17.7-14.3 32-32 32l0 32c0 17.7-14.3 32-32 32l-32 0c-17.7 0-32-14.3-32-32l0-32-192 0 0 32c0 17.7-14.3 32-32 32l-32 0c-17.7 0-32-14.3-32-32l0-32c-17.7 0-32-14.3-32-32l0-160c0-17.7-14.3-32-32-32l0-64c0-17.7-14.3-32-32-32l0-32 0-16C64 35.2 153.6 0 288 0zM128 160l0 96c0 17.7 14.3 32 32 32l32 0c17.7 0 32-14.3 32-32l0-96-96 0zM304 160l0 96c0 17.7 14.3 32 32 32l32 0c17.7 0 32-14.3 32-32l0-96-96 0zM144 400a32 32 0 1 0 0-64 32 32 0 1 0 0 64zm288 0a32 32 0 1 0 0-64 32 32 0 1 0 0 64zM384 80c0-8.8-7.2-16-16-16L208 64c-8.8 0-16 7.2-16 16s7.2 16 16 16l160 0c8.8 0 16-7.2 16-16z"/>
+          </svg>
+        </div>
+      </div>
+    `;
+  } else {
+    // Minimal icon only for low zoom levels
+    div.innerHTML = `
+      <div class="vehicle-marker-container minimal">
+        <svg width="12" height="12" viewBox="0 0 576 512" xmlns="http://www.w3.org/2000/svg">
+          <path fill="#2563eb" d="M288 0C422.4 0 512 35.2 512 80l0 16 0 32c17.7 0 32 14.3 32 32l0 64c0 17.7-14.3 32-32 32l0 160c0 17.7-14.3 32-32 32l0 32c0 17.7-14.3 32-32 32l-32 0c-17.7 0-32-14.3-32-32l0-32-192 0 0 32c0 17.7-14.3 32-32 32l-32 0c-17.7 0-32-14.3-32-32l0-32c-17.7 0-32-14.3-32-32l0-160c0-17.7-14.3-32-32-32l0-64c0-17.7-14.3-32-32-32l0-32 0-16C64 35.2 153.6 0 288 0zM128 160l0 96c0 17.7 14.3 32 32 32l32 0c17.7 0 32-14.3 32-32l0-96-96 0zM304 160l0 96c0 17.7 14.3 32 32 32l32 0c17.7 0 32-14.3 32-32l0-96-96 0zM144 400a32 32 0 1 0 0-64 32 32 0 1 0 0 64zm288 0a32 32 0 1 0 0-64 32 32 0 1 0 0 64zM384 80c0-8.8-7.2-16-16-16L208 64c-8.8 0-16 7.2-16 16s7.2 16 16 16l160 0c8.8 0 16-7.2 16-16z"/>
+        </svg>
+      </div>
+    `;
+  }
+
   return div;
+}
+
+function truncateText(text: string, maxLength: number): string {
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength - 3) + '...';
 }
 
 export function createStopSVG(title: string, isFavorite: boolean, isNearby: boolean = false): HTMLElement {

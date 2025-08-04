@@ -5,6 +5,7 @@ import { setSelectedStop, setSelectedVehicle } from '../../state/lib/user/user.a
 import { Dictionary } from '@ngrx/entity';
 import { selectAllFavoriteEntities } from '../../state/lib/favorites/favorites.selectors';
 import { selectNearbyStopIds } from '../../state/lib/stops/stops.selectors';
+import { selectVehicleEntities } from '../../state/lib/vehicles/vehicles.selectors';
 import { Subscription, BehaviorSubject, firstValueFrom } from 'rxjs';
 import { createStopSVG, createUserMarkerContent, createVehicleMarkerContent } from './utils.service';
 import { selectUserLocation } from '../../state/lib/user-location/user-location.selectors';
@@ -15,6 +16,8 @@ import { isValidCoordinate } from '../../utils/utils';
 })
 export class MarkerService implements OnDestroy {
   minZoomLevel: number = 15;
+  private currentZoom: number = 15;
+  private lastRefreshZoom: number = 15;
 
   private store = inject(Store);
   private map: google.maps.Map | null = null;
@@ -32,6 +35,27 @@ export class MarkerService implements OnDestroy {
   init(map: google.maps.Map) {
     this.map = map;
     this.mapReady$.next(map);
+    this.currentZoom = map.getZoom() || 15;
+    this.lastRefreshZoom = this.currentZoom;
+
+    // Listen for zoom changes to refresh vehicle markers when needed
+    map.addListener('zoom_changed', () => {
+      const newZoom = map.getZoom() || 15;
+      this.currentZoom = newZoom;
+
+      // Refresh vehicle markers if zoom changed significantly (crossing display thresholds)
+      const zoomDiff = Math.abs(newZoom - this.lastRefreshZoom);
+      const crossedThreshold =
+        (this.lastRefreshZoom < 13 && newZoom >= 13) ||
+        (this.lastRefreshZoom >= 13 && newZoom < 13) ||
+        (this.lastRefreshZoom < 15 && newZoom >= 15) ||
+        (this.lastRefreshZoom >= 15 && newZoom < 15);
+
+      if (crossedThreshold || zoomDiff >= 2) {
+        this.refreshVehicleMarkerDisplay();
+        this.lastRefreshZoom = newZoom;
+      }
+    });
 
     this.userSubscription = this.store.select(selectUserLocation).subscribe((location) => {
       if (location && location.latitude && location.longitude) {
@@ -140,8 +164,11 @@ export class MarkerService implements OnDestroy {
     for (const vehicle of vehicles) {
       const marker = this.vehicleMarkers.get(vehicle.busNumber);
       if (marker) {
-        // Update existing marker
+        // Update existing marker position and content
         marker.position = new google.maps.LatLng(vehicle.latitude, vehicle.longitude);
+
+        // Also update content to ensure it reflects current zoom level and vehicle data
+        marker.content = createVehicleMarkerContent(vehicle.routeName, vehicle.headsign, this.currentZoom);
       } else {
         // Create new marker if it doesn't exist and coordinates are valid
         if (isValidCoordinate(vehicle.latitude, vehicle.longitude)) {
@@ -152,7 +179,7 @@ export class MarkerService implements OnDestroy {
             map: this.map,
             position: position,
             title: vehicle.headsign || 'Vehicle',
-            content: createVehicleMarkerContent(),
+            content: createVehicleMarkerContent(vehicle.routeName, vehicle.headsign, this.map?.getZoom()),
             zIndex: 5000,
           });
 
@@ -207,7 +234,7 @@ export class MarkerService implements OnDestroy {
         map: this.map,
         position: position,
         title: vehicle.headsign || 'Vehicle',
-        content: createVehicleMarkerContent(),
+        content: createVehicleMarkerContent(vehicle.routeName, vehicle.headsign, this.map?.getZoom()),
         zIndex: 5000,
       });
 
@@ -269,6 +296,29 @@ export class MarkerService implements OnDestroy {
       this.routeShapePolyline.setMap(null);
       this.routeShapePolyline = null;
     }
+  }
+
+  // Refresh vehicle marker display based on current zoom level
+  private refreshVehicleMarkerDisplay(): void {
+    if (!this.map) return;
+
+    // Get current vehicles from store
+    firstValueFrom(this.store.select(selectVehicleEntities))
+      .then((vehicles) => {
+        // Update each vehicle marker's content
+        Object.entries(vehicles).forEach(([busNumber, vehicle]) => {
+          if (!vehicle) return;
+
+          const marker = this.vehicleMarkers.get(busNumber);
+          if (marker) {
+            // Update the marker content with new zoom-appropriate display
+            marker.content = createVehicleMarkerContent(vehicle.routeName, vehicle.headsign, this.currentZoom);
+          }
+        });
+      })
+      .catch((error) => {
+        console.error('Error refreshing vehicle marker display:', error);
+      });
   }
 
   clearVehicleMarkers() {
