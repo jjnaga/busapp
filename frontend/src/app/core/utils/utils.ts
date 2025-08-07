@@ -19,15 +19,24 @@ export function getBaseUrl(protocol?: string): string {
 
 export function getVisibleHeight(element: Element) {
   const rect = element.getBoundingClientRect();
-  const isExpanded = element.classList.contains('translate-y-0');
 
-  // If the drawer is not expanded, return 40% of the height
-  // from the translateY class, that can be abstracted
-  if (!isExpanded) {
-    return rect.height * 0.4;
-  }
+  // Calculate how much of the element is actually visible in the viewport
+  const windowHeight = window.innerHeight;
+  const elementTop = rect.top;
+  const elementBottom = rect.bottom;
 
-  return rect.height;
+  // If element is completely above viewport
+  if (elementBottom <= 0) return 0;
+
+  // If element is completely below viewport
+  if (elementTop >= windowHeight) return 0;
+
+  // Calculate visible portion
+  const visibleTop = Math.max(0, elementTop);
+  const visibleBottom = Math.min(windowHeight, elementBottom);
+  const visibleHeight = Math.max(0, visibleBottom - visibleTop);
+
+  return visibleHeight;
 }
 
 export function isValidCoordinate(lat: number, lng: number): boolean {

@@ -107,16 +107,15 @@ export class DrawerComponent implements OnInit, AfterViewInit, OnDestroy {
     this.isDragging = true;
     this.startY = event.touches[0].clientY;
 
-    // Get current transform value
-    const computedStyle = window.getComputedStyle(this.drawerContainer.nativeElement);
-    const transform = computedStyle.transform;
-    if (transform && transform !== 'none') {
-      const matrix = new DOMMatrixReadOnly(transform);
-      this.currentTranslateY = matrix.m42; // translateY value
-    } else {
-      this.currentTranslateY = 0;
-    }
-    this.initialTranslateY = this.currentTranslateY;
+    // Get current state to determine initial position
+    this.drawerExpanded$.pipe(take(1)).subscribe((expanded) => {
+      if (expanded) {
+        this.initialTranslateY = 0;
+      } else {
+        this.initialTranslateY = window.innerHeight * (DRAWER_CONSTANTS.MOBILE.CLOSED_TRANSLATE_PERCENTAGE / 100);
+      }
+      this.currentTranslateY = this.initialTranslateY;
+    });
 
     // Disable transition during drag
     this.drawerContainer.nativeElement.style.transition = 'none';
@@ -131,7 +130,7 @@ export class DrawerComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // Calculate new translateY, constrain it to reasonable bounds
     const maxTranslateY = window.innerHeight * (DRAWER_CONSTANTS.MOBILE.CLOSED_TRANSLATE_PERCENTAGE / 100);
-    const newTranslateY = Math.max(-50, Math.min(this.initialTranslateY + deltaY, maxTranslateY));
+    const newTranslateY = Math.max(0, Math.min(this.initialTranslateY + deltaY, maxTranslateY));
     this.currentTranslateY = newTranslateY;
 
     // Apply transform directly
@@ -142,9 +141,6 @@ export class DrawerComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!this.isDragging || !this.drawerContainer?.nativeElement) return;
 
     this.isDragging = false;
-
-    // Re-enable transition
-    this.drawerContainer.nativeElement.style.transition = '';
 
     // Determine final position based on drag distance
     const threshold = window.innerHeight * (DRAWER_CONSTANTS.MOBILE.GESTURE_THRESHOLD_PERCENTAGE / 100);
@@ -157,40 +153,68 @@ export class DrawerComponent implements OnInit, AfterViewInit, OnDestroy {
       } else if (!shouldExpand && expanded) {
         this.store.dispatch(toggleDrawerExpanded({}));
       }
-    });
 
-    // Reset transform to let CSS classes take over
-    this.drawerContainer.nativeElement.style.transform = '';
+      // Clean up: remove inline styles and let CSS classes take over
+      this.drawerContainer.nativeElement.style.transition = '';
+      this.drawerContainer.nativeElement.style.transform = '';
+
+      // Force height recalculation after state settles
+      timer(50).subscribe(() => this.updateHeight());
+    });
   }
 
   ngAfterViewInit() {
     this.resizeObserver = new ResizeObserver(() => {
-      this.updateHeight();
+      // Debounce height updates to avoid excessive calculations
+      timer(100).subscribe(() => this.updateHeight());
     });
 
-    // Update height after animation changes (only relevant on mobile).
+    // Update height when drawer state changes
     this.drawerExpanded$.subscribe(() => {
-      timer(300).subscribe(() => this.updateHeight());
+      // Wait for CSS transitions to complete
+      timer(350).subscribe(() => this.updateHeight());
     });
 
     if (this.drawerContainer?.nativeElement) {
       this.resizeObserver.observe(this.drawerContainer.nativeElement);
+      // Initial height calculation
+      timer(100).subscribe(() => this.updateHeight());
     }
   }
 
   private updateHeight() {
-    if (this.drawerContainer?.nativeElement) {
-      const visibleHeight = getVisibleHeight(this.drawerContainer.nativeElement);
-      this.mapLayoutService.updateDrawerHeight(visibleHeight);
+    if (!this.drawerContainer?.nativeElement) return;
+
+    // Ensure any pending transforms are cleared
+    const hasInlineTransform = this.drawerContainer.nativeElement.style.transform;
+    if (hasInlineTransform) {
+      // Don't update height while dragging
+      return;
     }
+
+    const visibleHeight = getVisibleHeight(this.drawerContainer.nativeElement);
+    this.mapLayoutService.updateDrawerHeight(visibleHeight);
   }
 
   ngOnInit(): void {
-    // Remove the headerTitle$ initialization
-    // The title is now handled directly in the template
+    // Force initial height calculation and state cleanup
+    this.ensureCleanState();
   }
 
   ngOnDestroy() {
     this.resizeObserver.disconnect();
+  }
+
+  private ensureCleanState() {
+    // Ensure no leftover inline styles that could interfere
+    if (this.drawerContainer?.nativeElement) {
+      this.drawerContainer.nativeElement.style.transform = '';
+      this.drawerContainer.nativeElement.style.transition = '';
+    }
+
+    // Reset drag state
+    this.isDragging = false;
+    this.currentTranslateY = 0;
+    this.initialTranslateY = 0;
   }
 }

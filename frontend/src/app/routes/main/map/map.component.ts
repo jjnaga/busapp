@@ -87,7 +87,15 @@ export class MapComponent implements OnInit {
         ([isMobile, drawerHeight]) => {
           if (this.map) {
             const viewportHeight = window.innerHeight;
-            this.map.getDiv().style.height = isMobile ? `${viewportHeight - drawerHeight}px` : `${viewportHeight}px`;
+
+            if (isMobile) {
+              // Ensure drawer height is reasonable (not negative, not larger than viewport)
+              const safeDrawerHeight = Math.max(0, Math.min(drawerHeight, viewportHeight * 0.8));
+              const mapHeight = Math.max(100, viewportHeight - safeDrawerHeight); // Minimum 100px for map
+              this.map.getDiv().style.height = `${mapHeight}px`;
+            } else {
+              this.map.getDiv().style.height = `${viewportHeight}px`;
+            }
           }
         }
       );
