@@ -58,10 +58,10 @@ CREATE TABLE IF NOT EXISTS gtfs.calendar_dates (
 
 CREATE TABLE IF NOT EXISTS gtfs.routes (
   route_id             VARCHAR(15) PRIMARY KEY,
-  route_short_name     VARCHAR(5),
+  route_short_name     VARCHAR(30),
   route_long_name      VARCHAR(75),
   route_type           SMALLINT,
-  agency_id            VARCHAR(15)
+  agency_id            VARCHAR(30)
 );
 
 CREATE TABLE IF NOT EXISTS gtfs.stop_times (
