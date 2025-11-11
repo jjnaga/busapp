@@ -1,18 +1,18 @@
+# --- Build stage ---
 FROM node:20-alpine as build
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm ci --no-audit --no-fund
 COPY . .
 RUN npm run build -- --configuration production
 
-# Unprivileged NGINX (runs as uid 101)
+# --- Runtime stage ---
 FROM nginxinc/nginx-unprivileged:1.27-alpine
 
-RUN apk add --no-cache dumb-init
-COPY ./nginx.conf /etc/nginx/nginx.conf
-COPY --from=build /app/dist/frontend/browser /usr/share/nginx/html
+# Copy config + static files; ensure the unprivileged user (uid 101) owns them
+COPY --chown=101:101 ./nginx.conf /etc/nginx/nginx.conf
+COPY --chown=101:101 --from=build /app/dist/frontend/browser /usr/share/nginx/html
 
-USER 101
 EXPOSE 9080
-ENTRYPOINT ["dumb-init", "--"]
-CMD ["nginx", "-g", "daemon off;"]
+# No USER needed (image already runs as uid 101)
+# No dumb-init needed (keep attack surface minimal)
