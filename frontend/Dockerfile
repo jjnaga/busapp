@@ -13,6 +13,11 @@ FROM nginxinc/nginx-unprivileged:1.27-alpine
 COPY --chown=101:101 ./nginx.conf /etc/nginx/nginx.conf
 COPY --chown=101:101 --from=build /app/dist/frontend/browser /usr/share/nginx/html
 
+# Ensure runtime dirs exist and are writable by the unprivileged nginx user (uid 101).
+# Without this the entrypoint/daemon may fail to write /run/nginx.pid (permission denied)
+RUN mkdir -p /run /var/cache/nginx /var/log/nginx \
+	&& chown -R 101:101 /run /var/cache/nginx /var/log/nginx
+
 EXPOSE 9080
 # No USER needed (image already runs as uid 101)
 # No dumb-init needed (keep attack surface minimal)
