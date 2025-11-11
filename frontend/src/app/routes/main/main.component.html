@@ -1,6 +1,7 @@
 <div class="relative h-dvh overflow-hidden">
-  <map-component class="full-screen-map"></map-component>
-  <div [ngClass]="{'mobile-drawer-container': (isMobile$ | async), 'desktop-drawer-view': !(isMobile$ | async)}">
-    <drawer></drawer>
-  </div>
+  <!-- Map always at full height, drawer overlays on mobile -->
+  <map-component class="absolute inset-0 w-full h-full"></map-component>
+
+  <!-- Drawer overlays map on mobile with higher z-index, desktop is positioned separately -->
+  <drawer></drawer>
 </div>

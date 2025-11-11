@@ -9,6 +9,9 @@ body {
   height: 100%;
   margin: 0;
   padding: 0;
+  /* Dark mode background and text */
+  background-color: #1a1a1a;
+  color: #e0e0e0;
 }
 
 @font-face {
@@ -211,7 +214,8 @@ button.toast-close-button {
 }
 
 body {
-  background-color: #faf8f6;
+  /* Dark mode background */
+  background-color: #1a1a1a;
 }
 
 @layer utilities {
@@ -257,6 +261,21 @@ body {
   transition: filter 0.3s ease !important;
 }
 
+/* Cluster marker styles */
+.cluster-marker {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cluster-marker:hover {
+  transform: scale(1.1);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+}
+
+.cluster-marker-content {
+  user-select: none;
+}
+
 /* styles.css */
 .stop-marker {
   transition: all 0.2s ease;
@@ -280,10 +299,11 @@ body {
   transform: translateX(-50%);
   white-space: nowrap;
   font-size: 12px;
-  background: white;
+  background: #2d2d2d;
+  color: #e0e0e0;
   padding: 2px 5px;
   border-radius: 3px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
   opacity: 0;
   transition: opacity 0.2s ease;
 }
@@ -318,13 +338,13 @@ body {
   height: 12px;
 }
 
-/* Vehicle info box */
+/* Vehicle info box - Dark Mode */
 .vehicle-info-box {
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(37, 99, 235, 0.2);
+  background: rgba(45, 45, 45, 0.95);
+  border: 1px solid rgba(100, 150, 235, 0.3);
   border-radius: 8px;
   padding: 6px 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(4px);
   min-width: 100px;
   max-width: 160px;
@@ -334,7 +354,7 @@ body {
   z-index: 1001; /* Ensure info box appears above other elements */
 }
 
-/* Arrow pointing down from info box to vehicle */
+/* Arrow pointing down from info box to vehicle - Dark Mode */
 .vehicle-info-box::after {
   content: "";
   position: absolute;
@@ -345,7 +365,7 @@ body {
   height: 0;
   border-left: 4px solid transparent;
   border-right: 4px solid transparent;
-  border-top: 4px solid rgba(255, 255, 255, 0.95);
+  border-top: 4px solid rgba(45, 45, 45, 0.95);
 }
 
 /* Route badge styles */
@@ -371,38 +391,38 @@ body {
   white-space: nowrap;
 }
 
-/* Headsign text */
+/* Headsign text - Dark Mode */
 .headsign-text {
   font-size: 10px;
-  color: #374151;
+  color: #d0d0d0;
   line-height: 1.2;
   font-weight: 500;
 }
 
-/* Vehicle icon styles */
+/* Vehicle icon styles - Dark Mode */
 .vehicle-icon {
-  background: white;
+  background: #2d2d2d;
   border: 2px solid #2563eb;
   border-radius: 50%;
   padding: 4px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .vehicle-icon-small {
-  background: white;
+  background: #2d2d2d;
   border: 1px solid #2563eb;
   border-radius: 50%;
   padding: 2px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-/* Hover effects and animations */
+/* Hover effects and animations - Dark Mode */
 .custom-vehicle-marker .vehicle-info-box {
   opacity: 0;
   transform: translateY(-8px) scale(0.8);
@@ -410,7 +430,7 @@ body {
   pointer-events: none;
 }
 
-/* Always visible info box for highest zoom levels */
+/* Always visible info box for highest zoom levels - Dark Mode */
 .custom-vehicle-marker .vehicle-info-box.always-visible {
   opacity: 1;
   transform: translateY(-8px) scale(1);
@@ -419,8 +439,8 @@ body {
 
 .custom-vehicle-marker:hover .vehicle-info-box {
   opacity: 1;
-  background: rgba(255, 255, 255, 1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  background: rgba(45, 45, 45, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
   transform: translateY(-10px) scale(1);
   pointer-events: auto;
 }
@@ -459,21 +479,19 @@ body {
 .custom-user-marker:hover svg {
   filter: brightness(1.1);
 }
-.full-screen-map {
-  width: 100dvw;
-  height: 100dvh;
-}
 
-/* Desktop view simulates an iPhone */
+/* Removed .full-screen-map - map sizing now handled in main.component.html with Tailwind */
+
+/* Desktop view simulates an iPhone - Dark Mode */
 .desktop-drawer-view {
   width: 375px;
   bottom: 20px;
   left: 20px;
-  border: 1px solid #ddd;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  border: 1px solid #3a3a3a;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
   border-radius: 30px 30px 0 0;
   overflow: hidden;
-  background-color: #fff;
+  background-color: #1a1a1a;
 }
 
 @keyframes marquee {

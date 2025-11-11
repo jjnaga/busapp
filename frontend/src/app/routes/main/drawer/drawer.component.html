@@ -1,22 +1,22 @@
-<!-- Updated DrawerComponent HTML -->
+<!-- Updated DrawerComponent HTML with Dark Mode -->
 <div #drawerContainer [ngClass]="drawerContainerClasses$ | async">
   <div class="flex flex-col h-full">
-    <!-- Combined Header for both Mobile and Desktop -->
+    <!-- Combined Header for both Mobile and Desktop - Dark Mode -->
     <div
-      class="px-4 py-3 flex flex-col gap-1 min-h-[48px] bg-gradient-to-r from-slate-50 to-blue-50 border-b border-slate-100"
+      class="px-4 py-3 flex flex-col gap-1 min-h-[48px] bg-gradient-to-r from-gray-800 to-gray-900 border-b border-gray-700"
       [class.cursor-pointer]="isMobile$ | async" (click)="isMobile$ ? toggleDrawer() : null"
       (touchstart)="isMobile$ ? onTouchStart($event) : null" (touchmove)="isMobile$ ? onTouchMove($event) : null"
       (touchend)="isMobile$ ? onTouchEnd($event) : null">
 
-      <!-- Mobile drag handle (purely visual) -->
+      <!-- Mobile drag handle (purely visual) - Dark Mode -->
       <div *ngIf="isMobile$ | async" class="flex justify-center -mb-1">
-        <div class="w-12 h-1.5 bg-gradient-to-r from-slate-300 to-nagahama-blue/30 rounded-full"></div>
+        <div class="w-12 h-1.5 bg-gradient-to-r from-gray-600 to-blue-500/50 rounded-full"></div>
       </div>
 
-      <!-- Header content -->
+      <!-- Header content - Dark Mode Text -->
       <div class="flex justify-between items-center">
         <ng-container *ngIf="drawerMode$ | async as mode">
-          <h3 class="text-xl font-semibold text-slate-700 overflow-hidden whitespace-nowrap flex-1">
+          <h3 class="text-xl font-semibold text-gray-100 overflow-hidden whitespace-nowrap flex-1">
             <!-- For Home mode with a selected stop, show the stop-name component -->
             <ng-container
               *ngIf="mode === DrawerMode.Home && (selectedStop$ | async) as selectedStop; else defaultTitle">
@@ -30,19 +30,19 @@
             </ng-template>
           </h3>
         </ng-container>
-        <!-- Mobile-only expand/collapse button -->
+        <!-- Mobile-only expand/collapse button - Dark Mode -->
         <button *ngIf="isMobile$ | async"
-          class="text-nagahama-blue text-sm font-medium hover:text-blue-700 transition-colors px-2 py-1 rounded-md hover:bg-white/50">
+          class="text-blue-400 text-sm font-medium hover:text-blue-300 transition-colors px-2 py-1 rounded-md hover:bg-gray-800/50">
           {{ (drawerExpanded$ | async) ? "Close" : "Expand" }}
         </button>
       </div>
     </div>
 
-    <!-- Content Area: Use a mobile-specific container if on mobile -->
+    <!-- Content Area: Use a mobile-specific container if on mobile - Dark Mode -->
     <ng-container *ngIf="isMobile$ | async; else desktopContent">
-      <!-- Mobile Content Container: Fixed height with transition and always scrollable -->
+      <!-- Mobile Content Container: Fixed height with transition and always scrollable - Dark Mode -->
       <div
-        [class]="'h-[' + DRAWER_CONSTANTS.MOBILE.CONTENT_HEIGHT_VH + 'vh] transition-all duration-300 overflow-auto'">
+        [class]="'h-[' + DRAWER_CONSTANTS.MOBILE.CONTENT_HEIGHT_VH + 'vh] transition-all duration-300 overflow-auto bg-gray-900'">
         <ng-container [ngSwitch]="drawerMode$ | async">
           <ng-container *ngSwitchCase="DrawerMode.Favorites">
             <drawer-favorites></drawer-favorites>
@@ -61,9 +61,9 @@
       <bottom-menu></bottom-menu>
     </ng-container>
 
-    <!-- Desktop Content Area: Fills available space -->
+    <!-- Desktop Content Area: Fills available space - Dark Mode -->
     <ng-template #desktopContent>
-      <div class="flex-grow overflow-auto">
+      <div class="flex-grow overflow-auto bg-gray-900">
         <ng-container [ngSwitch]="drawerMode$ | async">
           <ng-container *ngSwitchCase="DrawerMode.Favorites">
             <drawer-favorites></drawer-favorites>

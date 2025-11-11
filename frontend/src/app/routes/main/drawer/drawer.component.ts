@@ -74,21 +74,42 @@ export class DrawerComponent implements OnInit, AfterViewInit, OnDestroy {
   private currentTranslateY = 0;
   private initialTranslateY = 0;
 
-  // Compute container class based on platform: mobile gets slide transform; desktop is fixed.
+  /**
+   * Compute container class based on platform
+   *
+   * MOBILE (NEW OVERLAY PATTERN):
+   * - Drawer is position: fixed at bottom with high z-index
+   * - Always overlays the map (map stays 100dvh)
+   * - Uses translate-y to slide up/down
+   * - Respects iOS safe areas with env(safe-area-inset-bottom)
+   * - Dark mode styling applied
+   *
+   * DESKTOP:
+   * - Fixed floating drawer simulating iPhone screen dimensions
+   * - Dark mode styling applied
+   */
   drawerContainerClasses$: Observable<string> = combineLatest([this.isMobile$, this.drawerExpanded$]).pipe(
     map(([isMobile, expanded]) => {
       if (isMobile) {
-        // Mobile: full-width bottom drawer with slide animation.
+        // Mobile: Fixed bottom drawer with overlay pattern + dark mode
+        // z-index must be higher than map (map is default ~0)
+        // padding-bottom includes safe area for iOS PWA
         const baseClasses =
-          'absolute bottom-0 left-0 w-full bg-white border-t shadow-lg transition-transform duration-200';
+          'fixed bottom-0 left-0 w-full bg-gray-900 border-t border-gray-700 shadow-lg transition-transform duration-200 z-[1000]';
+
+        // Apply safe area padding for iOS PWA
+        const safeAreaClasses = 'pb-[env(safe-area-inset-bottom)]';
+
+        // Transform based on expanded state
         const transformClass = expanded
           ? 'translate-y-0'
           : `translate-y-[${DRAWER_CONSTANTS.MOBILE.CLOSED_TRANSLATE_PERCENTAGE}%]`;
-        return `${baseClasses} ${transformClass}`;
+
+        return `${baseClasses} ${safeAreaClasses} ${transformClass}`;
       } else {
-        // Desktop: Fixed floating drawer simulating iPhone screen dimensions.
+        // Desktop: Fixed floating drawer simulating iPhone screen dimensions + dark mode
         const { WIDTH_PX, HEIGHT_PX } = DRAWER_CONSTANTS.DESKTOP;
-        return `absolute left-10 top-10 bg-white border shadow-lg w-[${WIDTH_PX}px] h-[${HEIGHT_PX}px]`;
+        return `absolute left-10 top-10 bg-gray-900 border border-gray-700 shadow-lg w-[${WIDTH_PX}px] h-[${HEIGHT_PX}px] z-[1000]`;
       }
     })
   );
@@ -192,6 +213,11 @@ export class DrawerComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
+    /**
+     * Calculate visible drawer height for map control positioning
+     * With new overlay pattern, map doesn't resize, but we still need to know
+     * drawer height to adjust map control positions (zoom buttons, etc.)
+     */
     const visibleHeight = getVisibleHeight(this.drawerContainer.nativeElement);
     this.mapLayoutService.updateDrawerHeight(visibleHeight);
   }

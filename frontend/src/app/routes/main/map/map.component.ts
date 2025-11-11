@@ -13,6 +13,7 @@ import { GoogleMapsLoaderService } from '../../../core/services/maps/google-maps
 import { Dictionary } from '@ngrx/entity';
 import { selectIsMobile } from '../../../core/state/lib/layout/layout.selectors';
 import { selectAllStopsSortedByDistance } from '../../../core/state/lib/stops/stops.selectors';
+import { selectDrawerExpanded } from '../../../core/state/lib/user/user.selectors';
 import { CameraMode, DirectorService } from '../../../core/services/director.service';
 import { MapControllerService } from '../../../core/services/maps/map-controller.service';
 import { ToastrService } from 'ngx-toastr';
@@ -45,6 +46,87 @@ export class MapComponent implements OnInit {
     mapTypeControl: false,
     streetViewControl: false,
     fullscreenControl: false,
+    // Dark mode styling for Google Maps
+    styles: [
+      { elementType: 'geometry', stylers: [{ color: '#1a1a1a' }] },
+      { elementType: 'labels.text.stroke', stylers: [{ color: '#1a1a1a' }] },
+      { elementType: 'labels.text.fill', stylers: [{ color: '#8a8a8a' }] },
+      {
+        featureType: 'administrative.locality',
+        elementType: 'labels.text.fill',
+        stylers: [{ color: '#b4b4b4' }],
+      },
+      {
+        featureType: 'poi',
+        elementType: 'labels.text.fill',
+        stylers: [{ color: '#6b6b6b' }],
+      },
+      {
+        featureType: 'poi.park',
+        elementType: 'geometry',
+        stylers: [{ color: '#1e3a1e' }],
+      },
+      {
+        featureType: 'poi.park',
+        elementType: 'labels.text.fill',
+        stylers: [{ color: '#5a7a5a' }],
+      },
+      {
+        featureType: 'road',
+        elementType: 'geometry',
+        stylers: [{ color: '#2d2d2d' }],
+      },
+      {
+        featureType: 'road',
+        elementType: 'geometry.stroke',
+        stylers: [{ color: '#1f1f1f' }],
+      },
+      {
+        featureType: 'road',
+        elementType: 'labels.text.fill',
+        stylers: [{ color: '#7a7a7a' }],
+      },
+      {
+        featureType: 'road.highway',
+        elementType: 'geometry',
+        stylers: [{ color: '#3a3a3a' }],
+      },
+      {
+        featureType: 'road.highway',
+        elementType: 'geometry.stroke',
+        stylers: [{ color: '#1f1f1f' }],
+      },
+      {
+        featureType: 'road.highway',
+        elementType: 'labels.text.fill',
+        stylers: [{ color: '#9a9a9a' }],
+      },
+      {
+        featureType: 'transit',
+        elementType: 'geometry',
+        stylers: [{ color: '#2d2d2d' }],
+      },
+      {
+        featureType: 'transit.station',
+        elementType: 'labels.text.fill',
+        stylers: [{ color: '#8a8a8a' }],
+      },
+      {
+        featureType: 'water',
+        elementType: 'geometry',
+        stylers: [{ color: '#0a1929' }],
+      },
+      {
+        featureType: 'water',
+        elementType: 'labels.text.fill',
+        stylers: [{ color: '#4a6b8a' }],
+      },
+      {
+        featureType: 'water',
+        elementType: 'labels.text.stroke',
+        stylers: [{ color: '#0a1929' }],
+      },
+    ],
   };
 
   private cameraModeSubscription!: Subscription;
@@ -65,7 +147,7 @@ export class MapComponent implements OnInit {
   vehicles$: Observable<Dictionary<Vehicle>> = this.store.select(selectVehicleEntities);
 
   ngOnInit(): void {
-    // pan to center after resize
+    // Pan to center after resize
     fromEvent(window, 'resize')
       .pipe(debounceTime(100))
       .subscribe(() => {
@@ -82,24 +164,75 @@ export class MapComponent implements OnInit {
         take(1)
       ),
     ]).subscribe(() => {
-      // On mobile, edit viewport height on google-map based on drawer height.
-      combineLatest([this.store.select(selectIsMobile), this.mapLayoutService.visibleDrawerHeight$]).subscribe(
-        ([isMobile, drawerHeight]) => {
-          if (this.map) {
-            const viewportHeight = window.innerHeight;
+      /**
+       * NEW OVERLAY PATTERN (Mobile):
+       * - Map stays at full height (100dvh) always
+       * - Drawer overlays with higher z-index
+       * - When drawer state changes, pan map to keep content visible
+       * - No more resizing map div (prevents ugly re-renders)
+       */
+      combineLatest([
+        this.store.select(selectIsMobile),
+        this.mapLayoutService.visibleDrawerHeight$,
+        this.store.select(selectDrawerExpanded),
+      ]).subscribe(([isMobile, drawerHeight, isExpanded]) => {
+        if (!this.map) return;
 
-            if (isMobile) {
-              // Ensure drawer height is reasonable (not negative, not larger than viewport)
-              const safeDrawerHeight = Math.max(0, Math.min(drawerHeight, viewportHeight * 0.8));
-              const mapHeight = Math.max(100, viewportHeight - safeDrawerHeight); // Minimum 100px for map
-              this.map.getDiv().style.height = `${mapHeight}px`;
-            } else {
-              this.map.getDiv().style.height = `${viewportHeight}px`;
-            }
-          }
+        if (isMobile) {
+          // Pan map to compensate for drawer position
+          // When drawer is minimized, pan down to keep centered content visible
+          // When drawer is expanded, pan up to avoid content being hidden
+          this.adjustMapPaddingForDrawer(drawerHeight, isExpanded);
         }
-      );
+      });
     });
+  }
+
+  /**
+   * Adjust map controls position to account for drawer overlay
+   * Moves Google Maps controls (zoom, etc.) up when drawer is visible
+   * This prevents them from being hidden behind the drawer
+   *
+   * @param drawerHeight - Height of visible drawer portion
+   * @param isExpanded - Whether drawer is expanded
+   */
+  private adjustMapPaddingForDrawer(drawerHeight: number, isExpanded: boolean) {
+    if (!this.map) return;
+
+    /**
+     * Strategy: Adjust control positions using CSS on the map div
+     * Google Maps controls are positioned using CSS classes
+     * We add bottom margin to shift controls up above the drawer
+     */
+    const mapDiv = this.map.getDiv();
+    if (!mapDiv) return;
+
+    // Calculate how much to shift controls up
+    // When minimized, less shift needed since drawer is mostly off-screen
+    // When expanded, more shift to avoid controls being hidden
+    const controlBottomMargin = isExpanded ? drawerHeight + 10 : drawerHeight * 0.4 + 10;
+
+    // Apply custom CSS to shift map controls
+    // This affects zoom controls, scale, etc.
+    const style = document.createElement('style');
+    style.id = 'map-controls-adjustment';
+
+    // Remove old style if exists
+    const oldStyle = document.getElementById('map-controls-adjustment');
+    if (oldStyle) {
+      oldStyle.remove();
+    }
+
+    style.textContent = `
+      .gm-bundled-control {
+        bottom: ${controlBottomMargin}px !important;
+      }
+      .gmnoprint {
+        bottom: ${controlBottomMargin}px !important;
+      }
+    `;
+
+    document.head.appendChild(style);
   }
 
   onMapReady(event: google.maps.Map | Event) {

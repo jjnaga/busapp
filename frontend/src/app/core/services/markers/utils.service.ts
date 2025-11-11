@@ -81,6 +81,80 @@ function truncateText(text: string, maxLength: number): string {
   return text.substring(0, maxLength - 3) + '...';
 }
 
+/**
+ * Create a cluster marker representing multiple bus stops grouped together
+ *
+ * Clusters help reduce visual clutter at lower zoom levels by:
+ * - Showing a single marker for nearby stops
+ * - Displaying the count of stops in the cluster
+ * - Using color coding to indicate if cluster contains favorites/nearby stops
+ *
+ * @param count - Number of stops in this cluster
+ * @param hasFavorite - Whether cluster contains any favorite stops
+ * @param hasNearby - Whether cluster contains any nearby stops
+ * @returns HTMLElement to be used as marker content
+ */
+export function createClusterMarker(count: number, hasFavorite: boolean, hasNearby: boolean): HTMLElement {
+  const div = document.createElement('div');
+  div.classList.add('cluster-marker');
+
+  // Size scales with count (larger clusters are more prominent)
+  // But cap at reasonable max size for UX
+  const size = Math.min(50, 30 + Math.log(count) * 8);
+
+  // Color priority: favorite > nearby > normal
+  let bgColor = '#2563eb'; // Default blue
+  let borderColor = '#1e40af';
+
+  if (hasFavorite) {
+    bgColor = '#FFD700'; // Gold for favorites
+    borderColor = '#FFA500';
+  } else if (hasNearby) {
+    bgColor = '#10B981'; // Green for nearby
+    borderColor = '#059669';
+  }
+
+  div.innerHTML = `
+    <div class="cluster-marker-content" style="
+      width: ${size}px;
+      height: ${size}px;
+      background: ${bgColor};
+      border: 3px solid ${borderColor};
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    ">
+      <span style="
+        color: white;
+        font-weight: bold;
+        font-size: ${Math.max(12, size / 3)}px;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+      ">${count}</span>
+    </div>
+  `;
+
+  // Add hover effect
+  div.addEventListener('mouseenter', () => {
+    const content = div.querySelector('.cluster-marker-content') as HTMLElement;
+    if (content) {
+      content.style.transform = 'scale(1.1)';
+    }
+  });
+
+  div.addEventListener('mouseleave', () => {
+    const content = div.querySelector('.cluster-marker-content') as HTMLElement;
+    if (content) {
+      content.style.transform = 'scale(1)';
+    }
+  });
+
+  return div;
+}
+
 export function createStopSVG(title: string, isFavorite: boolean, isNearby: boolean = false): HTMLElement {
   const outerCircleSize = 34;
   const innerCircleSize = 27;
