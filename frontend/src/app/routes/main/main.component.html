@@ -1,7 +1,23 @@
-<div class="relative h-dvh overflow-hidden">
-  <!-- Map always at full height, drawer overlays on mobile -->
-  <map-component class="absolute inset-0 w-full h-full"></map-component>
+<ng-container *ngIf="isMobile$ | async; else desktopLayout">
+  <div class="relative h-dvh overflow-hidden">
+    <!-- Mobile: map remains full bleed with drawer floating on top. -->
+    <map-component class="absolute inset-0 h-full w-full"></map-component>
+    <drawer></drawer>
+  </div>
+</ng-container>
 
-  <!-- Drawer overlays map on mobile with higher z-index, desktop is positioned separately -->
-  <drawer></drawer>
-</div>
+<ng-template #desktopLayout>
+  <div class="flex h-dvh w-full bg-gradient-to-br from-gray-950 via-gray-900 to-black">
+    <!-- Desktop: dedicate the left pane to the map. -->
+    <div class="relative flex-1">
+      <map-component class="absolute inset-0 h-full w-full"></map-component>
+    </div>
+
+    <!-- Right rail showcases the drawer in a framed shell, keeping the mobile experience familiar. -->
+    <div class="flex h-full w-full max-w-[440px] shrink-0 items-center justify-center px-8 py-10">
+      <div class="flex h-full w-full max-h-[760px]">
+        <drawer class="w-full"></drawer>
+      </div>
+    </div>
+  </div>
+</ng-template>

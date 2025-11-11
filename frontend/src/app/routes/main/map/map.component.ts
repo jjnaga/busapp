@@ -8,12 +8,11 @@ import { MarkerService } from '../../../core/services/markers/marker.service';
 import { Store } from '@ngrx/store';
 import { selectVehicleEntities } from '../../../core/state/lib/vehicles/vehicles.selectors';
 import { selectUserLocation } from '../../../core/state/lib/user-location/user-location.selectors';
-import { MapLayoutService } from '../../../core/services/maps/map-layout.service';
+import { MapLayoutService, DrawerLayoutMetrics } from '../../../core/services/maps/map-layout.service';
 import { GoogleMapsLoaderService } from '../../../core/services/maps/google-maps-loader.service';
 import { Dictionary } from '@ngrx/entity';
 import { selectIsMobile } from '../../../core/state/lib/layout/layout.selectors';
 import { selectAllStopsSortedByDistance } from '../../../core/state/lib/stops/stops.selectors';
-import { selectDrawerExpanded } from '../../../core/state/lib/user/user.selectors';
 import { CameraMode, DirectorService } from '../../../core/services/director.service';
 import { MapControllerService } from '../../../core/services/maps/map-controller.service';
 import { ToastrService } from 'ngx-toastr';
@@ -36,6 +35,12 @@ export class MapComponent implements OnInit {
   private director = inject(DirectorService);
   private isProgrammaticPanAndZoom: boolean = false;
   private mapControllerService = inject(MapControllerService);
+  /** Tracks the custom style element used to reposition Google Maps controls when the drawer shifts layout. */
+  private controlOffsetStyleEl: HTMLStyleElement | null = null;
+  /** Keeps the last applied padding so we can avoid redundant map.setOptions calls. */
+  private lastAppliedPadding: { bottom: number; right: number } | null = null;
+  /** Subscribes to drawer layout metrics once the map is ready. */
+  private drawerLayoutSubscription?: Subscription;
   map: google.maps.Map | null = null;
   mapOptions: google.maps.MapOptions = {
     mapId: '53da1ad002655c53',
@@ -164,75 +169,72 @@ export class MapComponent implements OnInit {
         take(1)
       ),
     ]).subscribe(() => {
-      /**
-       * NEW OVERLAY PATTERN (Mobile):
-       * - Map stays at full height (100dvh) always
-       * - Drawer overlays with higher z-index
-       * - When drawer state changes, pan map to keep content visible
-       * - No more resizing map div (prevents ugly re-renders)
-       */
-      combineLatest([
+      this.drawerLayoutSubscription?.unsubscribe();
+      this.drawerLayoutSubscription = combineLatest([
+        this.mapLayoutService.drawerMetrics$,
         this.store.select(selectIsMobile),
-        this.mapLayoutService.visibleDrawerHeight$,
-        this.store.select(selectDrawerExpanded),
-      ]).subscribe(([isMobile, drawerHeight, isExpanded]) => {
-        if (!this.map) return;
-
-        if (isMobile) {
-          // Pan map to compensate for drawer position
-          // When drawer is minimized, pan down to keep centered content visible
-          // When drawer is expanded, pan up to avoid content being hidden
-          this.adjustMapPaddingForDrawer(drawerHeight, isExpanded);
-        }
-      });
+      ])
+        .pipe(filter(() => !!this.map))
+        .subscribe(([metrics, isMobile]) => {
+          this.handleDrawerMetrics(metrics, isMobile);
+        });
     });
   }
 
   /**
-   * Adjust map controls position to account for drawer overlay
-   * Moves Google Maps controls (zoom, etc.) up when drawer is visible
-   * This prevents them from being hidden behind the drawer
-   *
-   * @param drawerHeight - Height of visible drawer portion
-   * @param isExpanded - Whether drawer is expanded
+   * Apply padding and control offsets whenever the drawer reports new layout metrics.
+   * Keeps the Google Map interactive elements visible without needing to mutate the DOM layout directly.
    */
-  private adjustMapPaddingForDrawer(drawerHeight: number, isExpanded: boolean) {
+  private handleDrawerMetrics(metrics: DrawerLayoutMetrics, isMobile: boolean) {
     if (!this.map) return;
 
-    /**
-     * Strategy: Adjust control positions using CSS on the map div
-     * Google Maps controls are positioned using CSS classes
-     * We add bottom margin to shift controls up above the drawer
-     */
-    const mapDiv = this.map.getDiv();
-    if (!mapDiv) return;
+    const bottomPadding = Math.max(
+      0,
+      Math.round((metrics.anchor === 'bottom' ? metrics.height : 0) + metrics.offsetBottom)
+    );
+    const rightPadding = Math.max(
+      0,
+      Math.round((metrics.anchor === 'right' ? metrics.width : 0) + metrics.offsetRight)
+    );
 
-    // Calculate how much to shift controls up
-    // When minimized, less shift needed since drawer is mostly off-screen
-    // When expanded, more shift to avoid controls being hidden
-    const controlBottomMargin = isExpanded ? drawerHeight + 10 : drawerHeight * 0.4 + 10;
-
-    // Apply custom CSS to shift map controls
-    // This affects zoom controls, scale, etc.
-    const style = document.createElement('style');
-    style.id = 'map-controls-adjustment';
-
-    // Remove old style if exists
-    const oldStyle = document.getElementById('map-controls-adjustment');
-    if (oldStyle) {
-      oldStyle.remove();
+    if (
+      this.lastAppliedPadding &&
+      this.lastAppliedPadding.bottom === bottomPadding &&
+      this.lastAppliedPadding.right === rightPadding
+    ) {
+      return;
     }
 
-    style.textContent = `
+    this.updateMapControlOffsets(bottomPadding, rightPadding);
+    this.lastAppliedPadding = { bottom: bottomPadding, right: rightPadding };
+
+    // Notify listeners (e.g., markers) that the camera characteristics changed due to padding updates.
+    this.mapControllerService.emitMapEvent();
+  }
+
+  /**
+   * Maintain a single style node that repositions bundled Google Map controls when padding shifts.
+   */
+  private updateMapControlOffsets(bottom: number, right: number) {
+    if (!this.controlOffsetStyleEl) {
+      const legacyStyle = document.getElementById('map-controls-adjustment');
+      legacyStyle?.remove();
+
+      this.controlOffsetStyleEl = document.createElement('style');
+      this.controlOffsetStyleEl.id = 'map-controls-adjustment';
+      document.head.appendChild(this.controlOffsetStyleEl);
+    }
+
+    this.controlOffsetStyleEl.textContent = `
       .gm-bundled-control {
-        bottom: ${controlBottomMargin}px !important;
+        bottom: ${bottom}px !important;
+        right: ${right}px !important;
       }
       .gmnoprint {
-        bottom: ${controlBottomMargin}px !important;
+        bottom: ${bottom}px !important;
+        right: ${right}px !important;
       }
     `;
-
-    document.head.appendChild(style);
   }
 
   onMapReady(event: google.maps.Map | Event) {
@@ -391,7 +393,13 @@ export class MapComponent implements OnInit {
     }
   }
 
-  ngOnDestory() {
+  ngOnDestroy() {
     this.cameraModeSubscription?.unsubscribe();
+    this.drawerLayoutSubscription?.unsubscribe();
+
+    if (this.controlOffsetStyleEl) {
+      this.controlOffsetStyleEl.remove();
+      this.controlOffsetStyleEl = null;
+    }
   }
 }

@@ -1,25 +1,31 @@
-import { Component, ElementRef, inject, OnInit, AfterViewInit, OnDestroy, ViewChild } from '@angular/core';
-import { combineLatest, map, Observable, timer, take } from 'rxjs';
-import { DrawerMode } from '../../../core/utils/global.types';
-import { Store } from '@ngrx/store';
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { BottomMenuComponent } from '../bottom-menu/bottom-menu.component';
+import { Store } from '@ngrx/store';
+import { BehaviorSubject, Subject, combineLatest, take, takeUntil, timer } from 'rxjs';
+import { map } from 'rxjs/operators';
+
+import { DrawerMode } from '../../../core/utils/global.types';
 import { selectAllStops, selectSelectedStop, selectStopsLoading } from '../../../core/state/lib/stops/stops.selectors';
 import { selectDrawerExpanded, selectDrawerMode } from '../../../core/state/lib/user/user.selectors';
 import { toggleDrawerExpanded } from '../../../core/state/lib/user/user.actions';
-import { MapLayoutService } from '../../../core/services/maps/map-layout.service';
+import { BottomMenuComponent } from '../bottom-menu/bottom-menu.component';
 import { StopComponent } from './stop/stop.component';
 import { FvoritesComponent } from './favorites/favorites.components';
 import { HomeComponent } from './home/home.component';
-import { getVisibleHeight } from '../../../core/utils/utils';
+import { MapLayoutService } from '../../../core/services/maps/map-layout.service';
 import { selectIsMobile } from '../../../core/state/lib/layout/layout.selectors';
 import { MarqueeIfOverflowDirective } from '../../../core/utils/directives/marquee-if-overflow.directive';
 import { StopNameComponent } from '../../../shared/stop-name/stop-name.component';
 import { DRAWER_CONSTANTS } from '../../../core/utils/drawer.constants';
+import { getVisibleHeight } from '../../../core/utils/utils';
 
+/**
+ * DrawerComponent is the central navigation surface for both mobile and desktop views.
+ * Rather than build a bespoke desktop UX, we reuse the drawer content while changing how it is positioned.
+ * Layout measurements are streamed to MapLayoutService so the map can reposition controls intelligently.
+ */
 @Component({
   selector: 'drawer',
-  templateUrl: './drawer.component.html',
   standalone: true,
   imports: [
     CommonModule,
@@ -30,7 +36,8 @@ import { DRAWER_CONSTANTS } from '../../../core/utils/drawer.constants';
     MarqueeIfOverflowDirective,
     StopNameComponent,
   ],
-  // wtf did 3.7 generate
+  templateUrl: './drawer.component.html',
+  // TODO(question): STYLING_GUIDE.MD referenced in the brief is not present; continuing with current visual direction.
   styles: [
     `
       ::ng-deep .drawer-content .stop-name-component {
@@ -47,10 +54,16 @@ import { DRAWER_CONSTANTS } from '../../../core/utils/drawer.constants';
   ],
 })
 export class DrawerComponent implements OnInit, AfterViewInit, OnDestroy {
-  @ViewChild('drawerContainer') drawerContainer!: ElementRef;
+  @ViewChild('drawerContainer', { static: true }) drawerContainer?: ElementRef<HTMLDivElement>;
 
-  private store = inject(Store);
-  private mapLayoutService = inject(MapLayoutService);
+  private readonly store = inject(Store);
+  private readonly mapLayoutService = inject(MapLayoutService);
+
+  private readonly destroy$ = new Subject<void>();
+  private readonly dragActive$ = new BehaviorSubject<boolean>(false);
+  private resizeObserver?: ResizeObserver;
+  private isMobileSnapshot = false;
+  private viewInitialized = false;
 
   stops$ = this.store.select(selectAllStops);
   loading$ = this.store.select(selectStopsLoading);
@@ -60,185 +73,187 @@ export class DrawerComponent implements OnInit, AfterViewInit, OnDestroy {
   isMobile$ = this.store.select(selectIsMobile);
 
   DrawerMode = DrawerMode;
+  readonly DRAWER_CONSTANTS = DRAWER_CONSTANTS;
+
   headerTitles = {
     [DrawerMode.Home]: 'Home',
     [DrawerMode.Favorites]: 'Favorites',
-  };
+  } as const;
 
-  // Drawer configuration constants
-  readonly DRAWER_CONSTANTS = DRAWER_CONSTANTS;
+  /**
+   * Container classes adapt between mobile overlay and desktop side-rail layouts without duplicating markup.
+   */
+  drawerContainerClasses$ = combineLatest([this.isMobile$, this.drawerExpanded$]).pipe(
+    map(([isMobile, expanded]) => {
+      if (isMobile) {
+        const baseOverlay =
+          'fixed bottom-0 left-0 w-full bg-gray-900 border-t border-gray-700 shadow-lg transition-transform duration-200 z-[1000]';
+        const safeAreaPadding = 'pb-[env(safe-area-inset-bottom)]';
+        const translateState = expanded ? 'translate-y-0' : 'translate-y-[60%]';
+        return `${baseOverlay} ${safeAreaPadding} ${translateState}`;
+      }
 
-  // Touch/drag state
+      return [
+        'relative',
+        'flex',
+        'h-full',
+        'w-full',
+        'bg-gray-900/95',
+        'border',
+        'border-gray-700/60',
+        'shadow-[0_20px_60px_rgba(0,0,0,0.45)]',
+        'rounded-3xl',
+        'overflow-hidden',
+        'backdrop-blur-xl',
+        'transition-all',
+        'duration-300',
+        'pointer-events-auto',
+      ].join(' ');
+    })
+  );
+
+  // Drag state is mobile-only but stored on the instance so we can short-circuit map updates mid-gesture.
   private isDragging = false;
   private startY = 0;
   private currentTranslateY = 0;
   private initialTranslateY = 0;
 
-  /**
-   * Compute container class based on platform
-   *
-   * MOBILE (NEW OVERLAY PATTERN):
-   * - Drawer is position: fixed at bottom with high z-index
-   * - Always overlays the map (map stays 100dvh)
-   * - Uses translate-y to slide up/down
-   * - Respects iOS safe areas with env(safe-area-inset-bottom)
-   * - Dark mode styling applied
-   *
-   * DESKTOP:
-   * - Fixed floating drawer simulating iPhone screen dimensions
-   * - Dark mode styling applied
-   */
-  drawerContainerClasses$: Observable<string> = combineLatest([this.isMobile$, this.drawerExpanded$]).pipe(
-    map(([isMobile, expanded]) => {
-      if (isMobile) {
-        // Mobile: Fixed bottom drawer with overlay pattern + dark mode
-        // z-index must be higher than map (map is default ~0)
-        // padding-bottom includes safe area for iOS PWA
-        const baseClasses =
-          'fixed bottom-0 left-0 w-full bg-gray-900 border-t border-gray-700 shadow-lg transition-transform duration-200 z-[1000]';
-
-        // Apply safe area padding for iOS PWA
-        const safeAreaClasses = 'pb-[env(safe-area-inset-bottom)]';
-
-        // Transform based on expanded state
-        const transformClass = expanded
-          ? 'translate-y-0'
-          : `translate-y-[${DRAWER_CONSTANTS.MOBILE.CLOSED_TRANSLATE_PERCENTAGE}%]`;
-
-        return `${baseClasses} ${safeAreaClasses} ${transformClass}`;
-      } else {
-        // Desktop: Fixed floating drawer simulating iPhone screen dimensions + dark mode
-        const { WIDTH_PX, HEIGHT_PX } = DRAWER_CONSTANTS.DESKTOP;
-        return `absolute left-10 top-10 bg-gray-900 border border-gray-700 shadow-lg w-[${WIDTH_PX}px] h-[${HEIGHT_PX}px] z-[1000]`;
-      }
-    })
-  );
-
-  private resizeObserver!: ResizeObserver;
-
-  // This toggle is only used on mobile (the button is hidden on desktop).
   toggleDrawer() {
     this.store.dispatch(toggleDrawerExpanded({}));
   }
 
-  // Touch event handlers for drag functionality
+  ngOnInit() {
+    // Clear stale inline transforms in case the component is recreated from a cached route state.
+    this.ensureCleanState();
+
+    // Track breakpoint changes to emit fresh metrics even if the drawer itself does not resize.
+    this.isMobile$.pipe(takeUntil(this.destroy$)).subscribe((isMobile) => {
+      this.isMobileSnapshot = !!isMobile;
+
+      if (this.viewInitialized) {
+        this.scheduleMetricsUpdate(0);
+      }
+    });
+  }
+
+  ngAfterViewInit() {
+    this.viewInitialized = true;
+
+    this.resizeObserver = new ResizeObserver(() => {
+      // The drawer animates frequently; debounce to avoid spamming the map listener.
+      this.scheduleMetricsUpdate(100);
+    });
+
+    this.drawerExpanded$.pipe(takeUntil(this.destroy$)).subscribe(() => {
+      // Allow CSS transition (~300ms) to finish so measurements reflect the final state.
+      this.scheduleMetricsUpdate(350);
+    });
+
+    const element = this.drawerContainer?.nativeElement;
+    if (element) {
+      this.resizeObserver.observe(element);
+      this.scheduleMetricsUpdate(100);
+    }
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+    this.resizeObserver?.disconnect();
+
+    // Reset map offsets so there is no lingering padding when navigating away.
+    this.mapLayoutService.resetDrawerMetrics();
+  }
+
   onTouchStart(event: TouchEvent) {
-    if (!this.drawerContainer?.nativeElement) return;
+    const element = this.drawerContainer?.nativeElement;
+    if (!element) return;
 
     this.isDragging = true;
+    this.dragActive$.next(true);
     this.startY = event.touches[0].clientY;
 
-    // Get current state to determine initial position
     this.drawerExpanded$.pipe(take(1)).subscribe((expanded) => {
-      if (expanded) {
-        this.initialTranslateY = 0;
-      } else {
-        this.initialTranslateY = window.innerHeight * (DRAWER_CONSTANTS.MOBILE.CLOSED_TRANSLATE_PERCENTAGE / 100);
-      }
+      this.initialTranslateY = expanded
+        ? 0
+        : window.innerHeight * (DRAWER_CONSTANTS.MOBILE.CLOSED_TRANSLATE_PERCENTAGE / 100);
       this.currentTranslateY = this.initialTranslateY;
     });
 
-    // Disable transition during drag
-    this.drawerContainer.nativeElement.style.transition = 'none';
+    element.style.transition = 'none';
   }
 
   onTouchMove(event: TouchEvent) {
-    if (!this.isDragging || !this.drawerContainer?.nativeElement) return;
+    const element = this.drawerContainer?.nativeElement;
+    if (!this.isDragging || !element) return;
 
     event.preventDefault();
     const currentY = event.touches[0].clientY;
     const deltaY = currentY - this.startY;
 
-    // Calculate new translateY, constrain it to reasonable bounds
     const maxTranslateY = window.innerHeight * (DRAWER_CONSTANTS.MOBILE.CLOSED_TRANSLATE_PERCENTAGE / 100);
     const newTranslateY = Math.max(0, Math.min(this.initialTranslateY + deltaY, maxTranslateY));
     this.currentTranslateY = newTranslateY;
 
-    // Apply transform directly
-    this.drawerContainer.nativeElement.style.transform = `translateY(${newTranslateY}px)`;
+    element.style.transform = `translateY(${newTranslateY}px)`;
   }
 
-  onTouchEnd(event: TouchEvent) {
-    if (!this.isDragging || !this.drawerContainer?.nativeElement) return;
+  onTouchEnd() {
+    const element = this.drawerContainer?.nativeElement;
+    if (!this.isDragging || !element) return;
 
     this.isDragging = false;
+    this.dragActive$.next(false);
 
-    // Determine final position based on drag distance
     const threshold = window.innerHeight * (DRAWER_CONSTANTS.MOBILE.GESTURE_THRESHOLD_PERCENTAGE / 100);
     const shouldExpand = this.currentTranslateY < threshold;
 
-    // Get current state and update if needed
     this.drawerExpanded$.pipe(take(1)).subscribe((expanded) => {
-      if (shouldExpand && !expanded) {
-        this.store.dispatch(toggleDrawerExpanded({}));
-      } else if (!shouldExpand && expanded) {
+      if (shouldExpand !== expanded) {
         this.store.dispatch(toggleDrawerExpanded({}));
       }
 
-      // Clean up: remove inline styles and let CSS classes take over
-      this.drawerContainer.nativeElement.style.transition = '';
-      this.drawerContainer.nativeElement.style.transform = '';
+      element.style.transition = '';
+      element.style.transform = '';
 
-      // Force height recalculation after state settles
-      timer(50).subscribe(() => this.updateHeight());
+      this.scheduleMetricsUpdate(50);
     });
   }
 
-  ngAfterViewInit() {
-    this.resizeObserver = new ResizeObserver(() => {
-      // Debounce height updates to avoid excessive calculations
-      timer(100).subscribe(() => this.updateHeight());
+  /**
+   * Emit drawer measurements so the map can reposition its viewport and controls.
+   */
+  private updateDrawerMetrics() {
+    if (this.dragActive$.value) return; // Gestures provide unreliable measurements; skip until settled.
+
+    const element = this.drawerContainer?.nativeElement;
+    if (!element) return;
+
+    const visibleHeight = getVisibleHeight(element);
+    const rect = element.getBoundingClientRect();
+
+    this.mapLayoutService.updateDrawerMetrics({
+      height: visibleHeight,
+      width: rect.width,
+      anchor: this.isMobileSnapshot ? 'bottom' : 'right',
+      offsetBottom: Math.max(0, window.innerHeight - rect.bottom),
+      offsetRight: Math.max(0, window.innerWidth - rect.right),
     });
-
-    // Update height when drawer state changes
-    this.drawerExpanded$.subscribe(() => {
-      // Wait for CSS transitions to complete
-      timer(350).subscribe(() => this.updateHeight());
-    });
-
-    if (this.drawerContainer?.nativeElement) {
-      this.resizeObserver.observe(this.drawerContainer.nativeElement);
-      // Initial height calculation
-      timer(100).subscribe(() => this.updateHeight());
-    }
   }
 
-  private updateHeight() {
-    if (!this.drawerContainer?.nativeElement) return;
-
-    // Ensure any pending transforms are cleared
-    const hasInlineTransform = this.drawerContainer.nativeElement.style.transform;
-    if (hasInlineTransform) {
-      // Don't update height while dragging
-      return;
-    }
-
-    /**
-     * Calculate visible drawer height for map control positioning
-     * With new overlay pattern, map doesn't resize, but we still need to know
-     * drawer height to adjust map control positions (zoom buttons, etc.)
-     */
-    const visibleHeight = getVisibleHeight(this.drawerContainer.nativeElement);
-    this.mapLayoutService.updateDrawerHeight(visibleHeight);
-  }
-
-  ngOnInit(): void {
-    // Force initial height calculation and state cleanup
-    this.ensureCleanState();
-  }
-
-  ngOnDestroy() {
-    this.resizeObserver.disconnect();
+  private scheduleMetricsUpdate(delayMs: number) {
+    timer(delayMs)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => this.updateDrawerMetrics());
   }
 
   private ensureCleanState() {
-    // Ensure no leftover inline styles that could interfere
-    if (this.drawerContainer?.nativeElement) {
-      this.drawerContainer.nativeElement.style.transform = '';
-      this.drawerContainer.nativeElement.style.transition = '';
-    }
+    const element = this.drawerContainer?.nativeElement;
+    if (!element) return;
 
-    // Reset drag state
+    element.style.transform = '';
+    element.style.transition = '';
+
     this.isDragging = false;
     this.currentTranslateY = 0;
     this.initialTranslateY = 0;
